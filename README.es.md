@@ -26,7 +26,7 @@ Las órdenes afectan a **todos los equipos de la instalación seleccionada**, ig
 5. Introduce las credenciales de wifimodule.eu en el formulario de HA y elige la instalación. No necesitas YAML ni copiar cookies.
 6. Abre **Jeremias** en la barra lateral con un usuario administrador. Los controles y sensores nativos también aparecen en Dispositivos y servicios.
 
-Para HACS, cuando el repositorio esté publicado: añade `https://github.com/JesusMF23/ha-jeremias-wifimodule` en **HACS → Repositorios personalizados**, categoría **Integración**, descarga la beta y reinicia. Ser instalable desde un repositorio personalizado no significa estar aprobado en el catálogo predeterminado de HACS.
+Para HACS: añade `https://github.com/JesusMF23/ha-jeremias-wifimodule` en **HACS → Repositorios personalizados**, categoría **Integración**, descarga la beta y reinicia. Ser instalable desde un repositorio personalizado no significa estar aprobado en el catálogo predeterminado de HACS.
 
 ## Primer uso y programación
 

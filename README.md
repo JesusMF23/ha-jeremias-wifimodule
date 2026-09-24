@@ -1,5 +1,7 @@
 # Jeremias / WifiModule for Home Assistant
 
+[![Validate](https://github.com/JesusMF23/ha-jeremias-wifimodule/actions/workflows/validate.yaml/badge.svg)](https://github.com/JesusMF23/ha-jeremias-wifimodule/actions/workflows/validate.yaml)
+
 Community integration for heat-recovery ventilation controlled through **wifimodule.eu**. Includes native Home Assistant entities and a **Jeremias** sidebar panel for modes, profiles and weekly programming. No extra hardware is required. This integration depends on the WifiModule cloud and is not a local Modbus integration.
 
 **0.2.0b1 is a beta.** The basic status and control endpoints have user-captured evidence. Programming endpoints are implemented from the website's public JavaScript and tested against simulated responses; complete authenticated hardware acceptance is still pending. This is not an official Jeremias product and is not yet listed in the HACS default catalogue.
@@ -32,7 +34,7 @@ Controls act on **every unit in the selected building**, as the website API does
 
 ### HACS custom repository
 
-Once this repository is public at `https://github.com/JesusMF23/ha-jeremias-wifimodule`:
+Repository: `https://github.com/JesusMF23/ha-jeremias-wifimodule`.
 
 1. Open HACS → menu → **Custom repositories**.
 2. Enter that repository URL and select **Integration**.

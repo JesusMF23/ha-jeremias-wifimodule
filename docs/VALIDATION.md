@@ -18,7 +18,7 @@ The final reviewer additionally exercised a failed installation switch and cance
 
 ## Distribution checks
 
-The repository contains HACS metadata, local original brand icon, English/Spanish documentation, MIT license, a read-only GitHub Actions workflow, and no captured account fixtures. The workflow runs pytest, Ruff, JS/format checks, hassfest and HACS validation after publication. Automated distribution checks are not a substitute for physical-device acceptance.
+The repository contains HACS metadata, local original brand icon, English/Spanish documentation, MIT license, a read-only GitHub Actions workflow, and no captured account fixtures. The first published workflow passed all three jobs: tests (pytest, Ruff, JavaScript syntax and formatting), Home Assistant hassfest, and HACS validation. [Successful run](https://github.com/JesusMF23/ha-jeremias-wifimodule/actions/runs/35997310671). Automated distribution checks are not a substitute for physical-device acceptance.
 
 ## Remaining acceptance before a stable release
 
