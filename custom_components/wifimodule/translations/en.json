@@ -1,0 +1,132 @@
+{
+  "title": "Jeremias / WifiModule",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect WifiModule",
+        "description": "Use your wifimodule.eu account. Controls affect the whole group. Setup does not send device commands.",
+        "data": {
+          "username": "Email",
+          "password": "Password"
+        }
+      },
+      "building": {
+        "title": "Choose installation",
+        "description": "Select a group. The number indicates how many units are controlled together.",
+        "data": {
+          "building_id": "Installation"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Renew access",
+        "data": {
+          "username": "Email",
+          "password": "Password"
+        }
+      },
+      "reconfigure": {
+        "title": "Update group membership",
+        "description": "These units will receive group commands: {units}"
+      }
+    },
+    "error": {
+      "invalid_auth": "Credentials rejected.",
+      "cannot_connect": "Cannot read the WifiModule account.",
+      "invalid_device": "Missing units or invalid building timezone."
+    },
+    "abort": {
+      "already_configured": "Already configured.",
+      "reauth_successful": "Access updated.",
+      "reconfigure_successful": "Configuration updated.",
+      "cannot_connect": "Cannot read the account."
+    }
+  },
+  "exceptions": {
+    "auth_required": {
+      "message": "Reauthenticate WifiModule."
+    },
+    "command_failed": {
+      "message": "Command not confirmed. Reload and check device communication, group and input. Not automatically retried."
+    }
+  },
+  "entity": {
+    "fan": {
+      "ventilation": {
+        "name": "Ventilation",
+        "state_attributes": {
+          "preset_mode": {
+            "state": {
+              "schedule": "Schedule",
+              "auto": "Automatic"
+            }
+          }
+        }
+      }
+    },
+    "select": {
+      "control_mode": {
+        "name": "Control mode",
+        "state": {
+          "schedule": "Schedule",
+          "manual": "Manual",
+          "auto": "Automatic"
+        }
+      },
+      "profile": {
+        "name": "Active profile"
+      }
+    },
+    "switch": {
+      "bypass": {
+        "name": "Bypass"
+      }
+    },
+    "number": {
+      "override_duration": {
+        "name": "Manual duration (0 = no expiry)"
+      }
+    },
+    "button": {
+      "boost": {
+        "name": "Boost for 5 minutes"
+      },
+      "resume_schedule": {
+        "name": "Resume schedule"
+      }
+    },
+    "sensor": {
+      "speed_level": {
+        "name": "Speed level"
+      },
+      "error_code": {
+        "name": "Error code"
+      },
+      "filter_hours": {
+        "name": "Filter counter"
+      },
+      "last_communication": {
+        "name": "Last communication (server time)"
+      },
+      "aqs1": {
+        "name": "Air quality sensor 1"
+      },
+      "aqs2": {
+        "name": "Air quality sensor 2"
+      }
+    },
+    "binary_sensor": {
+      "power": {
+        "name": "Running"
+      },
+      "boost_active": {
+        "name": "Boost active"
+      },
+      "bypass_active": {
+        "name": "Bypass active"
+      },
+      "problem": {
+        "name": "Problem"
+      }
+    }
+  }
+}

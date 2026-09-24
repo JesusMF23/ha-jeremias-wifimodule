@@ -1,0 +1,132 @@
+{
+  "title": "Jeremias / WifiModule",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Conectar WifiModule",
+        "description": "Usa tu cuenta de wifimodule.eu. Los controles afectan al grupo completo. No se envían órdenes durante la configuración.",
+        "data": {
+          "username": "Correo",
+          "password": "Contraseña"
+        }
+      },
+      "building": {
+        "title": "Elegir instalación",
+        "description": "Selecciona el grupo. El número indica cuántas unidades se controlarán conjuntamente.",
+        "data": {
+          "building_id": "Instalación"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Renovar acceso",
+        "data": {
+          "username": "Correo",
+          "password": "Contraseña"
+        }
+      },
+      "reconfigure": {
+        "title": "Actualizar unidades del grupo",
+        "description": "Estas unidades recibirán las órdenes del grupo: {units}"
+      }
+    },
+    "error": {
+      "invalid_auth": "Credenciales rechazadas.",
+      "cannot_connect": "No se puede leer la cuenta de WifiModule.",
+      "invalid_device": "Faltan unidades o la zona horaria del edificio no es válida."
+    },
+    "abort": {
+      "already_configured": "Ya configurado.",
+      "reauth_successful": "Acceso actualizado.",
+      "reconfigure_successful": "Configuración actualizada.",
+      "cannot_connect": "No se puede leer la cuenta."
+    }
+  },
+  "exceptions": {
+    "auth_required": {
+      "message": "Vuelve a autenticar WifiModule."
+    },
+    "command_failed": {
+      "message": "Orden no confirmada. Recarga y comprueba la comunicación del equipo, el grupo y los datos. No se reintenta automáticamente."
+    }
+  },
+  "entity": {
+    "fan": {
+      "ventilation": {
+        "name": "Ventilación",
+        "state_attributes": {
+          "preset_mode": {
+            "state": {
+              "schedule": "Horario",
+              "auto": "Automático"
+            }
+          }
+        }
+      }
+    },
+    "select": {
+      "control_mode": {
+        "name": "Modo de control",
+        "state": {
+          "schedule": "Horario",
+          "manual": "Manual",
+          "auto": "Automático"
+        }
+      },
+      "profile": {
+        "name": "Perfil activo"
+      }
+    },
+    "switch": {
+      "bypass": {
+        "name": "Bypass"
+      }
+    },
+    "number": {
+      "override_duration": {
+        "name": "Duración manual (0 = sin caducidad)"
+      }
+    },
+    "button": {
+      "boost": {
+        "name": "Boost durante 5 minutos"
+      },
+      "resume_schedule": {
+        "name": "Volver al horario"
+      }
+    },
+    "sensor": {
+      "speed_level": {
+        "name": "Velocidad"
+      },
+      "error_code": {
+        "name": "Código de error"
+      },
+      "filter_hours": {
+        "name": "Contador del filtro"
+      },
+      "last_communication": {
+        "name": "Última comunicación (hora del servidor)"
+      },
+      "aqs1": {
+        "name": "Sensor de calidad del aire 1"
+      },
+      "aqs2": {
+        "name": "Sensor de calidad del aire 2"
+      }
+    },
+    "binary_sensor": {
+      "power": {
+        "name": "En marcha"
+      },
+      "boost_active": {
+        "name": "Boost activo"
+      },
+      "bypass_active": {
+        "name": "Bypass activo"
+      },
+      "problem": {
+        "name": "Problema"
+      }
+    }
+  }
+}

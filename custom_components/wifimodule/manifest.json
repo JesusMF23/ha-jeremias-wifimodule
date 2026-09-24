@@ -1,0 +1,20 @@
+{
+  "domain": "wifimodule",
+  "name": "Jeremias / WifiModule",
+  "codeowners": [
+    "@JesusMF23"
+  ],
+  "config_flow": true,
+  "dependencies": [
+    "frontend",
+    "http",
+    "panel_custom",
+    "websocket_api"
+  ],
+  "documentation": "https://github.com/JesusMF23/ha-jeremias-wifimodule",
+  "integration_type": "hub",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/JesusMF23/ha-jeremias-wifimodule/issues",
+  "requirements": [],
+  "version": "0.2.0b1"
+}
