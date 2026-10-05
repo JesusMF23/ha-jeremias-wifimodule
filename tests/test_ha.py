@@ -66,3 +66,33 @@ async def test_unload_only_removes_entry_after_platform_success():
     hass.config_entries.async_unload_platforms.return_value = True
     assert await async_unload_entry(hass, entry)
     assert not hass.data["wifimodule"]["entries"]
+
+
+async def test_updating_panel_invalidates_nested_module_urls():
+    """A version on panel.js alone does not invalidate relative module imports."""
+    from urllib.parse import urljoin
+
+    from custom_components.wifimodule.panel import async_setup_panel
+
+    versions = []
+    for version in ("0.3.0b1", "0.3.0b2"):
+        hass = Mock(data={"wifimodule": {}})
+        hass.http.async_register_static_paths = AsyncMock()
+        with (
+            patch("custom_components.wifimodule.panel.VERSION", version),
+            patch(
+                "custom_components.wifimodule.panel.panel_custom.async_register_panel",
+                new_callable=AsyncMock,
+            ) as register,
+            patch(
+                "custom_components.wifimodule.panel.websocket_api.async_register_command"
+            ),
+        ):
+            await async_setup_panel(hass)
+        module = register.call_args.kwargs["module_url"]
+        locale = urljoin(module, "./locales.js")
+        nested = urljoin(locale, "./regulation-locales.js")
+        versions.append({module, locale, nested, urljoin(module, "./automatic.js")})
+        static = hass.http.async_register_static_paths.call_args.args[0][0]
+        assert locale.startswith(static.url_path + "/")
+    assert versions[0].isdisjoint(versions[1])
