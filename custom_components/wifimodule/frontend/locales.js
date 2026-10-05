@@ -1,5 +1,7 @@
+import { regulationLocales } from "./regulation-locales.js";
 export const locales = {
   en: {
+    regulation: regulationLocales.en,
     menu: "Menu",
     from: "From (installation time)",
     to: "To (installation time)",
@@ -24,7 +26,7 @@ export const locales = {
     off: "Off",
     boost: "Boost",
     manual: "Manual",
-    auto: "Automatic",
+    auto: "Automatic (device sensors)",
     scheduleMode: "Schedule",
     bypass: "Bypass",
     duration: "Return to schedule after (minutes)",
@@ -85,6 +87,7 @@ export const locales = {
     unknown: "Unknown",
   },
   es: {
+    regulation: regulationLocales.es,
     menu: "Menú",
     from: "Desde (hora de la instalación)",
     to: "Hasta (hora de la instalación)",
@@ -109,7 +112,7 @@ export const locales = {
     off: "Apagado",
     boost: "Boost",
     manual: "Manual",
-    auto: "Automático",
+    auto: "Automático (sondas del equipo)",
     scheduleMode: "Horario",
     bypass: "Bypass",
     duration: "Volver al horario tras (minutos)",

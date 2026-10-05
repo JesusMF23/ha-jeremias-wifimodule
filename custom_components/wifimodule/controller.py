@@ -5,7 +5,7 @@ from datetime import datetime
 from urllib.parse import urlencode
 from zoneinfo import ZoneInfo
 
-from .api import DeviceError
+from .api import ControlCancelled, DeviceError
 from .models import (
     Heartbeat,
     integer,
@@ -84,7 +84,14 @@ class Controller:
         return values.pop()
 
     async def control(
-        self, *, speed=None, bypass=None, mode=None, duration=None, schedule=False
+        self,
+        *,
+        speed=None,
+        bypass=None,
+        mode=None,
+        duration=None,
+        schedule=False,
+        _guard=None,
     ):
         async with self.lock:
             await self.poll()
@@ -142,6 +149,10 @@ class Controller:
                     "mode": mode,
                     "switch": until,
                 }
+            if _guard is not None and not _guard():
+                raise ControlCancelled("Automatic control cancelled")
+            if _guard is not None:
+                return await self.api.write("unit-config", payload, _guard=_guard)
             return await self.api.write("unit-config", payload)
 
     async def activate(self, profile_id):

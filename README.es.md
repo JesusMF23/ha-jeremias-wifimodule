@@ -2,7 +2,7 @@
 
 Integración comunitaria con entidades nativas y un panel **Jeremias** para controlar el recuperador y editar la programación de wifimodule.eu. **No requiere hardware adicional, pero sí Internet y la nube del fabricante.**
 
-La versión **0.2.0b1 es una beta**: control y lectura básica tienen capturas reales; perfiles, modos y programación se han implementado a partir del código público de la web y probado con respuestas simuladas. Falta completar las pruebas autenticadas con equipos reales. No es una integración oficial ni está incluida en el catálogo predeterminado de HACS.
+La versión **0.3.0b1 es una beta**: control y lectura básica tienen capturas reales; perfiles, modos y programación se han implementado a partir del código público de la web y probado con respuestas simuladas. Falta completar las pruebas autenticadas con equipos reales. No es una integración oficial ni está incluida en el catálogo predeterminado de HACS.
 
 ## Qué incluye
 
@@ -15,13 +15,23 @@ La versión **0.2.0b1 es una beta**: control y lectura básica tienen capturas r
 - Editor semanal, copia de días, detección de cambios realizados desde otro cliente y exportación JSON de la programación cargada.
 - Historial con gráfico, tabla y fechas opcionales, según los datos que conserve la nube.
 
-Las órdenes afectan a **todos los equipos de la instalación seleccionada**, igual que en la web. El modo automático corresponde al recuperador; no conecta por sí solo los sensores AirQ de Airzone.
+Las órdenes afectan a **todos los equipos de la instalación seleccionada**, igual que en la web. El modo «Automático (sondas del equipo)» corresponde al recuperador. La nueva «Regulación por sensores» es independiente y usa las entidades seleccionadas de Home Assistant.
+
+## Regulación automática con Airzone
+
+Desde el panel **Jeremias → Regulación por sensores → Sensores y umbrales**, selecciona las entidades reales, guarda los ajustes y activa **Automático**. También puedes configurar los sensores desde las opciones de la integración y ajustar modo/umbrales mediante las nuevas entidades nativas. La primera instalación queda en **Manual**, sin sensores preseleccionados. No cambian los identificadores ni las llamadas del widget existente.
+
+Se combinan todas las zonas por su mayor demanda normalizada: CO₂ en ppm, TVOC en ppb, humedad opcional en % y CAI opcional. El CAI no sustituye mediciones CO₂/TVOC; úsalo únicamente si conoces la escala y un valor mayor significa peor calidad. La ampliación reutiliza la sesión existente de Airzone Cloud para consultar las lecturas AirQ y publicar CO₂, TVOC y humedad, aunque la integración oficial solo muestre parte de ellas. No solicita otra cuenta ni modifica Airzone.
+
+Incluye velocidades 1–7, límites mínimo/máximo, filtrado, histéresis, confirmación de subida y bajada, intervalo entre órdenes y diagnóstico de variable/zona. **Manual** detiene las órdenes futuras de HA; utilizar el widget, el ventilador, bypass, boost o el perfil activo también pausa la regulación antes de ejecutar la orden manual.
+
+[Funcionamiento, valores iniciales y fallos](docs/AUTOMATIC_CONTROL.md). La instalación y respuesta física de esta ampliación aún requieren validación en el equipo real.
 
 ## Instalación manual
 
 1. Necesitas Home Assistant **2026.9.0 o posterior**; las pruebas locales usan 2026.9.3.
 2. Descomprime el paquete de instalación en `/config`. Debe quedar `/config/custom_components/wifimodule/manifest.json`.
-3. Reinicia Home Assistant.
+3. Reinicia Home Assistant. Si actualizas una instalación existente, conserva la entrada de integración y haz antes una copia de su carpeta; no elimines la integración ni vuelvas a introducir las credenciales.
 4. Ve a **Ajustes → Dispositivos y servicios → Añadir integración → Jeremias / WifiModule**.
 5. Introduce las credenciales de wifimodule.eu en el formulario de HA y elige la instalación. No necesitas YAML ni copiar cookies.
 6. Abre **Jeremias** en la barra lateral con un usuario administrador. Los controles y sensores nativos también aparecen en Dispositivos y servicios.

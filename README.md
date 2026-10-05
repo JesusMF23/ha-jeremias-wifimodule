@@ -4,7 +4,7 @@
 
 Community integration for heat-recovery ventilation controlled through **wifimodule.eu**. Includes native Home Assistant entities and a **Jeremias** sidebar panel for modes, profiles and weekly programming. No extra hardware is required. This integration depends on the WifiModule cloud and is not a local Modbus integration.
 
-**0.2.0b1 is a beta.** The basic status and control endpoints have user-captured evidence. Programming endpoints are implemented from the website's public JavaScript and tested against simulated responses; complete authenticated hardware acceptance is still pending. This is not an official Jeremias product and is not yet listed in the HACS default catalogue.
+**0.3.0b1 is a beta.** The basic status and control endpoints have user-captured evidence. Programming endpoints are implemented from the website's public JavaScript and tested against simulated responses; complete authenticated hardware acceptance is still pending. This is not an official Jeremias product and is not yet listed in the HACS default catalogue.
 
 [Español](README.es.md) · [Protocol and coverage](docs/PROTOCOL.md) · [Validation](docs/VALIDATION.md)
 
@@ -21,7 +21,13 @@ Community integration for heat-recovery ventilation controlled through **wifimod
 | History | Cloud chart and table, optional date range up to 366 days; actual retention depends on the cloud account |
 | Other | English/Spanish UI; local JSON export of the loaded programming; redacted diagnostics |
 
-Controls act on **every unit in the selected building**, as the website API does. Sensor entities report each unit separately. Automatic mode uses the recuperator's own sensor logic: it does not automatically connect Airzone AirQ sensors.
+Controls act on **every unit in the selected building**, as the website API does. Sensor entities report each unit separately. The native unit automatic mode is separate from the new Home Assistant sensor regulation.
+
+## Sensor demand control
+
+The existing panel now includes independent Home Assistant Automatic/Manual regulation, real-entity selectors, configurable targets/limits/timing and visible worst-zone diagnostics. First use is Manual with no sensors selected. CO₂ must be ppm; TVOC must be ppb; humidity and higher-is-worse AQI are optional. Raw gases cannot be inferred from AQI. Existing entity IDs and widget operations remain unchanged; direct manual controls pause demand regulation before sending their command.
+
+Settings and mode persist across restarts. Commands use renewable 15-minute overrides; loss of healthy data stops renewals. Ambiguous writes disable automatic control until explicit reactivation. See [detailed behavior](docs/AUTOMATIC_CONTROL.md). Live installation and physical acceptance of this extension remain pending. Update the existing custom repository through HACS; no second integration is required.
 
 ## Requirements
 
@@ -47,9 +53,9 @@ HACS custom repositories and inclusion in the default catalogue are different: d
 
 ### Manual installation
 
-Copy the entire `custom_components/wifimodule` directory into `/config/custom_components/wifimodule`. Do not nest another `wifimodule` directory inside it. Restart Home Assistant, then follow steps 5–6 above. No YAML, copied browser cookie or API key is needed.
+Copy the entire `custom_components/wifimodule` directory into `/config/custom_components/wifimodule`. Do not nest another `wifimodule` directory inside it. Restart Home Assistant. For a new installation, follow steps 5–6 above. When upgrading, back up the existing folder and preserve the integration entry and credentials. No YAML, copied browser cookie or API key is needed.
 
-The `jeremias-wifimodule-0.2.0b1-install.zip` distribution contains the `custom_components` directory and license. Extract it into the Home Assistant configuration directory, preserving that structure.
+The `jeremias-wifimodule-0.3.0b1-install.zip` distribution contains the `custom_components` directory and license. Extract it into the Home Assistant configuration directory, preserving that structure.
 
 ## Use
 
@@ -85,3 +91,5 @@ Report a failure with HA/integration versions, a redacted diagnostic file and st
 Development: install `requirements-dev.txt` under Python 3.14, run `pytest -q`, `ruff check .`, and `ruff format --check .`. See [validation](docs/VALIDATION.md) for the remaining release acceptance work.
 
 MIT licensed. Brand names identify compatible products; no affiliation or endorsement is claimed.
+
+AirQ gas readings: when Airzone Cloud is configured, the same integration reuses its session for read-only device status polling every 60 seconds, exposing native CO₂ (ppm), TVOC (ppb), and humidity sensors. No additional credentials or integration are needed. Missing, disconnected, or failed readings become unavailable.

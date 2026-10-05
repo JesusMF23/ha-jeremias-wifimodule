@@ -3,11 +3,18 @@
 from homeassistant.components.select import SelectEntity
 from homeassistant.exceptions import HomeAssistantError
 
+from .automatic_entity import AutomaticEntity
 from .entity import GroupEntity
 
 
 async def async_setup_entry(hass, entry, async_add_entities):
-    async_add_entities([Mode(entry.runtime_data), Profile(entry.runtime_data)])
+    async_add_entities(
+        [
+            Mode(entry.runtime_data),
+            Profile(entry.runtime_data),
+            RegulationMode(entry.runtime_data),
+        ]
+    )
 
 
 class Mode(GroupEntity, SelectEntity):
@@ -59,3 +66,25 @@ class Profile(GroupEntity, SelectEntity):
         await self.coordinator.command(
             self.control.activate, self.coordinator.profiles[index]["id"]
         )
+
+
+class RegulationMode(AutomaticEntity, SelectEntity):
+    _attr_options = ["manual", "automatic"]
+
+    def __init__(self, c):
+        super().__init__(c, "regulation_mode")
+
+    @property
+    def current_option(self):
+        return "automatic" if self.automatic.enabled else "manual"
+
+    async def async_select_option(self, option):
+        if option not in self.options:
+            raise HomeAssistantError("Invalid mode")
+        try:
+            await self.automatic.configure(enabled=option == "automatic")
+        except ValueError:
+            raise HomeAssistantError(
+                translation_domain="wifimodule",
+                translation_key="invalid_automatic_config",
+            ) from None

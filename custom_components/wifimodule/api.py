@@ -20,6 +20,10 @@ class DeviceError(ApiError):
     """Selected device is missing or unsafe to control."""
 
 
+class ControlCancelled(DeviceError):
+    """A stale automatic command was cancelled before transmission."""
+
+
 class WifiModuleApi:
     """One private cookie session and serialized, bounded authentication."""
 
@@ -70,16 +74,23 @@ class WifiModuleApi:
             raise AuthError("Login rejected")
         self.authenticated = True
 
-    async def request(self, endpoint, body=None):
+    async def request(self, endpoint, body=None, *, _guard=None):
+        def check_guard():
+            if _guard is not None and not _guard():
+                raise ControlCancelled("Automatic control cancelled")
+
         async with self.lock:
+            check_guard()
             if not self.authenticated:
                 await self._login()
             try:
+                check_guard()
                 return await self._request(endpoint, body)
             except AuthError:
                 # Retry only after an explicit authentication rejection.
                 await self._login()
                 try:
+                    check_guard()
                     return await self._request(endpoint, body)
                 except AuthError:
                     self.authenticated = False
@@ -91,8 +102,8 @@ class WifiModuleApi:
             raise ApiError("Unexpected API response")
         return result[key]
 
-    async def write(self, endpoint, payload):
-        result = await self.request(endpoint, payload)
+    async def write(self, endpoint, payload, *, _guard=None):
+        result = await self.request(endpoint, payload, _guard=_guard)
         if result.get("msg") != "success":
             raise ApiError("Command not acknowledged")
         return result

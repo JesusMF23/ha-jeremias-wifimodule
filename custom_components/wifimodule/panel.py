@@ -9,9 +9,11 @@ from homeassistant.exceptions import HomeAssistantError
 
 from .api import ApiError
 from .const import DOMAIN, VERSION
+from .demand import KINDS, PARAMETERS, UNITS
 from .models import integer, revision
 
 OPERATIONS = [
+    "automatic",
     "list",
     "view",
     "control",
@@ -37,6 +39,36 @@ async def dispatch(hass, message):
     coordinator = entries[identity]
     control = coordinator.controller
     data = message.get("data", {})
+    if operation == "automatic":
+        if set(data) - {"enabled", "settings", "sensors"}:
+            raise ValueError("Unknown automatic setting")
+        if data:
+            await coordinator.automatic.configure(**data)
+        candidates = {k: [] for k in KINDS}
+        classes = {
+            "co2": "carbon_dioxide",
+            "tvoc": "volatile_organic_compounds_parts",
+            "humidity": "humidity",
+            "aqi": "aqi",
+        }
+        for state in hass.states.async_all("sensor"):
+            for kind in KINDS:
+                if (
+                    state.attributes.get("device_class") == classes[kind]
+                    and state.attributes.get("unit_of_measurement") in UNITS[kind]
+                ):
+                    candidates[kind].append(
+                        {
+                            "entity_id": state.entity_id,
+                            "name": state.name,
+                            "value": state.state,
+                        }
+                    )
+        return {
+            **coordinator.automatic.snapshot,
+            "candidates": candidates,
+            "parameters": PARAMETERS,
+        }
     if operation == "view":
         await coordinator.async_request_refresh()
         if not coordinator.last_update_success:
