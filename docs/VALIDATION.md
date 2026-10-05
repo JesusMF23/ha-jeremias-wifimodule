@@ -44,3 +44,14 @@ The installation and configuration are complete. Continuous automatic operation 
   exact numeric values match, including TVOC full-demand 1000.
 - Live deployment and physical actuation evidence are recorded separately. These
   simulated checks are not physical acceptance of automatic on/off or cloud loss.
+
+### Live 0.4.0b1 update
+
+Installed release 0.4.0b1 through the existing HACS repository. The target HA
+configuration check passed, and HA restarted successfully with no scripts or
+automations running at the restart prompt. The new panel loaded in the user's dark
+theme, grouped both real AirQ devices correctly, displayed changing measurements,
+and loaded actual Recorder charts plus min/max/last values. The 6-hour period
+selector worked. Saved Manual mode, four gas entities, thresholds and minimum 1 /
+maximum 7 remained intact; the minimum control now exposes lower bound 0.
+No live fan/control/automatic-enable command was issued during this update.
