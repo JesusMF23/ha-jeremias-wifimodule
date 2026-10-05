@@ -1,43 +1,30 @@
-# Validation — 0.3.0b1
+# Validation — 0.3.0b2
 
-Date: 5 October 2026. Status: **local experimental prerelease; target installation and physical acceptance pending**. No live HVAC command, account mutation or installation was performed while implementing this extension.
+5 October 2026. **Published, installed via the existing HACS repository, configured and checked after a real Home Assistant restart. Automatic physical actuation remains pending.**
 
-## Automated checks
+## Automated evidence
 
-- Python 3.14, Home Assistant 2026.9.3. **97 tests passed** (38 existing tests, 50 demand/lifecycle/transport regressions, 9 AirQ adapter tests). Five dependency deprecation warnings, no test failures.
-- Actual localhost aiohttp transport/cookie behavior; actual Home Assistant state, ConfigEntry, Coordinator, entity and OptionsFlow classes. Cloud equipment remains mocked. HA option disk updates are mocked; restart reconstruction uses the saved options object.
-- Covers worst normalized zone/variable, rejected units and non-finite/stale data, filter elapsed time and settling to minimum, asymmetric delays, hysteresis, bounds, partial-data behavior, Manual zero writes, persistent errors, restart warmup, physical acknowledgement timeout, external schedule changes, lease renewal during long falls and native options when cloud startup failed.
-- Race regressions cover cancellation after controller polling, during API lock wait and after explicit auth rejection; unknown write failures when sensors/configuration change; successful in-flight command tracking; minimum interval retention after edits; fresh physical speed/fault/boost revalidation; timer stop and non-overlap.
-- Ruff lint/format, Python compilation, every frontend JavaScript module's syntax, Prettier, JSON validity and English/Spanish translation-key parity passed.
-- Final independent verification confirmed both last corrections and the original 88-test suite; no findings remained within that verification scope.
+98 tests pass with Python 3.14 and Home Assistant 2026.9.3. The suite includes the 38 original regressions, 50 demand/lifecycle/transport regressions, 9 AirQ bridge checks and one frontend module cache regression. Five dependency deprecation warnings remain; no test failures. Ruff lint/format, Python compilation, all frontend module syntax, Prettier and EN/ES key parity passed.
 
-## UI checks
+Real HA ConfigEntry/Coordinator/entity/options classes and local aiohttp transport are used; cloud equipment is mocked. Coverage includes worst-zone demand, asymmetric filtering and delays, hysteresis and bounds, stale/invalid/partial inputs, persistent Manual/error behavior, restart warmup, external-control detection, acknowledgement timeout, renewable override maintenance and cancellation races before transport writes. AirQ coverage includes fresh GETs instead of cached diagnostic snapshots, invalid/disconnected metrics, source reload during a multi-device batch, late discovery and shared poller cancellation on final unload.
 
-Local `http://127.0.0.1:8766/`, actual panel modules, fictional demonstration data and mocked HA WebSocket responses. No vendor calls.
+Independent review found and verified corrections for transport/control races and an Airzone mid-batch reload. No findings remained in that review scope.
 
-| Check | Result |
-|---|---|
-| Page identity / meaningful content / no error overlay | Pass |
-| Save selected CO₂ and TVOC sensors, objective 850 ppm | Pass; visible outgoing configuration matches |
-| Enable Automatic | Pass; worst-zone diagnosis, reported/target speed and wait shown |
-| Return to Manual | Pass; only `enabled:false` requested |
-| Preserve unsaved weekly schedule through Manual action | Pass; row remains 09:00; navigation requests discard confirmation |
-| Reject invalid target above full threshold | Pass in simulated backend; typed 2000 remains in draft |
-| Console | No application errors/warnings in inspected run |
-| Visual inspection | Desktop screenshot inspected; no clipping in shown control section |
+Remote validation on deployed commit `2759bbca399901baddc854476545abbf146d307a`: tests, hassfest and HACS passed. See [the corrective PR checks](https://github.com/JesusMF23/ha-jeremias-wifimodule/pull/2/checks). The preceding feature PR is [#1](https://github.com/JesusMF23/ha-jeremias-wifimodule/pull/1).
 
-The in-app browser's native confirmation dialog timed out. Subsequent testing used Brave through the same computer-use API and a test-only confirmation callback returning Cancel; this verifies the panel's draft state and confirmation invocation, not browser-native dialog interaction. No callback override exists in the shipped integration. Mobile, screen-reader and real HA frontend acceptance remain untested.
+## Live installation evidence
 
-## Distribution
+- Used the owner's existing authenticated Home Assistant UI and HACS repository. No SSH, new login, additional integration or permission changes.
+- Installed 0.3.0b1, then 0.3.0b2 after finding a real frontend cache issue. A version query on panel.js did not invalidate relative imports: old translations broke the new card. Versioning the entire static module directory fixed the issue; a regression verifies distinct nested module URLs across releases.
+- Target Home Assistant configuration check succeeded, followed by restart. The corrected panel displayed both original controls and the new regulation settings. No new WifiModule frontend errors were observed after the correction.
+- Both physical AirQs exposed CO₂, TVOC and humidity. Values changed between polls and after restart, confirming the adapter reads current status rather than replaying the supplied diagnostic capture.
+- Selected both actual gas entity pairs, saved thresholds and bounds, then restarted HA again. Selections, thresholds and Manual mode were retained. Physical recuperator telemetry continued advancing and original controls remained available.
+- The recuperator was already under a manual-off override. It remained off; this verification emitted no automatic speed command. No household entity identifiers, raw diagnostic payloads or account information are published in this repository.
 
-Version constants and manifest agree at 0.3.0b1. The local install archive contains only the component, license and installation notes, excluding tests, repository metadata, caches and household fixtures. No hardcoded household entity IDs or credentials are present in component defaults. This version has not been pushed, released or validated by remote hassfest/HACS CI. Historical CI results from 0.2.0b1 are not claimed for this version.
+The earlier isolated panel harness also verified save/enable/Manual flows, invalid input preservation and retention of an unsaved weekly schedule. Its responses were simulated; those checks do not establish physical actuation.
 
-## Target-installation acceptance still required
+## Remaining physical acceptance
 
-1. Publish a prerelease of the existing HACS repository, install its update through HACS, preserve the existing integration entry, check configuration and restart. Check logs and confirm native controls/widget still operate.
-2. The supplied diagnostic confirms raw aq_co2/aq_tvoc/humidity fields. Core omits the gas entities. Validate the new read-only device-status adapter against live responses; unit fixtures cover cached-data rejection, failed/disconnected measurements, source reload, late discovery and shared polling/unload cancellation. No household diagnostic data is shipped.
-3. Select verified entities/units and reasonable thresholds. Check that all selected sensors continue reporting at the configured freshness interval.
-4. With the owner present, enable Automatic and compare cloud acknowledgement with physical speed telemetry. Confirm actual fast rise/slow fall, limits, Manual takeover and existing widget priority.
-5. Verify HA restart, sensor/network loss, ambiguous-write diagnosis, external control and the vendor's 15-minute lease expiry/return to schedule on this specific equipment. Restore the desired operating mode after testing.
+When the owner chooses to end the manual-off override, enable Automatic and verify actual speed acknowledgement, fast rise/slow fall, active manual takeover, sensor/network loss, HA restart while Automatic and the manufacturer's return to schedule after a 15-minute override expires. These behaviors have automated coverage, but have not all been exercised on this equipment. Mobile and screen-reader acceptance remain untested.
 
-The new regulation is implemented and locally tested. These pending steps prevent calling the requested end-to-end installation complete.
+The installation and configuration are complete. Continuous automatic operation and its physical acceptance are deliberately not claimed while the existing manual-off command is being preserved.

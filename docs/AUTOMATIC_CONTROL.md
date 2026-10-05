@@ -53,4 +53,4 @@ Manual sends no new device command. Existing direct controls pause regulation be
 
 ## Actual acceptance status
 
-The engine, transport cancellation, persistence, real HA entity/options objects and UI were verified locally with fictional control fixtures. No automatic controller has yet been installed or commanded on a physical recuperator in this session. Validate actual sensor units/cadence, vendor lease expiry, physical speed acknowledgements and restart on the target installation before continuous unattended use.
+The engine, transport cancellation, persistence, real HA entity/options objects and UI were verified locally with fictional control fixtures. Version 0.3.0b2 was installed through the existing HACS repository. Two real AirQ devices produced changing gas/humidity readings, both gas pairs were selected, and saved thresholds plus Manual mode survived a real HA restart. The original equipment continued reporting fresh telemetry. Automatic actuation, manual takeover during actuation and vendor lease expiry remain physically untested: the equipment had an active manual-off override, which was preserved.

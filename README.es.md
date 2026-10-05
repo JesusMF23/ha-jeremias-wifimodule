@@ -2,7 +2,7 @@
 
 Integración comunitaria con entidades nativas y un panel **Jeremias** para controlar el recuperador y editar la programación de wifimodule.eu. **No requiere hardware adicional, pero sí Internet y la nube del fabricante.**
 
-La versión **0.3.0b1 es una beta**: control y lectura básica tienen capturas reales; perfiles, modos y programación se han implementado a partir del código público de la web y probado con respuestas simuladas. Falta completar las pruebas autenticadas con equipos reales. No es una integración oficial ni está incluida en el catálogo predeterminado de HACS.
+La versión **0.3.0b2 es una beta**: control y lectura básica tienen capturas reales; perfiles, modos y programación se han implementado a partir del código público de la web y probado con respuestas simuladas. Falta completar las pruebas autenticadas con equipos reales. No es una integración oficial ni está incluida en el catálogo predeterminado de HACS.
 
 ## Qué incluye
 
@@ -25,7 +25,7 @@ Se combinan todas las zonas por su mayor demanda normalizada: CO₂ en ppm, TVOC
 
 Incluye velocidades 1–7, límites mínimo/máximo, filtrado, histéresis, confirmación de subida y bajada, intervalo entre órdenes y diagnóstico de variable/zona. **Manual** detiene las órdenes futuras de HA; utilizar el widget, el ventilador, bypass, boost o el perfil activo también pausa la regulación antes de ejecutar la orden manual.
 
-[Funcionamiento, valores iniciales y fallos](docs/AUTOMATIC_CONTROL.md). La instalación y respuesta física de esta ampliación aún requieren validación en el equipo real.
+[Funcionamiento, valores iniciales y fallos](docs/AUTOMATIC_CONTROL.md). La instalación mediante HACS, las lecturas AirQ y la persistencia tras un reinicio real están verificadas en una instalación. Sigue pendiente la prueba de cambios automáticos de velocidad y caducidad de órdenes.
 
 ## Instalación manual
 

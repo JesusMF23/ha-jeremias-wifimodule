@@ -40,3 +40,12 @@ The supplied diagnostic contains `aq_co2` and `aq_tvoc` for both actual AirQ dev
 - Publish CO₂ (ppm), TVOC (ppb) and humidity (%) as native entities named from Airzone's real linked zones. Sensor IDs are assigned by HA, not hardcoded from this household. Keep the existing Airzone CAI entities unchanged.
 - Failed/missing measurements, measuring=false or disconnected device state become unavailable. Never fall back to cached initial WebSocket gas snapshots. Use new native entities with the existing demand controller.
 - Test extraction, zone matching, no cached replay, numeric/unit bounds, stale/source availability, dynamic discovery and unload. Update the same HACS repository, validate CI, then install the prerelease through the existing HACS UI and inspect real entities before enabling regulation.
+
+## Live acceptance update — 0.3.0b2
+
+- [x] Published through the existing repository; Home Assistant/HACS CI passed.
+- [x] Installed with HACS and target configuration check passed.
+- [x] Fixed and regression-tested nested frontend module cache invalidation found during upgrade.
+- [x] Both AirQs expose changing CO₂/TVOC/humidity readings; actual gas entities selected.
+- [x] Saved sensor selections, thresholds and Manual mode survive a real HA restart; existing equipment telemetry remains available.
+- [ ] Physical automatic speed changes, active manual takeover, sensor/network outage and lease expiry: deliberately pending while preserving the owner’s active manual-off override.
