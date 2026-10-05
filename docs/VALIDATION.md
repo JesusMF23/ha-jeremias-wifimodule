@@ -107,3 +107,7 @@ labels. This was a native device-registry write, not a ventilation command.
 Local regression coverage includes saving/restoring off, indefinite manual payloads, fresh-heartbeat gating, acknowledgement and timeout, external takeover, explicit schedule release, queued-write cancellation, and uncertain-write suppression across restart. Responsive preview at 390 × 844 verified Manual/Automatic/Schedule selection, speed 0 applying duration 0, and explicit schedule release. This preview uses fixtures and does not prove physical actuation. Live installation/restart acceptance is recorded separately after deployment.
 
 Local final checks: 118 Python tests and 16 frontend tests passed; Ruff lint/format, Prettier, JS syntax and diff whitespace checks passed.
+
+Live acceptance, 2026-10-05: selected exact 0.4.0b4 in HACS, completed download, passed HA configuration validation and restarted. The panel reported Manual without expiry, target off, actual reported off, equipment control Manual and error 0 after fresh communication. Before upgrading, the prior off override had a visible expiry at 14:54; this update took permanent ownership. This confirms cloud-reported state, not independent physical measurement.
+
+A second real HA restart restored Manual/off without touching controls. Fresh equipment communication again reported off, target off, Manual ownership and error 0. AirQ readings continued updating with the saved device names. Physical Automatic actuation and vendor automatic-lease expiry remain outside this acceptance test.
