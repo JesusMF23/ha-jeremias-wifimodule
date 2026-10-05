@@ -1,4 +1,6 @@
 {
+  "domain": "wifimodule",
+  "name": "Jeremias / WifiModule",
   "after_dependencies": [
     "airzone_cloud"
   ],
@@ -13,11 +15,9 @@
     "websocket_api"
   ],
   "documentation": "https://github.com/JesusMF23/ha-jeremias-wifimodule",
-  "domain": "wifimodule",
   "integration_type": "hub",
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/JesusMF23/ha-jeremias-wifimodule/issues",
-  "name": "Jeremias / WifiModule",
   "requirements": [],
   "version": "0.3.0b1"
 }
