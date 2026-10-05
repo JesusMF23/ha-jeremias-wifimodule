@@ -1,8 +1,46 @@
 export const regulationLocales = {
   en: {
+    off: "Off",
+    cloud: "wifimodule.eu",
+    connected: "Connected",
+    deviceWaiting: "Waiting for equipment",
+    disconnected: "Cloud unavailable",
+    paused: "Regulation paused; readings remain available.",
+    ventilation: "HOME VENTILATION",
+    controlMode: "Regulation mode",
+    limits: "Comfort targets and speed limits",
+    zeroHint:
+      "Minimum 0 allows automatic switch-off when all selected sensors are valid and demand remains at zero through the recovery delay. Minimum 1 keeps continuous ventilation.",
+    zones: "Zones",
+    optional: "Optional humidity and AQI",
+    advanced: "Response and advanced settings",
+    savedOnly: "Changes apply when saved.",
+    airQuality: "Air quality",
+    selectedZones: "Selected sensors · live readings",
+    fresh: "Updated",
+    unavailable: "No valid recent reading",
+    chooseSensors:
+      "Choose your sensors in Sensors and thresholds to see readings and history.",
+    evolution: "Evolution",
+    period: "History period",
+    historyLoading: "Loading Home Assistant history…",
+    historyEmpty: "No measurements recorded for this period.",
+    historyError:
+      "History could not be loaded. Check that History and Recorder are available and try again.",
+    historyRefresh: "Refresh sensor history",
+    historyDescription:
+      "Recorded states; gaps indicate unavailable data. Dashed lines show your target and full-demand threshold. History depends on Home Assistant retention.",
+    historyValues: "View recorded values",
+    minimum: "Minimum",
+    maximum: "Maximum",
+    last: "Last recorded",
+    manualControl: "Manual control",
+    refreshFailed:
+      "Live status could not be refreshed. Check the connection before relying on the last readings.",
+
     title: "Sensor regulation",
-    enable: "Enable Automatic",
-    manual: "Use Manual",
+    enable: "Automatic",
+    manual: "Manual",
     settings: "Sensors and thresholds",
     save: "Save settings",
     saved: "Regulation settings saved.",
@@ -16,7 +54,8 @@ export const regulationLocales = {
       "Manual stops HA commands. Existing controls also pause regulation. Automatic uses renewable 15-minute commands; if HA stops, the device returns to its existing schedule when the command expires.",
     units:
       "CO₂: ppm. TVOC: ppb only. Humidity: %. AQI is optional and higher must mean worse; confirm its scale before selecting it. Empty groups are ignored.",
-    multi: "Select one or more zones; Ctrl/⌘ selects several.",
+    multi:
+      "Select the zones to include. The highest demand governs ventilation.",
     noSensors: "No compatible sensors available.",
     kinds: {
       co2: "CO₂",
@@ -59,9 +98,47 @@ export const regulationLocales = {
     },
   },
   es: {
+    off: "Apagado",
+    cloud: "wifimodule.eu",
+    connected: "Conectado",
+    deviceWaiting: "Esperando al equipo",
+    disconnected: "Nube no disponible",
+    paused: "Regulación pausada; las lecturas siguen disponibles.",
+    ventilation: "VENTILACIÓN DEL HOGAR",
+    controlMode: "Modo de regulación",
+    limits: "Objetivos de confort y límites de velocidad",
+    zeroHint:
+      "El mínimo 0 permite apagar si todos los sensores seleccionados son válidos y la demanda se mantiene a cero durante la espera de bajada. El mínimo 1 mantiene la ventilación continua.",
+    zones: "Zonas",
+    optional: "Humedad y CAI opcionales",
+    advanced: "Respuesta y ajustes avanzados",
+    savedOnly: "Los cambios se aplican al guardar.",
+    airQuality: "Calidad del aire",
+    selectedZones: "Sensores seleccionados · lecturas actuales",
+    fresh: "Actualizado",
+    unavailable: "Sin lectura reciente válida",
+    chooseSensors:
+      "Elige tus sensores en Sensores y umbrales para ver las lecturas y su evolución.",
+    evolution: "Evolución",
+    period: "Periodo del historial",
+    historyLoading: "Cargando el historial de Home Assistant…",
+    historyEmpty: "No hay mediciones registradas en este periodo.",
+    historyError:
+      "No se pudo cargar el historial. Comprueba que History y Recorder están disponibles e inténtalo de nuevo.",
+    historyRefresh: "Actualizar historial de sensores",
+    historyDescription:
+      "Estados registrados; los huecos indican datos no disponibles. Las líneas discontinuas marcan tu objetivo y la demanda máxima. El historial depende de la retención de Home Assistant.",
+    historyValues: "Ver valores registrados",
+    minimum: "Mínimo",
+    maximum: "Máximo",
+    last: "Último registrado",
+    manualControl: "Control manual",
+    refreshFailed:
+      "No se pudo actualizar el estado. Comprueba la conexión antes de confiar en las últimas lecturas.",
+
     title: "Regulación por sensores",
-    enable: "Activar Automático",
-    manual: "Pasar a Manual",
+    enable: "Automático",
+    manual: "Manual",
     settings: "Sensores y umbrales",
     save: "Guardar ajustes",
     saved: "Ajustes de regulación guardados.",
@@ -75,7 +152,8 @@ export const regulationLocales = {
       "Manual detiene las órdenes de HA. Los controles existentes también pausan la regulación. Automático usa órdenes renovables de 15 minutos; si HA se detiene, el equipo recupera su horario al caducar la orden.",
     units:
       "CO₂: ppm. TVOC: solo ppb. Humedad: %. CAI es opcional y un valor mayor debe significar peor calidad; confirma su escala antes de seleccionarlo. Los grupos vacíos se ignoran.",
-    multi: "Selecciona una o varias zonas; Ctrl/⌘ permite seleccionar varias.",
+    multi:
+      "Marca las zonas que quieras incluir. La demanda más alta gobierna la ventilación.",
     noSensors: "No hay sensores compatibles disponibles.",
     kinds: {
       co2: "CO₂",

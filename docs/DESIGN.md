@@ -26,3 +26,31 @@ Protocol evidence: actual user status/control captures plus public JS request co
 ## Sensor demand extension (0.3.0b1)
 
 `demand.py` contains a deterministic, I/O-free demand/filter/timing engine. `automatic.py` owns HA state reads, config-entry persistence, diagnostics, lifecycle and guarded lease writes through the existing Controller/API. Options and native entities expose the same validated settings; the existing panel adds a separate regulation section. Cancellation guards reach the serialized API immediately before each write attempt, including reauthentication. Commands from existing manual surfaces pause regulation first. See [behavior](AUTOMATIC_CONTROL.md) and [acceptance](VALIDATION.md).
+
+## Dashboard and optional switch-off (0.4.0b1)
+
+The existing cloud transport remains the only implemented transport: HTTPS to
+wifimodule.eu using the config entry's credentials. A changed LAN address of the
+ventilation unit does not change that URL. Local control/offline failover is not
+claimed; it requires an independently verified device protocol. The dashboard
+shows cloud reachability separately from equipment freshness.
+
+`panel_sensors.py` supplies registered device names, units and readings validated
+with the same freshness/range rules as regulation. `dashboard.js` renders zone
+cards and selected entities' Recorder history (6 h / 24 h / 7 d) through HA's
+existing authenticated frontend client. Unknown states break the step charts;
+no gas values are derived from the categorical AQI. History failure never affects
+control. Period/entry request revisions discard late history responses.
+
+The packaged UI uses reusable setting rows (range plus exact integer input),
+checkbox sensor groups, disclosure sections and a Manual/Automatic selector.
+Settings require Save; changing the mode does not save unfinished edits. Slider
+movement does not send equipment commands; Apply retains the existing control
+path. Themes, keyboard labels, reduced motion, responsive layout and EN/ES text
+are retained. All assets share the existing versioned static path.
+
+Minimum speed now accepts 0 without migrating existing configurations away from
+1. Zero means physical off; valid sustained zero demand, slow fall confirmation,
+command acknowledgement and finite renewable leases still apply. Invalid input
+never authorizes a reduction or renews an off command. Physical off/restart
+acceptance remains required before declaring 1.0.0 stable.

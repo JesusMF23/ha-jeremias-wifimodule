@@ -153,3 +153,22 @@ def test_filtered_low_demand_eventually_reaches_minimum():
 def test_settings_reject_invalid_ranges_and_unknown_keys(values):
     with pytest.raises(ValueError):
         Settings.from_dict(values)
+
+
+def test_optional_zero_minimum_stops_only_after_slow_confirmation():
+    e = DemandEngine(settings(min_speed=0))
+    assert Settings().min_speed == 1  # Existing installations retain ventilation.
+    assert e.evaluate([reading(600)], 1, 0).target == 0
+    assert e.evaluate([reading(600)], 1, 299).command is None
+    assert e.evaluate([reading(600)], 1, 300).command == 0
+
+
+def test_zero_minimum_restarts_on_valid_demand_and_never_on_missing_data():
+    e = DemandEngine(settings(min_speed=0))
+    bad = reading("unavailable", entity="sensor.other")
+    assert e.evaluate([reading(600), bad], 1, 0).command is None
+    assert e.evaluate([reading(600), bad], 1, 600).command is None
+    assert e.evaluate([bad], 0, 610).target is None
+    assert e.evaluate([reading(1000)], 0, 620).target == 2
+    assert e.evaluate([reading(1000)], 0, 649).command is None
+    assert e.evaluate([reading(1000)], 0, 650).command == 2

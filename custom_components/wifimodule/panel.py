@@ -9,8 +9,9 @@ from homeassistant.exceptions import HomeAssistantError
 
 from .api import ApiError
 from .const import DOMAIN, VERSION
-from .demand import KINDS, PARAMETERS, UNITS
+from .demand import PARAMETERS
 from .models import integer, revision
+from .panel_sensors import sensor_catalogue
 
 OPERATIONS = [
     "automatic",
@@ -44,29 +45,16 @@ async def dispatch(hass, message):
             raise ValueError("Unknown automatic setting")
         if data:
             await coordinator.automatic.configure(**data)
-        candidates = {k: [] for k in KINDS}
-        classes = {
-            "co2": "carbon_dioxide",
-            "tvoc": "volatile_organic_compounds_parts",
-            "humidity": "humidity",
-            "aqi": "aqi",
-        }
-        for state in hass.states.async_all("sensor"):
-            for kind in KINDS:
-                if (
-                    state.attributes.get("device_class") == classes[kind]
-                    and state.attributes.get("unit_of_measurement") in UNITS[kind]
-                ):
-                    candidates[kind].append(
-                        {
-                            "entity_id": state.entity_id,
-                            "name": state.name,
-                            "value": state.state,
-                        }
-                    )
         return {
             **coordinator.automatic.snapshot,
-            "candidates": candidates,
+            "candidates": sensor_catalogue(
+                hass, coordinator.automatic.settings.stale_seconds
+            ),
+            "connection": {
+                "method": "cloud",
+                "available": coordinator.last_update_success,
+                "device_ready": control.ready,
+            },
             "parameters": PARAMETERS,
         }
     if operation == "view":

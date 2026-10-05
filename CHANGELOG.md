@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.0b1
+
+- Redesigned the existing panel with responsive zone cards, real Home Assistant history charts, Manual/Automatic selection, sliders plus exact values, and checkbox sensor selection. Advanced settings stay in disclosure sections.
+- Added optional minimum speed 0 (off); existing minimum 1 and saved settings are preserved. Zero uses the same slow recovery, valid-input, acknowledgement and lease protections.
+- Show the existing wifimodule.eu connection explicitly. Credentials already live in the integration; no device LAN address is required. No unverified local transport or offline failover is claimed.
+- Added backend and frontend regression checks, including history gaps, stale/restored sensors, escaping and zero persistence. Stable 1.0 hardware acceptance is still pending.
+
 ## 0.3.0b2
 
 Fix panel loading after an upgrade by versioning the whole frontend module directory. Relative and nested imports now receive new URLs on every release; old cached translations can no longer break the new regulation controls. Adds a regression covering module URLs across two releases.

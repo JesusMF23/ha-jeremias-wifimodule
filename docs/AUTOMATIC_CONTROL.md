@@ -17,7 +17,7 @@ El modo HA es independiente del «Automático (sondas del equipo)» del GENIUS. 
 
 Estos valores son puntos de partida técnicos, no límites sanitarios ni una garantía de calidad del aire. Los grupos vacíos no intervienen. TVOC en masa no se convierte a ppb sin conocer su equivalencia. CAI no se convierte en CO₂/TVOC. En Airzone Cloud, la biblioteca aioairzone-cloud 0.7.2 representa «good/regular/bad» con 1/151/301. Ese CAI es categórico: permite responder a tres estados, pero no calcular concentraciones ni regular un objetivo CO₂ en ppm. Ver [código de la biblioteca](https://github.com/Noltari/aioairzone-cloud/blob/0.7.2/aioairzone_cloud/const.py). Solo selecciones explícitas participan. Si Airzone Cloud está configurado, la ampliación reutiliza su sesión para consultar el estado real de cada AirQ cada 60 segundos y publicar CO₂, TVOC y humedad como entidades nativas. No usa como lectura actual la captura WebSocket del diagnóstico. Los sensores desconectados, sin medición o con consultas fallidas quedan indisponibles; no se conservan valores anteriores como nuevos. La conexión y autenticación siguen perteneciendo a Airzone Cloud.
 
-Cada lectura se transforma en demanda de 0 a 100% entre objetivo y demanda máxima. Se filtra cada sensor y gana el de mayor demanda, independientemente de su zona o variable. Se interpola entre velocidad mínima y máxima, redondeando hacia arriba. Los valores iniciales son mínimo 1 y máximo 7; no se solicita apagado ni boost desde este regulador.
+Cada lectura se transforma en demanda de 0 a 100% entre objetivo y demanda máxima. Se filtra cada sensor y gana el de mayor demanda, independientemente de su zona o variable. Se interpola entre velocidad mínima y máxima, redondeando hacia arriba. Los valores iniciales son mínimo 1 y máximo 7. Desde 0.4.0b1 se puede elegir mínimo 0 para permitir el apagado; boost sigue fuera del regulador.
 
 - Evaluación cada 10 segundos. La latencia real también depende de los sensores, la consulta WifiModule (60 segundos) y la comunicación del equipo.
 - Filtro exponencial: constante de subida 30 segundos; bajada 180 segundos. Una demanda residual menor de 0,1% se estabiliza en cero solo cuando la lectura está en el objetivo o por debajo.
@@ -47,10 +47,28 @@ Los cambios externos de modo/velocidad en la nube se detectan en las consultas p
 
 Open **Jeremias → Sensor regulation → Sensors and thresholds**. Select real Home Assistant entities, save and explicitly enable Automatic. First use is Manual with no selected sensors. Native integration options, mode/number entities and the diagnostic sensor expose the same configuration. Existing widget entity IDs and calls remain unchanged.
 
-Selected CO₂ (ppm), TVOC (ppb), optional humidity (%) and optional higher-is-worse AQI are normalized between configurable target/full-demand thresholds. The worst filtered zone/variable wins. Speeds are bounded to configured levels 1–7. Defaults: 30-second rise confirmation, 300-second one-step reduction, asymmetric 30/180-second filtering, 5% downward hysteresis, 60-second command spacing and 900-second reading age limit. These are configurable engineering starting points, not health limits. AQI cannot substitute for measured gases, and missing gas readings are never inferred. An optional shared read-only adapter reuses the configured Airzone Cloud session, polling each AirQ status every 60 seconds and exposing native CO₂/TVOC/humidity entities. Disconnected, missing or failed measurements become unavailable; cached diagnostic WebSocket snapshots are never replayed as current data.
+Selected CO₂ (ppm), TVOC (ppb), optional humidity (%) and optional higher-is-worse AQI are normalized between configurable target/full-demand thresholds. The worst filtered zone/variable wins. Speeds are bounded to configured levels 0–7; minimum 0 opts into automatic switch-off, while the default remains 1. Defaults: 30-second rise confirmation, 300-second one-step reduction, asymmetric 30/180-second filtering, 5% downward hysteresis, 60-second command spacing and 900-second reading age limit. These are configurable engineering starting points, not health limits. AQI cannot substitute for measured gases, and missing gas readings are never inferred. An optional shared read-only adapter reuses the configured Airzone Cloud session, polling each AirQ status every 60 seconds and exposing native CO₂/TVOC/humidity entities. Disconnected, missing or failed measurements become unavailable; cached diagnostic WebSocket snapshots are never replayed as current data.
 
 Manual sends no new device command. Existing direct controls pause regulation before their action. Settings/mode persist; restart waits for fresh inputs/device communication. Missing selected readings block reductions and maintenance renewals; all missing readings block commands. A finite 15-minute cloud override is renewed while healthy, allowing the existing vendor schedule to resume after expiration. This fallback still needs physical acceptance. Ambiguous writes or missing physical acknowledgement disable Automatic until explicitly reenabled. External cloud changes are detected after a propagation grace; use HA Manual for immediate, explicit takeover.
 
 ## Actual acceptance status
 
 The engine, transport cancellation, persistence, real HA entity/options objects and UI were verified locally with fictional control fixtures. Version 0.3.0b2 was installed through the existing HACS repository. Two real AirQ devices produced changing gas/humidity readings, both gas pairs were selected, and saved thresholds plus Manual mode survived a real HA restart. The original equipment continued reporting fresh telemetry. Automatic actuation, manual takeover during actuation and vendor lease expiry remain physically untested: the equipment had an active manual-off override, which was preserved.
+
+### Optional automatic switch-off
+
+Set **Minimum speed = 0** to allow switch-off at zero demand. The default stays 1
+for continuous ventilation and upgrades preserve saved limits. Zero passes through
+the same slow-recovery timer, validity checks, acknowledgement and expiring lease
+as other speeds. Demand rises from 0 through the normal confirmation path. Selecting
+Manual stops regulation commands regardless of this setting.
+
+The Jeremias panel groups current selected readings by their registered HA device,
+provides Recorder charts (6 h / 24 h / 7 d), and separates everyday targets from
+optional humidity/AQI and advanced response timings. Edit values with sliders or
+exact numeric inputs and press Save. Sensor selection uses checkboxes. Automatic
+uses **saved** settings; pressing its selector does not save unfinished edits.
+
+Connection already uses your existing wifimodule.eu account. No device LAN IP is
+configured. Cloud and Internet access are still required; local/offline fallback
+is not implemented.

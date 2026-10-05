@@ -2,7 +2,7 @@
 
 Integración comunitaria con entidades nativas y un panel **Jeremias** para controlar el recuperador y editar la programación de wifimodule.eu. **No requiere hardware adicional, pero sí Internet y la nube del fabricante.**
 
-La versión **0.3.0b2 es una beta**: control y lectura básica tienen capturas reales; perfiles, modos y programación se han implementado a partir del código público de la web y probado con respuestas simuladas. Falta completar las pruebas autenticadas con equipos reales. No es una integración oficial ni está incluida en el catálogo predeterminado de HACS.
+La versión **0.4.0b1 es una beta**: control y lectura básica tienen capturas reales; perfiles, modos y programación se han implementado a partir del código público de la web y probado con respuestas simuladas. Falta completar las pruebas autenticadas con equipos reales. No es una integración oficial ni está incluida en el catálogo predeterminado de HACS.
 
 ## Qué incluye
 
@@ -67,3 +67,19 @@ Si falla una escritura con resultado incierto, no se reenvía automáticamente. 
 Las credenciales se guardan en HA y no se envían al panel. Protege las copias de seguridad. Los diagnósticos excluyen credenciales, nombres, identificadores y telemetría. Una exportación de programación sí contiene tus nombres y horarios: revísala antes de compartirla.
 
 [Documentación completa](README.md) · [Protocolo](docs/PROTOCOL.md) · [Pruebas y pendientes](docs/VALIDATION.md)
+
+## Panel renovado y apagado opcional (0.4.0b1)
+
+La misma integración incluye tarjetas por zona, gráficos reales del historial de
+Home Assistant (6 h, 24 h y 7 días), deslizadores con valor exacto y casillas para
+seleccionar sensores. Los ajustes avanzados quedan separados del uso diario.
+
+El mínimo **0** permite apagar automáticamente cuando la demanda permanece a cero
+y todas las lecturas son válidas. La actualización conserva el mínimo guardado
+(por defecto 1), el modo Manual y el resto de ajustes. Mover un deslizador manual
+no envía órdenes hasta pulsar Aplicar.
+
+Las órdenes ya usan **wifimodule.eu** con las credenciales de la integración; no
+se configura la IP local del recuperador. Un cambio de IP por DHCP no cambia esta
+ruta. Sigue necesitando Internet: una segunda vía local requiere verificar el
+protocolo del equipo y todavía no está implementada.

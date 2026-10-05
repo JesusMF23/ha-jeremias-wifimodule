@@ -2,7 +2,14 @@ import {
   automaticCard,
   automaticStatus,
   automaticInputs,
+  bindAutomatic,
 } from "./automatic.js";
+import {
+  dashboard,
+  zoneCards,
+  historyCharts,
+  selectedReadings,
+} from "./dashboard.js";
 import { locales } from "./locales.js";
 import { styles } from "./styles.js";
 const esc = (v) =>
@@ -34,6 +41,9 @@ class JeremiasPanel extends HTMLElement {
     this.autoRevision = 0;
     this.view = null;
     this.notice = "";
+    this.historyHours = 24;
+    this.historyRevision = 0;
+    this.openDisclosures = new Set();
   }
   set hass(value) {
     this._hass = value;
@@ -56,20 +66,47 @@ class JeremiasPanel extends HTMLElement {
           this.busy
         )
           return;
+        const selectionChanged =
+          JSON.stringify(a.sensors) !== JSON.stringify(this.automatic?.sensors);
+        const settingsChanged =
+          JSON.stringify(a.settings) !==
+          JSON.stringify(this.automatic?.settings);
         this.automatic = a;
+        if (selectionChanged) this.loadQualityHistory();
+        else if (settingsChanged) this.paintQualityHistory();
         const box = this.shadowRoot.querySelector("#automatic-status");
         if (box) box.innerHTML = automaticStatus(a, this.t.regulation);
+        const zones = this.shadowRoot.querySelector("#zone-cards");
+        if (zones) zones.innerHTML = zoneCards(a, this.t.regulation);
+        for (const [action, active] of [
+          ["automatic-enable", a.enabled],
+          ["automatic-manual", !a.enabled],
+        ])
+          this.shadowRoot
+            .querySelector(`[data-action="${action}"]`)
+            ?.setAttribute("aria-pressed", String(active));
       } catch {
-        /* Existing diagnostic state remains visible until refresh. */
+        if (
+          entry !== this.entryId ||
+          revision !== this.autoRevision ||
+          this.busy
+        )
+          return;
+        const box = this.shadowRoot.querySelector("#automatic-status");
+        if (box)
+          box.innerHTML = `<p class="notice error" role="status">${esc(this.t.regulation.refreshFailed)}</p>`;
       }
     }, 10000);
     if (this._hass && !this.started) {
       this.started = true;
       this.run(() => this.loadEntries());
+    } else if (this.started && this.automatic) {
+      this.loadQualityHistory();
     }
   }
   disconnectedCallback() {
     clearInterval(this.autoTimer);
+    this.historyRevision += 1;
   }
   async api(operation, data = {}) {
     return this._hass.callWS({
@@ -107,8 +144,66 @@ class JeremiasPanel extends HTMLElement {
       profile === undefined ? {} : { profile_id: Number(profile) },
     );
     this.history = null;
+    this.loadQualityHistory();
     this.dirty = false;
     this.resetDraft();
+  }
+  async loadQualityHistory() {
+    const revision = ++this.historyRevision;
+    const entry = this.entryId;
+    const ids = [
+      ...new Set(selectedReadings(this.automatic).map((s) => s.entity_id)),
+    ];
+    const end = Date.now(),
+      start = end - this.historyHours * 3600000;
+    this.qualityHistory = { loading: true };
+    this.paintQualityHistory();
+    try {
+      const params = new URLSearchParams({
+        filter_entity_id: ids.join(","),
+        end_time: new Date(end).toISOString(),
+        minimal_response: "",
+        no_attributes: "",
+      });
+      const rows = ids.length
+        ? await this._hass.callApi(
+            "GET",
+            `history/period/${new Date(start).toISOString()}?${params}`,
+          )
+        : [];
+      if (!Array.isArray(rows)) throw Error("Invalid history");
+      const series = {};
+      for (const samples of rows) {
+        if (Array.isArray(samples) && ids.includes(samples[0]?.entity_id))
+          series[samples[0].entity_id] = samples;
+      }
+      if (
+        revision !== this.historyRevision ||
+        entry !== this.entryId ||
+        !this.isConnected
+      )
+        return;
+      this.qualityHistory = { series, start, end };
+    } catch {
+      if (
+        revision !== this.historyRevision ||
+        entry !== this.entryId ||
+        !this.isConnected
+      )
+        return;
+      this.qualityHistory = { error: true };
+    }
+    this.paintQualityHistory();
+  }
+  paintQualityHistory() {
+    const box = this.shadowRoot.querySelector("#quality-history");
+    if (box)
+      box.innerHTML = historyCharts(
+        this.automatic,
+        this.qualityHistory,
+        this.t.regulation,
+        this._hass.language,
+      );
   }
   resetDraft() {
     this.draft = (this.view?.week?.[`d${this.day}`] || []).map((r) => ({
@@ -151,12 +246,12 @@ class JeremiasPanel extends HTMLElement {
       v = this.view;
     this.shadowRoot.innerHTML = `<style>${styles}</style><main><header><button data-action="menu" aria-label="${t.menu}">☰</button><div><h1>${t.title}</h1><div class="muted">${t.subtitle}</div></div>${this.button("refresh", t.refresh)}</header>
     ${
-      this.entries.length
+      this.entries.length > 1
         ? `<label>${t.building}<select id="installation" ${this.busy ? "disabled" : ""}>${this.options(
             this.entries.map((e) => [e.entry_id, e.name]),
             this.entryId,
           )}</select></label>`
-        : `<p>${this.busy ? t.loading : t.empty}</p>`
+        : `<p class="installation-name">${this.entries.length ? esc(this.entries[0].name) : this.busy ? t.loading : t.empty}</p>`
     }
     ${automaticCard(this.automatic ? { ...this.automatic, ...this.automaticDraft } : null, t.regulation, this.busy)}
     ${this.notice ? `<div class="notice ${this.failed ? "error" : ""}" role="alert">${esc(this.notice)}</div>` : ""}
@@ -181,13 +276,46 @@ class JeremiasPanel extends HTMLElement {
     this.shadowRoot
       .querySelectorAll("[data-action]")
       .forEach((el) => (el.onclick = () => this.handle(el.dataset.action, el)));
-    this.shadowRoot
-      .querySelectorAll("[data-auto-setting], [data-auto-sensors]")
-      .forEach((el) => {
-        el.oninput = el.onchange = () => {
-          this.automaticDraft = automaticInputs(this.shadowRoot);
-        };
-      });
+    bindAutomatic(this.shadowRoot, (draft) => {
+      this.automaticDraft = draft;
+    });
+    this.shadowRoot.querySelectorAll("[data-disclosure]").forEach((el) => {
+      el.open = this.openDisclosures.has(el.dataset.disclosure);
+      el.ontoggle = () =>
+        el.open
+          ? this.openDisclosures.add(el.dataset.disclosure)
+          : this.openDisclosures.delete(el.dataset.disclosure);
+    });
+    this.shadowRoot.querySelectorAll("[data-history-hours]").forEach(
+      (el) =>
+        (el.onclick = () => {
+          this.historyHours = Number(el.dataset.historyHours);
+          this.shadowRoot
+            .querySelectorAll("[data-history-hours]")
+            .forEach((b) =>
+              b.setAttribute(
+                "aria-pressed",
+                String(Number(b.dataset.historyHours) === this.historyHours),
+              ),
+            );
+          this.loadQualityHistory();
+        }),
+    );
+    const historyRefresh = this.shadowRoot.querySelector(
+      "[data-history-refresh]",
+    );
+    if (historyRefresh)
+      historyRefresh.onclick = () => this.loadQualityHistory();
+    const speed = this.shadowRoot.querySelector("#speed");
+    if (speed)
+      speed.oninput = () => {
+        this.shadowRoot.querySelector("#speed-value").textContent =
+          Number(speed.value) === 0
+            ? t.off
+            : Number(speed.value) === 8
+              ? t.boost
+              : speed.value;
+      };
     const installation = this.shadowRoot.querySelector("#installation");
     if (installation)
       installation.onchange = () => {
@@ -251,16 +379,10 @@ class JeremiasPanel extends HTMLElement {
   content() {
     const t = this.t,
       v = this.view,
-      b = v.building;
+      b = v.building,
+      manualSpeed = b.manual_speed ?? 1;
     if (this.page === "controls")
-      return `<section><div class="status">${v.ready ? t.ready : t.waiting}</div><p>${t.scope} (${v.units.length})</p><div class="grid">
-      <label>${t.speed}<select id="speed">${this.options(
-        Array.from({ length: 9 }, (_, i) => [
-          i,
-          i === 0 ? t.off : i === 8 ? t.boost : String(i),
-        ]),
-        b.manual_speed ?? 1,
-      )}</select></label>
+      return `${dashboard(this.automatic, this.qualityHistory, this.historyHours, t.regulation, this._hass.language)}<section><div class="section-heading"><h2>${t.regulation.manualControl}</h2><span class="pill">${v.ready ? t.ready : t.waiting}</span></div><p class="muted">${t.scope} (${v.units.length})</p><div class="manual-speed"><label for="speed">${t.speed}</label><output id="speed-value" for="speed">${manualSpeed === 0 ? t.off : manualSpeed === 8 ? t.boost : esc(manualSpeed)}</output><input id="speed" type="range" min="0" max="8" step="1" value="${manualSpeed}" ${this.busy ? "disabled" : ""}><div class="range-labels"><span>0 · ${t.off}</span><span>1–7</span><span>8 · ${t.boost}</span></div></div><div class="grid spaced">
       <label>${t.mode}<select id="control-mode">${this.options(
         [
           ["manual", t.manual],
@@ -348,11 +470,13 @@ class JeremiasPanel extends HTMLElement {
       const data =
         action === "automatic-manual"
           ? { enabled: false }
-          : automaticInputs(this.shadowRoot);
-      if (action === "automatic-enable") data.enabled = true;
+          : action === "automatic-enable"
+            ? { enabled: true }
+            : automaticInputs(this.shadowRoot);
       this.run(async () => {
         this.automatic = await this.api("automatic", data);
-        if (action !== "automatic-manual") this.automaticDraft = null;
+        if (action === "automatic-save") this.automaticDraft = null;
+        this.loadQualityHistory();
         this.notice = this.t.regulation.saved;
         this.failed = false;
       });
