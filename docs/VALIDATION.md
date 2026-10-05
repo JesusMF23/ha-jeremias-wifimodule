@@ -91,3 +91,12 @@ blank-name rejection, failure retaining the draft, persistence through the 10-se
 reading refresh, Save refreshing both card and graph names, and a 390 px editor.
 Live installation evidence is recorded separately; simulation does not establish
 physical equipment behavior.
+
+### Live 0.4.0b3 update
+
+Installed the exact prerelease through the existing HACS repository after all
+GitHub tests, hassfest and HACS checks passed. HA configuration validation passed
+and HA restarted. Both existing AirQ labels and Automatic mode were preserved.
+The live panel exposed both Edit name buttons; saving the existing name with
+surrounding whitespace succeeded, trimmed the name and retained the card/chart
+labels. This was a native device-registry write, not a ventilation command.
