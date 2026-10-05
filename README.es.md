@@ -2,7 +2,7 @@
 
 Integración comunitaria con entidades nativas y un panel **Jeremias** para controlar el recuperador y editar la programación de wifimodule.eu. **No requiere hardware adicional, pero sí Internet y la nube del fabricante.**
 
-La versión **0.4.0b3 es una beta**: control y lectura básica tienen capturas reales; perfiles, modos y programación se han implementado a partir del código público de la web y probado con respuestas simuladas. Falta completar las pruebas autenticadas con equipos reales. No es una integración oficial ni está incluida en el catálogo predeterminado de HACS.
+La versión **0.4.0b4 es una beta**: control y lectura básica tienen capturas reales; perfiles, modos y programación se han implementado a partir del código público de la web y probado con respuestas simuladas. Falta completar las pruebas autenticadas con equipos reales. No es una integración oficial ni está incluida en el catálogo predeterminado de HACS.
 
 ## Qué incluye
 
@@ -23,7 +23,7 @@ Desde el panel **Jeremias → Regulación por sensores → Sensores y umbrales**
 
 Se combinan todas las zonas por su mayor demanda normalizada: CO₂ en ppm, TVOC en ppb, humedad opcional en % y CAI opcional. El CAI no sustituye mediciones CO₂/TVOC; úsalo únicamente si conoces la escala y un valor mayor significa peor calidad. La ampliación reutiliza la sesión existente de Airzone Cloud para consultar las lecturas AirQ y publicar CO₂, TVOC y humedad, aunque la integración oficial solo muestre parte de ellas. No solicita otra cuenta ni modifica Airzone.
 
-Incluye velocidades 1–7, límites mínimo/máximo, filtrado, histéresis, confirmación de subida y bajada, intervalo entre órdenes y diagnóstico de variable/zona. **Manual** detiene las órdenes futuras de HA; utilizar el widget, el ventilador, bypass, boost o el perfil activo también pausa la regulación antes de ejecutar la orden manual.
+Incluye velocidades 0–7, límites mínimo/máximo, filtrado, histéresis, confirmación de subida y bajada, intervalo entre órdenes y diagnóstico de variable/zona. **Manual** toma la velocidad reportada y la mantiene sin caducidad, guardándola para restaurarla tras reiniciar. Los controles directos pausan la regulación antes de ejecutar su orden. **Horario Jeremias** devuelve explícitamente el control a la programación.
 
 [Funcionamiento, valores iniciales y fallos](docs/AUTOMATIC_CONTROL.md). La instalación mediante HACS, las lecturas AirQ y la persistencia tras un reinicio real están verificadas en una instalación. Sigue pendiente la prueba de cambios automáticos de velocidad y caducidad de órdenes.
 
@@ -42,7 +42,7 @@ Para HACS: añade `https://github.com/JesusMF23/ha-jeremias-wifimodule` en **HAC
 
 Al arrancar se espera a que avance la última comunicación del equipo. Si la nube devuelve datos antiguos, los controles seguirán indisponibles. Diez minutos sin avance vuelven a bloquearlos.
 
-Las órdenes manuales duran **30 minutos** por defecto. La entidad de duración cambia ese valor para órdenes futuras; el panel permite elegir otra duración. **0 significa sin caducidad**, también al apagar. El botón Boost dura cinco minutos; desde el panel admite entre uno y sesenta. Al caducar se vuelve al horario de la nube.
+Las velocidades manuales **0–7 se mantienen sin caducidad** y se guardan para restaurarlas tras reiniciar, esperando comunicación reciente. **0 es apagado**. Al migrar un Manual antiguo sin velocidad guardada se usa 0. Los temporizadores quedan para Boost y el automático propio del equipo; su caducidad puede devolver el control al horario. Boost dura cinco minutos desde su botón y permite de uno a sesenta en el panel.
 
 Para programar:
 
@@ -68,7 +68,7 @@ Las credenciales se guardan en HA y no se envían al panel. Protege las copias d
 
 [Documentación completa](README.md) · [Protocolo](docs/PROTOCOL.md) · [Pruebas y pendientes](docs/VALIDATION.md)
 
-## Panel renovado y apagado opcional (0.4.0b3)
+## Panel renovado y apagado opcional (0.4.0b4)
 
 La misma integración incluye tarjetas por zona, gráficos reales del historial de
 Home Assistant (6 h, 24 h y 7 días), deslizadores con valor exacto y casillas para

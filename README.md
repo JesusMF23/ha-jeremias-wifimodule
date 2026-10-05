@@ -4,7 +4,7 @@
 
 Community integration for heat-recovery ventilation controlled through **wifimodule.eu**. Includes native Home Assistant entities and a **Jeremias** sidebar panel for modes, profiles and weekly programming. No extra hardware is required. This integration depends on the WifiModule cloud and is not a local Modbus integration.
 
-**0.4.0b3 is a beta.** The basic status and control endpoints have user-captured evidence. Programming endpoints are implemented from the website's public JavaScript and tested against simulated responses; complete authenticated hardware acceptance is still pending. This is not an official Jeremias product and is not yet listed in the HACS default catalogue.
+**0.4.0b4 is a beta.** The basic status and control endpoints have user-captured evidence. Programming endpoints are implemented from the website's public JavaScript and tested against simulated responses; complete authenticated hardware acceptance is still pending. This is not an official Jeremias product and is not yet listed in the HACS default catalogue.
 
 [Español](README.es.md) · [Protocol and coverage](docs/PROTOCOL.md) · [Validation](docs/VALIDATION.md)
 
@@ -27,7 +27,7 @@ Controls act on **every unit in the selected building**, as the website API does
 
 The existing panel now includes independent Home Assistant Automatic/Manual regulation, real-entity selectors, configurable targets/limits/timing and visible worst-zone diagnostics. First use is Manual with no sensors selected. CO₂ must be ppm; TVOC must be ppb; humidity and higher-is-worse AQI are optional. Raw gases cannot be inferred from AQI. Existing entity IDs and widget operations remain unchanged; direct manual controls pause demand regulation before sending their command.
 
-Settings and mode persist across restarts. Commands use renewable 15-minute overrides; loss of healthy data stops renewals. Ambiguous writes disable automatic control until explicit reactivation. See [detailed behavior](docs/AUTOMATIC_CONTROL.md). HACS installation, changing AirQ gas readings, saved settings and a real HA restart have been verified on one installation. Automatic physical actuation and override expiry remain pending. Update the existing custom repository through HACS; no second integration is required.
+Settings and mode persist across restarts. Automatic commands use renewable 15-minute overrides; loss of healthy data stops renewals. Ambiguous writes disable automatic control until explicit reactivation. See [detailed behavior](docs/AUTOMATIC_CONTROL.md). HACS installation, changing AirQ gas readings, saved settings and a real HA restart have been verified on one installation. Automatic physical actuation and override expiry remain pending. Update the existing custom repository through HACS; no second integration is required.
 
 The dashboard shows selected sensors grouped by their registered devices, plus real
 Home Assistant history for 6 hours, 24 hours or 7 days. Sliders include exact numeric
@@ -65,14 +65,14 @@ HACS custom repositories and inclusion in the default catalogue are different: d
 
 Copy the entire `custom_components/wifimodule` directory into `/config/custom_components/wifimodule`. Do not nest another `wifimodule` directory inside it. Restart Home Assistant. For a new installation, follow steps 5–6 above. When upgrading, back up the existing folder and preserve the integration entry and credentials. No YAML, copied browser cookie or API key is needed.
 
-The `jeremias-wifimodule-0.4.0b3-install.zip` distribution contains the `custom_components` directory and license. Extract it into the Home Assistant configuration directory, preserving that structure.
+The `jeremias-wifimodule-0.4.0b4-install.zip` distribution contains the `custom_components` directory and license. Extract it into the Home Assistant configuration directory, preserving that structure.
 
 ## Use
 
 Native entities appear under the integration's building and unit devices. Open **Jeremias** in the sidebar as an administrator for the full editor. If a previously cached frontend remains visible after an update, refresh the browser.
 
 1. Wait for the unit's `last_comm` to advance after loading/restarting the integration. Until then physical controls are unavailable; this prevents treating a cached cloud response as current. A lack of progress for ten minutes blocks controls again.
-2. Set the default override duration using the number entity, or choose a duration in the panel. The default is **30 minutes**. Zero means indefinite, including an indefinite off command. Manual overrides return to the cloud schedule on expiry.
+2. **Manual** captures the current reported speed and holds it without expiry. Applying speed 0–7 saves that speed and restores it after restart, once fresh communication is available. Speed 0 means off. Legacy paused Manual with no saved speed migrates to 0. **Jeremias schedule** explicitly releases the hold. Timers remain available for boost and the device’s own automatic mode; their expiry can return control to the schedule.
 3. Boost's button uses five minutes. Panel boost requires 1–60 minutes. Choose **Return to schedule** to cancel an override.
 4. In **Modes**, create reusable operating modes. Editing a mode affects every schedule that references it.
 5. In **Profiles**, create a profile. In **Weekly schedule**, select that profile and each day, edit transitions and **Save day**. The first transition must be 00:00; times must be distinct. The total week is limited to 150 transitions.

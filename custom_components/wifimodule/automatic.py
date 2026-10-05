@@ -9,6 +9,7 @@ from homeassistant.helpers.event import async_track_time_interval
 
 from .api import ApiError, ControlCancelled
 from .demand import KINDS, UNITS, DemandEngine, Reading, Settings
+from .manual_control import ManualControl
 
 LEASE_MINUTES = 15
 RENEW_SECONDS = 300
@@ -62,6 +63,7 @@ class AutomaticControl:
         self._running = False
         self._closed = False
         self._cancel = None
+        self.manual_control = ManualControl(self, stored)
 
     def start(self):
         async def interval(_now):
@@ -94,6 +96,7 @@ class AutomaticControl:
                     "sensors": self.sensors,
                     "settings": self.settings.as_dict(),
                     "reason": self.status if not self.enabled else "manual",
+                    "manual": self.manual_control.snapshot(),
                 },
             },
         )
@@ -128,13 +131,26 @@ class AutomaticControl:
         self.decision = None
         self.claim_since = None
         # Retain acknowledgement tracking across parameter edits; do not forget an in-flight lease.
+        if enabled is True:
+            self.manual_control.clear()
+        elif enabled is False:
+            self.manual_control.select()
+        elif self.manual_control.active:
+            self.status = (
+                "manual_pending"
+                if self.manual_control.pending
+                else "manual_awaiting"
+                if self.manual_control.awaiting
+                else "manual"
+            )
         self._persist()
         self._notify()
         if not self.enabled:
             async with self.control.lock:
                 pass
 
-    async def manual(self, reason="manual"):
+    async def manual(self, reason="paused"):
+        self.manual_control.clear()
         self.enabled = False
         self.status = reason
         self.generation += 1
@@ -185,6 +201,13 @@ class AutomaticControl:
         d = self.decision
         return {
             "enabled": self.enabled,
+            "mode": self.mode,
+            "reported_mode": "schedule"
+            if (self.control.data or {}).get("manual_active") is False
+            else (self.control.data or {}).get("manual_mode"),
+            "manual_speed": self.manual_control.speed
+            if self.manual_control.active
+            else None,
             "status": self.status,
             "settings": self.settings.as_dict(),
             "sensors": self.sensors,
@@ -203,12 +226,26 @@ class AutomaticControl:
             "lease_minutes": LEASE_MINUTES,
         }
 
+    @property
+    def mode(self):
+        if self.enabled:
+            return "automatic"
+        if self.manual_control.active:
+            return "manual"
+        if (self.control.data or {}).get("manual_active") is False:
+            return "schedule"
+        return "paused"
+
     async def tick(self, now=None):
-        if self._running or self._closed or not self.enabled:
+        if self._running or self._closed:
             return
         self._running = True
         try:
-            await self._tick(monotonic() if now is None else now)
+            instant = monotonic() if now is None else now
+            if self.enabled:
+                await self._tick(instant)
+            else:
+                await self.manual_control.tick(instant)
         finally:
             self._running = False
             self._notify()

@@ -100,3 +100,10 @@ and HA restarted. Both existing AirQ labels and Automatic mode were preserved.
 The live panel exposed both Edit name buttons; saving the existing name with
 surrounding whitespace succeeded, trimmed the name and retained the card/chart
 labels. This was a native device-registry write, not a ventilation command.
+
+
+## 0.4.0b4 — persistent Manual
+
+Local regression coverage includes saving/restoring off, indefinite manual payloads, fresh-heartbeat gating, acknowledgement and timeout, external takeover, explicit schedule release, queued-write cancellation, and uncertain-write suppression across restart. Responsive preview at 390 × 844 verified Manual/Automatic/Schedule selection, speed 0 applying duration 0, and explicit schedule release. This preview uses fixtures and does not prove physical actuation. Live installation/restart acceptance is recorded separately after deployment.
+
+Local final checks: 118 Python tests and 16 frontend tests passed; Ruff lint/format, Prettier, JS syntax and diff whitespace checks passed.

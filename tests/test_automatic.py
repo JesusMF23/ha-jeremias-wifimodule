@@ -23,6 +23,7 @@ def make_auto(enabled=True):
         options={
             "automatic": {
                 "enabled": enabled,
+                "manual": {"active": False, "speed": 0},
                 "sensors": {"co2": ["sensor.room"]},
                 "settings": {"filter_rise_seconds": 0, "filter_fall_seconds": 0},
             }
@@ -48,7 +49,7 @@ def make_auto(enabled=True):
     return auto, c, state
 
 
-async def test_manual_mode_never_sends_even_with_high_demand():
+async def test_paused_control_never_sends_even_with_high_demand():
     a, c, _ = make_auto(False)
     await a.tick(0)
     await a.tick(1000)
@@ -67,7 +68,7 @@ async def test_automatic_fast_rise_uses_existing_controller_with_expiring_lease(
     assert a.status == "awaiting_device"
 
 
-async def test_manual_invalidates_guard_and_persists_without_command():
+async def test_manual_invalidates_automatic_guard_and_takes_permanent_control():
     a, c, _ = make_auto()
     await a.tick(0)
     await a.tick(30)
@@ -76,7 +77,8 @@ async def test_manual_invalidates_guard_and_persists_without_command():
     assert not guard() and not c.config_entry.options["automatic"]["enabled"]
     count = c.controller.control.await_count
     await a.tick(500)
-    assert c.controller.control.await_count == count
+    assert c.controller.control.await_count == count + 1
+    assert c.controller.control.call_args.kwargs["duration"] == 0
 
 
 async def test_failed_write_disables_without_blind_retry():
@@ -147,7 +149,9 @@ async def test_widget_command_stops_auto_before_existing_manual_command():
     c.automatic = a
     await Coordinator.command(c, c.controller.control, speed=2)
     assert not a.enabled
-    c.controller.control.assert_awaited_once_with(speed=2)
+    assert c.controller.control.await_count == 1
+    assert c.controller.control.call_args.kwargs["speed"] == 2
+    assert c.controller.control.call_args.kwargs["duration"] == 0
 
 
 async def test_reenable_after_manual_starts_new_session():
@@ -314,7 +318,8 @@ async def test_zero_speed_is_confirmed_renewed_and_still_yields_to_manual():
     assert c.controller.control.call_args.kwargs["speed"] == 0
     await a.configure(enabled=False)
     await a.tick(1000)
-    assert c.controller.control.await_count == 2
+    assert c.controller.control.await_count == 3
+    assert c.controller.control.call_args.kwargs["duration"] == 0
     restored = AutomaticControl(a.hass, c)
     assert restored.settings.min_speed == 0 and not restored.enabled
 

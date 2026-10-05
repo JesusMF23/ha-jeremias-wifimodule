@@ -51,3 +51,14 @@ test("zone names can be edited only for registered devices and stay escaped", ()
   assert.match(html, /Room &lt;one&gt;/);
   assert.doesNotMatch(html, /Room <one>/);
 });
+
+test('manual target and schedule selection are distinct from sensor pause',()=>{
+ const manual={...a,mode:'manual',manual_speed:0,actual_speed:4,status:'manual_pending'};
+ assert.match(automaticCard(manual,locales.es,false),/data-action="automatic-manual" aria-pressed="true"/);
+ assert.match(automaticStatus(manual,locales.es),/Apagado/);
+ const scheduled={...manual,mode:'schedule',manual_speed:null,status:'schedule'};
+ const html=automaticCard(scheduled,locales.es,false);
+ assert.match(html,/data-action="automatic-manual" aria-pressed="false"/);
+ assert.match(html,/data-action="automatic-schedule" aria-pressed="true"/);
+ assert.match(html,/Horario Jeremias/);
+});

@@ -1,5 +1,13 @@
 export const regulationLocales = {
   en: {
+    schedule: "Jeremias schedule",
+    scheduleHelp:
+      "The equipment follows its own schedule. Choose Manual to hold a speed without expiry.",
+    manualHold:
+      "Manual speed without expiry; restored after a Home Assistant restart.",
+    manualHoldHelp:
+      "Manual speeds 0–7 do not expire and are restored after restart. 0 switches off. Boost and device-sensor Auto are separate controls; their timer can return the equipment to its schedule.",
+
     editName: "Edit name",
     sensorName: "Device name",
     nameHelp:
@@ -20,7 +28,7 @@ export const regulationLocales = {
     deviceWaiting: "Waiting for equipment",
     disconnected: "Cloud unavailable",
     paused:
-      "Sensor regulation paused; equipment keeps its manual control or schedule.",
+      "HA is not holding a manual speed. Check equipment control or select Manual.",
     ventilation: "HOME VENTILATION",
     controlMode: "Regulation mode",
     limits: "Comfort targets and speed limits",
@@ -66,7 +74,7 @@ export const regulationLocales = {
     wait: "Time remaining",
     invalid: "Unavailable, old or incompatible sensors",
     explanation:
-      "Manual stops HA commands. Existing controls also pause regulation. Automatic uses renewable 15-minute commands; if HA stops, the device returns to its existing schedule when the command expires.",
+      "Manual takes equipment control without expiry and restores the saved speed after restart. Automatic uses renewable 15-minute commands and resumes after fresh data. Jeremias schedule explicitly releases control.",
     units:
       "CO₂: ppm. TVOC: ppb only. Humidity: %. AQI is optional and higher must mean worse; confirm its scale before selecting it. Empty groups are ignored.",
     multi:
@@ -98,7 +106,13 @@ export const regulationLocales = {
       stale_seconds: "Maximum sensor age (seconds)",
     },
     states: {
-      manual: "Manual · HA regulation paused",
+      manual: "Manual · no expiry",
+      manual_pending: "Manual · waiting to apply saved speed",
+      manual_awaiting: "Manual · waiting for equipment confirmation",
+      schedule: "Jeremias schedule",
+      paused: "HA control paused",
+      device_control: "Device control / timed command",
+
       warming_up: "Waiting for fresh demand",
       no_data: "No valid sensor data",
       partial_data: "Missing sensors · reductions paused",
@@ -113,6 +127,14 @@ export const regulationLocales = {
     },
   },
   es: {
+    schedule: "Horario Jeremias",
+    scheduleHelp:
+      "El equipo sigue su horario. Selecciona Manual para mantener una velocidad sin caducidad.",
+    manualHold:
+      "Velocidad manual sin caducidad; se restaura al reiniciar Home Assistant.",
+    manualHoldHelp:
+      "Las velocidades manuales 0–7 no caducan y se restauran tras reiniciar. 0 apaga el equipo. Boost y Automático con sondas del equipo son controles separados; su temporizador puede devolverlo al horario.",
+
     editName: "Editar nombre",
     sensorName: "Nombre del dispositivo",
     nameHelp:
@@ -133,7 +155,7 @@ export const regulationLocales = {
     deviceWaiting: "Esperando al equipo",
     disconnected: "Nube no disponible",
     paused:
-      "Regulación por sensores pausada; el equipo conserva su control manual u horario.",
+      "HA no está manteniendo una velocidad manual. Comprueba el control del equipo o selecciona Manual.",
     ventilation: "VENTILACIÓN DEL HOGAR",
     controlMode: "Modo de regulación",
     limits: "Objetivos de confort y límites de velocidad",
@@ -179,7 +201,7 @@ export const regulationLocales = {
     wait: "Tiempo restante",
     invalid: "Sensores ausentes, antiguos o incompatibles",
     explanation:
-      "Manual detiene las órdenes de HA. Los controles existentes también pausan la regulación. Automático usa órdenes renovables de 15 minutos; si HA se detiene, el equipo recupera su horario al caducar la orden.",
+      "Manual toma el control sin caducidad y restaura su velocidad tras reiniciar. Automático utiliza órdenes renovables de 15 minutos y se reanuda con datos nuevos. Horario Jeremias devuelve expresamente el control a su programación.",
     units:
       "CO₂: ppm. TVOC: solo ppb. Humedad: %. CAI es opcional y un valor mayor debe significar peor calidad; confirma su escala antes de seleccionarlo. Los grupos vacíos se ignoran.",
     multi:
@@ -211,7 +233,13 @@ export const regulationLocales = {
       stale_seconds: "Antigüedad máxima de sensores (segundos)",
     },
     states: {
-      manual: "Manual · regulación HA pausada",
+      manual: "Manual · sin caducidad",
+      manual_pending: "Manual · esperando aplicar la velocidad guardada",
+      manual_awaiting: "Manual · esperando confirmación del equipo",
+      schedule: "Horario Jeremias",
+      paused: "Control HA pausado",
+      device_control: "Control del equipo / orden temporal",
+
       warming_up: "Esperando demanda nueva",
       no_data: "Sin lecturas válidas",
       partial_data: "Faltan sensores · bajadas pausadas",

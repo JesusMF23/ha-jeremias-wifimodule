@@ -69,20 +69,23 @@ class Profile(GroupEntity, SelectEntity):
 
 
 class RegulationMode(AutomaticEntity, SelectEntity):
-    _attr_options = ["manual", "automatic"]
+    _attr_options = ["manual", "automatic", "schedule"]
 
     def __init__(self, c):
         super().__init__(c, "regulation_mode")
 
     @property
     def current_option(self):
-        return "automatic" if self.automatic.enabled else "manual"
+        return self.automatic.mode if self.automatic.mode != "paused" else None
 
     async def async_select_option(self, option):
         if option not in self.options:
             raise HomeAssistantError("Invalid mode")
         try:
-            await self.automatic.configure(enabled=option == "automatic")
+            if option == "schedule":
+                await self.coordinator.command(self.control.control, schedule=True)
+            else:
+                await self.automatic.configure(enabled=option == "automatic")
         except ValueError:
             raise HomeAssistantError(
                 translation_domain="wifimodule",

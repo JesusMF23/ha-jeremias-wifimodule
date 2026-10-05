@@ -213,3 +213,38 @@ async def test_history_scope_and_encoded_date_range(controller):
         await c.history(3)
     with pytest.raises(DeviceError):
         await c.history(2, "2026-01-02 00:00:00", "2026-01-01 00:00:00")
+
+
+async def test_manual_widget_saves_permanent_off_and_schedule_explicitly_releases(
+    controller,
+):
+    from test_automatic import make_auto
+
+    from custom_components.wifimodule.automatic import AutomaticControl
+    from custom_components.wifimodule.coordinator import Coordinator
+
+    physical, api, data, _ = controller
+    await physical.poll()
+    data["units"][0]["last_comm"] = "2026-01-01 12:00:01"
+    await physical.poll()
+    a, coordinator, _ = make_auto()
+    coordinator.controller = a.control = physical
+    coordinator.automatic = a
+    await Coordinator.command(coordinator, physical.control, speed=0, duration=30)
+    payload = api.write.call_args.args[1]
+    assert payload["speed"] == 0 and payload["switch"] == "never"
+    assert payload["mode"] == "manual" and payload["bypass"] is False
+    stored = coordinator.config_entry.options["automatic"]["manual"]
+    assert stored == {"active": True, "speed": 0}
+    restored = AutomaticControl(a.hass, coordinator)
+    await restored.tick(10)
+    assert api.write.call_args.args[1]["speed"] == 0
+    assert api.write.call_args.args[1]["switch"] == "never"
+    coordinator.automatic = restored
+    await Coordinator.command(coordinator, physical.control, schedule=True)
+    assert api.write.call_args.args[1] == {"building": 1, "manual": False}
+    count = api.write.await_count
+    restarted = AutomaticControl(a.hass, coordinator)
+    await restarted.tick(1000)
+    assert api.write.await_count == count
+    assert not restarted.manual_control.active

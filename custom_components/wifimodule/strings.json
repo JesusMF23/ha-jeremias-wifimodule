@@ -50,6 +50,9 @@
     },
     "invalid_automatic_config": {
       "message": "Check sensor units and ranges: minimum ≤ maximum, target < full demand, and fall times ≥ rise times."
+    },
+    "control_superseded": {
+      "message": "Control cancelled by a newer selection."
     }
   },
   "entity": {
@@ -82,7 +85,8 @@
         "name": "HA regulation",
         "state": {
           "manual": "Manual",
-          "automatic": "Automatic"
+          "automatic": "Automatic",
+          "schedule": "Jeremias schedule"
         }
       }
     },
@@ -177,7 +181,7 @@
       "regulation_status": {
         "name": "Regulation status",
         "state": {
-          "manual": "Manual · HA regulation paused",
+          "manual": "Manual · no expiry",
           "warming_up": "Waiting for fresh demand",
           "no_data": "No valid sensor data",
           "partial_data": "Missing sensors · reductions paused",
@@ -188,7 +192,12 @@
           "awaiting_device": "Command accepted · waiting for equipment",
           "device_timeout": "Manual · equipment did not confirm speed",
           "command_error": "Manual · command outcome not confirmed",
-          "external_control": "Manual · another control changed the equipment"
+          "external_control": "Manual · another control changed the equipment",
+          "manual_pending": "Manual · waiting to apply speed",
+          "manual_awaiting": "Manual · waiting for confirmation",
+          "schedule": "Jeremias schedule",
+          "paused": "HA control paused",
+          "device_control": "Device / timed control"
         }
       },
       "airq_co2": {
