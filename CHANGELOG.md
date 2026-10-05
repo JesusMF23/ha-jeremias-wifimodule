@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.0b2
+
+Fix confusing command/state presentation: an expired manual-off override no longer preloads Off when fresh equipment telemetry reports a running speed. The slider explicitly prepares a command and does not represent equipment status. Reported off takes precedence over the retained speed register in unit cards; missing fresh equipment/cloud data no longer appears as a current speed in the regulation summary. Manual regulation is explicitly described as pausing HA control, not switching the unit off.
+
 ## 0.4.0b1
 
 - Redesigned the existing panel with responsive zone cards, real Home Assistant history charts, Manual/Automatic selection, sliders plus exact values, and checkbox sensor selection. Advanced settings stay in disclosure sections.

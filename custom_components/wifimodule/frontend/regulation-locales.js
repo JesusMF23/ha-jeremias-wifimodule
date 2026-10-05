@@ -1,11 +1,16 @@
 export const regulationLocales = {
   en: {
+    commandSpeed: "Speed to send",
+    equipmentControl: "Equipment control",
+    manualCommandHelp:
+      "Choose the speed to send when you press Apply controls. This selector is a command, not the equipment status.",
     off: "Off",
     cloud: "wifimodule.eu",
     connected: "Connected",
     deviceWaiting: "Waiting for equipment",
     disconnected: "Cloud unavailable",
-    paused: "Regulation paused; readings remain available.",
+    paused:
+      "Sensor regulation paused; equipment keeps its manual control or schedule.",
     ventilation: "HOME VENTILATION",
     controlMode: "Regulation mode",
     limits: "Comfort targets and speed limits",
@@ -98,12 +103,17 @@ export const regulationLocales = {
     },
   },
   es: {
+    commandSpeed: "Velocidad a enviar",
+    equipmentControl: "Control del equipo",
+    manualCommandHelp:
+      "Elige la velocidad que enviarás al pulsar Aplicar controles. Este selector prepara una orden; no indica el estado del equipo.",
     off: "Apagado",
     cloud: "wifimodule.eu",
     connected: "Conectado",
     deviceWaiting: "Esperando al equipo",
     disconnected: "Nube no disponible",
-    paused: "Regulación pausada; las lecturas siguen disponibles.",
+    paused:
+      "Regulación por sensores pausada; el equipo conserva su control manual u horario.",
     ventilation: "VENTILACIÓN DEL HOGAR",
     controlMode: "Modo de regulación",
     limits: "Objetivos de confort y límites de velocidad",

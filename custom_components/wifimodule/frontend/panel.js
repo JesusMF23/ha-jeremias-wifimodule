@@ -380,9 +380,12 @@ class JeremiasPanel extends HTMLElement {
     const t = this.t,
       v = this.view,
       b = v.building,
-      manualSpeed = b.manual_speed ?? 1;
+      manualSpeed =
+        b.manual_active === false && this.automatic?.actual_speed != null
+          ? this.automatic.actual_speed
+          : (b.manual_speed ?? 1);
     if (this.page === "controls")
-      return `${dashboard(this.automatic, this.qualityHistory, this.historyHours, t.regulation, this._hass.language)}<section><div class="section-heading"><h2>${t.regulation.manualControl}</h2><span class="pill">${v.ready ? t.ready : t.waiting}</span></div><p class="muted">${t.scope} (${v.units.length})</p><div class="manual-speed"><label for="speed">${t.speed}</label><output id="speed-value" for="speed">${manualSpeed === 0 ? t.off : manualSpeed === 8 ? t.boost : esc(manualSpeed)}</output><input id="speed" type="range" min="0" max="8" step="1" value="${manualSpeed}" ${this.busy ? "disabled" : ""}><div class="range-labels"><span>0 · ${t.off}</span><span>1–7</span><span>8 · ${t.boost}</span></div></div><div class="grid spaced">
+      return `${dashboard(this.automatic, this.qualityHistory, this.historyHours, t.regulation, this._hass.language)}<section><div class="section-heading"><h2>${t.regulation.manualControl}</h2><span class="pill">${v.ready ? t.ready : t.waiting}</span></div><p class="muted">${t.scope} (${v.units.length})</p><p id="manual-command-help" class="muted">${t.regulation.manualCommandHelp}</p><div class="manual-speed"><label for="speed">${t.regulation.commandSpeed}</label><output id="speed-value" for="speed">${manualSpeed === 0 ? t.off : manualSpeed === 8 ? t.boost : esc(manualSpeed)}</output><input id="speed" aria-describedby="manual-command-help" type="range" min="0" max="8" step="1" value="${manualSpeed}" ${this.busy ? "disabled" : ""}><div class="range-labels"><span>0 · ${t.off}</span><span>1–7</span><span>8 · ${t.boost}</span></div></div><div class="grid spaced">
       <label>${t.mode}<select id="control-mode">${this.options(
         [
           ["manual", t.manual],
@@ -393,8 +396,8 @@ class JeremiasPanel extends HTMLElement {
       <label>${t.duration}<input id="duration" type="number" min="0" max="10080" step="1" value="${v.duration}"></label>
       <label class="check"><input id="bypass" type="checkbox" ${b.manual_bypass ? "checked" : ""}>${t.bypass}</label></div>
       <small>${t.never}</small><div class="actions spaced">${this.button("apply", t.apply, "primary", !v.ready)}${this.button("resume", t.resume, "", !v.ready)}</div>
-      <p class="muted">${b.manual_active ? `${t.manual} · ${esc(b.manual_override_until ?? t.never)}` : t.scheduleMode}</p></section>
-      <div class="units">${v.units.map((u) => `<div class="card"><h2>${esc(u.name)}</h2><dl><dt>${t.power}</dt><dd>${u.values?.pwr === 1 ? t.on : u.values?.pwr === 0 ? t.off : t.unknown}</dd><dt>${t.speed}</dt><dd>${esc(u.values?.spe ?? t.unknown)}</dd><dt>${t.filter}</dt><dd>${esc(u.values?.fil ?? t.unknown)}</dd><dt>${t.errors}</dt><dd>${esc(u.values?.err ?? t.unknown)}</dd></dl><small>${t.lastComm}: ${esc(u.last_comm)}</small></div>`).join("")}</div>`;
+      <p class="muted">${t.regulation.equipmentControl}: ${b.manual_active ? `${t.manual} · ${esc(b.manual_override_until ?? t.never)}` : t.scheduleMode}</p></section>
+      <div class="units">${v.units.map((u) => `<div class="card"><h2>${esc(u.name)}</h2><dl><dt>${t.power}</dt><dd>${u.values?.pwr === 1 ? t.on : u.values?.pwr === 0 ? t.off : t.unknown}</dd><dt>${t.speed}</dt><dd>${u.values?.pwr === 0 ? t.off : esc(u.values?.spe ?? t.unknown)}</dd><dt>${t.filter}</dt><dd>${esc(u.values?.fil ?? t.unknown)}</dd><dt>${t.errors}</dt><dd>${esc(u.values?.err ?? t.unknown)}</dd></dl><small>${t.lastComm}: ${esc(u.last_comm)}</small></div>`).join("")}</div>`;
     if (this.page === "schedule")
       return `<section><div class="toolbar"><label>${t.profile}<select id="profile">${this.options(
         v.profiles.map((p) => [p.id, p.name]),

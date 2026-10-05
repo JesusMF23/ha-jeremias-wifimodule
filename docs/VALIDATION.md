@@ -55,3 +55,16 @@ and loaded actual Recorder charts plus min/max/last values. The 6-hour period
 selector worked. Saved Manual mode, four gas entities, thresholds and minimum 1 /
 maximum 7 remained intact; the minimum control now exposes lower bound 0.
 No live fan/control/automatic-enable command was issued during this update.
+
+
+## 0.4.0b2 state versus command
+
+Observed a schedule-controlled building with manual_active=false, retained
+manual_speed=0 and fresh reported pwr=1/spe=4. The old UI presented the inactive
+manual selection as Off; the reported speed itself follows the equipment
+registers. Regression tests reproduce the expired-off selection, preserve active
+commands distinct from reported state, hide stale speed summaries, and show Off
+for pwr=0 even when spe retains a previous level. 105 Python and 11 frontend
+tests pass. No live equipment command was used to manufacture a matching state.
+The user's physical-off observation is not disproved by cloud telemetry; an
+independent local indication is still needed if the device and cloud disagree.

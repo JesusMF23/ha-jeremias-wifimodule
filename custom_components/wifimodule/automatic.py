@@ -190,7 +190,11 @@ class AutomaticControl:
             "sensors": self.sensors,
             "target_speed": d.target if d else None,
             "requested_speed": self.last_speed,
-            "actual_speed": self._physical_speed(),
+            "actual_speed": (
+                self._physical_speed()
+                if self.coordinator.last_update_success and self.control.ready
+                else None
+            ),
             "demand_percent": round(d.demand * 100, 1) if d else None,
             "source": asdict(d.source) if d and d.source else None,
             "invalid_sensors": list(d.invalid) if d else [],
