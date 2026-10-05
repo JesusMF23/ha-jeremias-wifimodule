@@ -290,3 +290,30 @@ async def test_guard_uses_fresh_physical_state_after_poll(fresh_values):
     guard = c.controller.control.call_args.kwargs["_guard"]
     c.controller.data["units"][0]["values"].update(fresh_values)
     assert not guard()
+
+
+async def test_zero_speed_is_confirmed_renewed_and_still_yields_to_manual():
+    a, c, _ = make_auto()
+    clean = State("sensor.room", "600", {"unit_of_measurement": "ppm"})
+    a.hass.states.get = lambda entity: clean
+    await a.configure(settings={"min_speed": 0})
+    a.last_sent, a.last_speed = 0, 1
+    c.controller.data.update(manual_active=True, manual_mode="manual", manual_speed=1)
+    c.controller.data["units"][0]["values"]["spe"] = 1
+    await a.tick(0)
+    await a.tick(299)
+    c.controller.control.assert_not_awaited()
+    await a.tick(300)
+    assert c.controller.control.call_args.kwargs["speed"] == 0
+    assert a.status == "awaiting_device"
+    c.controller.data.update(manual_active=True, manual_mode="manual", manual_speed=0)
+    c.controller.data["units"][0]["values"].update(pwr=0, spe=1)
+    await a.tick(310)
+    await a.tick(600)
+    assert c.controller.control.await_count == 2
+    assert c.controller.control.call_args.kwargs["speed"] == 0
+    await a.configure(enabled=False)
+    await a.tick(1000)
+    assert c.controller.control.await_count == 2
+    restored = AutomaticControl(a.hass, c)
+    assert restored.settings.min_speed == 0 and not restored.enabled

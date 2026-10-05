@@ -28,3 +28,19 @@ The earlier isolated panel harness also verified save/enable/Manual flows, inval
 When the owner chooses to end the manual-off override, enable Automatic and verify actual speed acknowledgement, fast rise/slow fall, active manual takeover, sensor/network loss, HA restart while Automatic and the manufacturer's return to schedule after a 15-minute override expires. These behaviors have automated coverage, but have not all been exercised on this equipment. Mobile and screen-reader acceptance remain untested.
 
 The installation and configuration are complete. Continuous automatic operation and its physical acceptance are deliberately not claimed while the existing manual-off command is being preserved.
+
+## 0.4.0b1 dashboard / zero minimum
+
+- Python suite: 102 passing, including zero demand slow switch-off, rise from zero,
+  missing-input protection, zero acknowledgement/renewal/manual takeover and
+  persistence. Catalogue tests cover registered names, incompatible units,
+  stale and restored readings.
+- Frontend tests: 8 passing for steps/gaps/zero, escaped names, checkbox
+  selection, zero input, translation parity and long retained histories. Lifecycle
+  regressions cover null manual setpoints and late-history responses on reconnect.
+- Isolated browser: checkbox save and min=0 payload checked; moving the manual
+  slider sends no command, Apply submits speed=0 through the unchanged operation.
+  At 390 px, content width equals viewport with no horizontal overflow. Range and
+  exact numeric values match, including TVOC full-demand 1000.
+- Live deployment and physical actuation evidence are recorded separately. These
+  simulated checks are not physical acceptance of automatic on/off or cloud loss.

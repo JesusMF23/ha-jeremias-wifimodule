@@ -19,5 +19,5 @@
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/JesusMF23/ha-jeremias-wifimodule/issues",
   "requirements": [],
-  "version": "0.3.0b2"
+  "version": "0.4.0b1"
 }

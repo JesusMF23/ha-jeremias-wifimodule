@@ -7,7 +7,7 @@ KINDS = ("co2", "tvoc", "humidity", "aqi")
 UNITS = {"co2": ("ppm",), "tvoc": ("ppb",), "humidity": ("%",), "aqi": (None, "")}
 # default, minimum, maximum, step; shared by backend validation and UI.
 PARAMETERS = {
-    "min_speed": (1, 1, 7, 1),
+    "min_speed": (1, 0, 7, 1),
     "max_speed": (7, 1, 7, 1),
     "co2_target": (800, 300, 5000, 10),
     "co2_full": (1500, 400, 10000, 10),
