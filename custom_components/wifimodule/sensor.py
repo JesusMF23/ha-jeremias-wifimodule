@@ -7,11 +7,13 @@ from homeassistant.components.sensor import (
 )
 from homeassistant.const import PERCENTAGE, EntityCategory, UnitOfRatio, UnitOfTime
 
+from .airzone_sensor import async_setup_airq
+from .automatic_entity import AutomaticEntity
 from .entity import UnitEntity
 
 
 async def async_setup_entry(hass, entry, async_add_entities):
-    items = []
+    items = [RegulationStatus(entry.runtime_data)]
     for unit in entry.runtime_data.data["units"]:
         for key in (
             "speed_level",
@@ -23,6 +25,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
         ):
             items.append(Telemetry(entry.runtime_data, unit, key))
     async_add_entities(items)
+    await async_setup_airq(entry, async_add_entities)
 
 
 class Telemetry(UnitEntity, SensorEntity):
@@ -80,3 +83,36 @@ class Telemetry(UnitEntity, SensorEntity):
         return self.values.get(
             {"speed_level": "spe", "error_code": "err", "filter_hours": "fil"}[self.key]
         )
+
+
+class RegulationStatus(AutomaticEntity, SensorEntity):
+    _attr_device_class = SensorDeviceClass.ENUM
+    _attr_options = [
+        "manual",
+        "warming_up",
+        "no_data",
+        "partial_data",
+        "holding",
+        "rising",
+        "falling",
+        "device_unavailable",
+        "awaiting_device",
+        "device_timeout",
+        "command_error",
+        "external_control",
+    ]
+
+    def __init__(self, c):
+        super().__init__(c, "regulation_status")
+
+    @property
+    def native_value(self):
+        return self.automatic.status
+
+    @property
+    def extra_state_attributes(self):
+        return {
+            k: v
+            for k, v in self.automatic.snapshot.items()
+            if k not in ("settings", "sensors", "status")
+        }

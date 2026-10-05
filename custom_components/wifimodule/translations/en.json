@@ -47,6 +47,9 @@
     },
     "command_failed": {
       "message": "Command not confirmed. Reload and check device communication, group and input. Not automatically retried."
+    },
+    "invalid_automatic_config": {
+      "message": "Check sensor units and ranges: minimum ≤ maximum, target < full demand, and fall times ≥ rise times."
     }
   },
   "entity": {
@@ -57,7 +60,7 @@
           "preset_mode": {
             "state": {
               "schedule": "Schedule",
-              "auto": "Automatic"
+              "auto": "Automatic (device sensors)"
             }
           }
         }
@@ -69,11 +72,18 @@
         "state": {
           "schedule": "Schedule",
           "manual": "Manual",
-          "auto": "Automatic"
+          "auto": "Automatic (device sensors)"
         }
       },
       "profile": {
         "name": "Active profile"
+      },
+      "regulation_mode": {
+        "name": "HA regulation",
+        "state": {
+          "manual": "Manual",
+          "automatic": "Automatic"
+        }
       }
     },
     "switch": {
@@ -84,6 +94,57 @@
     "number": {
       "override_duration": {
         "name": "Manual duration (0 = no expiry)"
+      },
+      "regulation_min_speed": {
+        "name": "Minimum speed"
+      },
+      "regulation_max_speed": {
+        "name": "Maximum speed"
+      },
+      "regulation_co2_target": {
+        "name": "CO₂ target (ppm)"
+      },
+      "regulation_co2_full": {
+        "name": "CO₂ full demand (ppm)"
+      },
+      "regulation_tvoc_target": {
+        "name": "TVOC target (ppb)"
+      },
+      "regulation_tvoc_full": {
+        "name": "TVOC full demand (ppb)"
+      },
+      "regulation_humidity_target": {
+        "name": "Humidity target (%)"
+      },
+      "regulation_humidity_full": {
+        "name": "Humidity full demand (%)"
+      },
+      "regulation_aqi_target": {
+        "name": "AQI target"
+      },
+      "regulation_aqi_full": {
+        "name": "AQI full demand"
+      },
+      "regulation_hysteresis": {
+        "name": "Hysteresis (% of demand)"
+      },
+      "regulation_rise_seconds": {
+        "name": "Rise confirmation (seconds)"
+      },
+      "regulation_fall_seconds": {
+        "name": "Fall confirmation (seconds)"
+      },
+      "regulation_filter_rise_seconds": {
+        "name": "Rise filter time (seconds)"
+      },
+      "regulation_filter_fall_seconds": {
+        "name": "Fall filter time (seconds)"
+      },
+      "regulation_minimum_interval": {
+        "name": "Minimum command interval (seconds)"
+      },
+      "regulation_stale_seconds": {
+        "name": "Maximum sensor age (seconds)"
       }
     },
     "button": {
@@ -112,6 +173,32 @@
       },
       "aqs2": {
         "name": "Air quality sensor 2"
+      },
+      "regulation_status": {
+        "name": "Regulation status",
+        "state": {
+          "manual": "Manual · HA regulation paused",
+          "warming_up": "Waiting for fresh demand",
+          "no_data": "No valid sensor data",
+          "partial_data": "Missing sensors · reductions paused",
+          "holding": "Maintaining speed",
+          "rising": "Confirming higher demand",
+          "falling": "Confirming recovery",
+          "device_unavailable": "Waiting for fresh, consistent equipment data",
+          "awaiting_device": "Command accepted · waiting for equipment",
+          "device_timeout": "Manual · equipment did not confirm speed",
+          "command_error": "Manual · command outcome not confirmed",
+          "external_control": "Manual · another control changed the equipment"
+        }
+      },
+      "airq_co2": {
+        "name": "CO₂"
+      },
+      "airq_tvoc": {
+        "name": "TVOC"
+      },
+      "airq_humidity": {
+        "name": "Humidity"
       }
     },
     "binary_sensor": {
@@ -127,6 +214,40 @@
       "problem": {
         "name": "Problem"
       }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Sensor regulation",
+        "description": "CO₂: ppm. TVOC: ppb only. Humidity: %. AQI is optional and higher must mean worse; confirm its scale before selecting it. Empty groups are ignored.",
+        "data": {
+          "co2_sensors": "CO₂",
+          "tvoc_sensors": "TVOC",
+          "humidity_sensors": "Humidity (optional)",
+          "aqi_sensors": "AQI (optional)",
+          "min_speed": "Minimum speed",
+          "max_speed": "Maximum speed",
+          "co2_target": "CO₂ target (ppm)",
+          "co2_full": "CO₂ full demand (ppm)",
+          "tvoc_target": "TVOC target (ppb)",
+          "tvoc_full": "TVOC full demand (ppb)",
+          "humidity_target": "Humidity target (%)",
+          "humidity_full": "Humidity full demand (%)",
+          "aqi_target": "AQI target",
+          "aqi_full": "AQI full demand",
+          "hysteresis": "Hysteresis (% of demand)",
+          "rise_seconds": "Rise confirmation (seconds)",
+          "fall_seconds": "Fall confirmation (seconds)",
+          "filter_rise_seconds": "Rise filter time (seconds)",
+          "filter_fall_seconds": "Fall filter time (seconds)",
+          "minimum_interval": "Minimum command interval (seconds)",
+          "stale_seconds": "Maximum sensor age (seconds)"
+        }
+      }
+    },
+    "error": {
+      "invalid_automatic_config": "Check sensor units and ranges: minimum ≤ maximum, target < full demand, and fall times ≥ rise times."
     }
   }
 }

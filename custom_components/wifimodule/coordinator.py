@@ -21,6 +21,7 @@ class Coordinator(DataUpdateCoordinator):
             update_interval=timedelta(seconds=POLL_SECONDS),
         )
         self.controller = controller
+        self.automatic = None
         self.profiles = []
         self._metadata_at = 0
 
@@ -38,6 +39,11 @@ class Coordinator(DataUpdateCoordinator):
             raise UpdateFailed("WifiModule cloud data unavailable") from None
 
     async def command(self, method, *args, **kwargs):
+        if self.automatic is not None and method in (
+            self.controller.control,
+            self.controller.activate,
+        ):
+            await self.automatic.manual()
         try:
             result = await method(*args, **kwargs)
         except AuthError:

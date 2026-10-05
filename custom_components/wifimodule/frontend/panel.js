@@ -1,3 +1,8 @@
+import {
+  automaticCard,
+  automaticStatus,
+  automaticInputs,
+} from "./automatic.js";
 import { locales } from "./locales.js";
 import { styles } from "./styles.js";
 const esc = (v) =>
@@ -25,6 +30,8 @@ class JeremiasPanel extends HTMLElement {
     this.entries = [];
     this.busy = false;
     this.dirty = false;
+    this.automaticDraft = null;
+    this.autoRevision = 0;
     this.view = null;
     this.notice = "";
   }
@@ -37,10 +44,32 @@ class JeremiasPanel extends HTMLElement {
     }
   }
   connectedCallback() {
+    this.autoTimer = setInterval(async () => {
+      if (this.busy || !this.entryId) return;
+      const entry = this.entryId;
+      const revision = this.autoRevision;
+      try {
+        const a = await this.api("automatic");
+        if (
+          entry !== this.entryId ||
+          revision !== this.autoRevision ||
+          this.busy
+        )
+          return;
+        this.automatic = a;
+        const box = this.shadowRoot.querySelector("#automatic-status");
+        if (box) box.innerHTML = automaticStatus(a, this.t.regulation);
+      } catch {
+        /* Existing diagnostic state remains visible until refresh. */
+      }
+    }, 10000);
     if (this._hass && !this.started) {
       this.started = true;
       this.run(() => this.loadEntries());
     }
+  }
+  disconnectedCallback() {
+    clearInterval(this.autoTimer);
   }
   async api(operation, data = {}) {
     return this._hass.callWS({
@@ -52,6 +81,7 @@ class JeremiasPanel extends HTMLElement {
   }
   async run(task) {
     if (this.busy) return;
+    this.autoRevision += 1;
     this.busy = true;
     this.notice = "";
     this.render();
@@ -71,6 +101,7 @@ class JeremiasPanel extends HTMLElement {
     if (this.entryId) await this.loadView();
   }
   async loadView(profile) {
+    this.automatic = await this.api("automatic");
     this.view = await this.api(
       "view",
       profile === undefined ? {} : { profile_id: Number(profile) },
@@ -98,7 +129,10 @@ class JeremiasPanel extends HTMLElement {
     this.failed = false;
   }
   confirmDiscard() {
-    return !this.dirty || window.confirm(this.t.discard);
+    if (!this.dirty && !this.automaticDraft) return true;
+    if (!window.confirm(this.t.discard)) return false;
+    this.automaticDraft = null;
+    return true;
   }
   options(values, selected) {
     return values
@@ -124,6 +158,7 @@ class JeremiasPanel extends HTMLElement {
           )}</select></label>`
         : `<p>${this.busy ? t.loading : t.empty}</p>`
     }
+    ${automaticCard(this.automatic ? { ...this.automatic, ...this.automaticDraft } : null, t.regulation, this.busy)}
     ${this.notice ? `<div class="notice ${this.failed ? "error" : ""}" role="alert">${esc(this.notice)}</div>` : ""}
     ${
       v
@@ -146,12 +181,20 @@ class JeremiasPanel extends HTMLElement {
     this.shadowRoot
       .querySelectorAll("[data-action]")
       .forEach((el) => (el.onclick = () => this.handle(el.dataset.action, el)));
+    this.shadowRoot
+      .querySelectorAll("[data-auto-setting], [data-auto-sensors]")
+      .forEach((el) => {
+        el.oninput = el.onchange = () => {
+          this.automaticDraft = automaticInputs(this.shadowRoot);
+        };
+      });
     const installation = this.shadowRoot.querySelector("#installation");
     if (installation)
       installation.onchange = () => {
         if (this.confirmDiscard()) {
           this.entryId = installation.value;
           this.view = null;
+          this.automatic = null;
           this.run(() => this.loadView());
         } else this.render();
       };
@@ -301,7 +344,19 @@ class JeremiasPanel extends HTMLElement {
   handle(action, element) {
     if (this.busy) return;
     const q = (s) => this.shadowRoot.querySelector(s);
-    if (action === "menu")
+    if (action.startsWith("automatic-")) {
+      const data =
+        action === "automatic-manual"
+          ? { enabled: false }
+          : automaticInputs(this.shadowRoot);
+      if (action === "automatic-enable") data.enabled = true;
+      this.run(async () => {
+        this.automatic = await this.api("automatic", data);
+        if (action !== "automatic-manual") this.automaticDraft = null;
+        this.notice = this.t.regulation.saved;
+        this.failed = false;
+      });
+    } else if (action === "menu")
       this.dispatchEvent(
         new CustomEvent("hass-toggle-menu", { bubbles: true, composed: true }),
       );

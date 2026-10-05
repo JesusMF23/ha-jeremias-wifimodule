@@ -47,6 +47,9 @@
     },
     "command_failed": {
       "message": "Orden no confirmada. Recarga y comprueba la comunicación del equipo, el grupo y los datos. No se reintenta automáticamente."
+    },
+    "invalid_automatic_config": {
+      "message": "Comprueba unidades y rangos: mínima ≤ máxima, objetivo < demanda máxima y tiempos de bajada ≥ subida."
     }
   },
   "entity": {
@@ -57,7 +60,7 @@
           "preset_mode": {
             "state": {
               "schedule": "Horario",
-              "auto": "Automático"
+              "auto": "Automático (sondas del equipo)"
             }
           }
         }
@@ -69,11 +72,18 @@
         "state": {
           "schedule": "Horario",
           "manual": "Manual",
-          "auto": "Automático"
+          "auto": "Automático (sondas del equipo)"
         }
       },
       "profile": {
         "name": "Perfil activo"
+      },
+      "regulation_mode": {
+        "name": "Regulación HA",
+        "state": {
+          "manual": "Manual",
+          "automatic": "Automático"
+        }
       }
     },
     "switch": {
@@ -84,6 +94,57 @@
     "number": {
       "override_duration": {
         "name": "Duración manual (0 = sin caducidad)"
+      },
+      "regulation_min_speed": {
+        "name": "Velocidad mínima"
+      },
+      "regulation_max_speed": {
+        "name": "Velocidad máxima"
+      },
+      "regulation_co2_target": {
+        "name": "Objetivo CO₂ (ppm)"
+      },
+      "regulation_co2_full": {
+        "name": "Demanda máxima CO₂ (ppm)"
+      },
+      "regulation_tvoc_target": {
+        "name": "Objetivo TVOC (ppb)"
+      },
+      "regulation_tvoc_full": {
+        "name": "Demanda máxima TVOC (ppb)"
+      },
+      "regulation_humidity_target": {
+        "name": "Objetivo humedad (%)"
+      },
+      "regulation_humidity_full": {
+        "name": "Demanda máxima humedad (%)"
+      },
+      "regulation_aqi_target": {
+        "name": "Objetivo CAI"
+      },
+      "regulation_aqi_full": {
+        "name": "Demanda máxima CAI"
+      },
+      "regulation_hysteresis": {
+        "name": "Histéresis (% de demanda)"
+      },
+      "regulation_rise_seconds": {
+        "name": "Confirmación de subida (segundos)"
+      },
+      "regulation_fall_seconds": {
+        "name": "Confirmación de bajada (segundos)"
+      },
+      "regulation_filter_rise_seconds": {
+        "name": "Tiempo de filtro al subir (segundos)"
+      },
+      "regulation_filter_fall_seconds": {
+        "name": "Tiempo de filtro al bajar (segundos)"
+      },
+      "regulation_minimum_interval": {
+        "name": "Intervalo mínimo entre órdenes (segundos)"
+      },
+      "regulation_stale_seconds": {
+        "name": "Antigüedad máxima de sensores (segundos)"
       }
     },
     "button": {
@@ -112,6 +173,32 @@
       },
       "aqs2": {
         "name": "Sensor de calidad del aire 2"
+      },
+      "regulation_status": {
+        "name": "Estado de regulación",
+        "state": {
+          "manual": "Manual · regulación HA pausada",
+          "warming_up": "Esperando demanda nueva",
+          "no_data": "Sin lecturas válidas",
+          "partial_data": "Faltan sensores · bajadas pausadas",
+          "holding": "Manteniendo velocidad",
+          "rising": "Confirmando mayor demanda",
+          "falling": "Confirmando mejoría",
+          "device_unavailable": "Esperando datos recientes y coherentes del equipo",
+          "awaiting_device": "Orden aceptada · esperando al equipo",
+          "device_timeout": "Manual · el equipo no confirmó la velocidad",
+          "command_error": "Manual · orden no confirmada",
+          "external_control": "Manual · otro control cambió el equipo"
+        }
+      },
+      "airq_co2": {
+        "name": "CO₂"
+      },
+      "airq_tvoc": {
+        "name": "TVOC"
+      },
+      "airq_humidity": {
+        "name": "Humedad"
       }
     },
     "binary_sensor": {
@@ -127,6 +214,40 @@
       "problem": {
         "name": "Problema"
       }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Regulación por sensores",
+        "description": "CO₂: ppm. TVOC: solo ppb. Humedad: %. CAI es opcional y un valor mayor debe significar peor calidad; confirma su escala antes de seleccionarlo. Los grupos vacíos se ignoran.",
+        "data": {
+          "co2_sensors": "CO₂",
+          "tvoc_sensors": "TVOC",
+          "humidity_sensors": "Humedad (opcional)",
+          "aqi_sensors": "CAI (opcional)",
+          "min_speed": "Velocidad mínima",
+          "max_speed": "Velocidad máxima",
+          "co2_target": "Objetivo CO₂ (ppm)",
+          "co2_full": "Demanda máxima CO₂ (ppm)",
+          "tvoc_target": "Objetivo TVOC (ppb)",
+          "tvoc_full": "Demanda máxima TVOC (ppb)",
+          "humidity_target": "Objetivo humedad (%)",
+          "humidity_full": "Demanda máxima humedad (%)",
+          "aqi_target": "Objetivo CAI",
+          "aqi_full": "Demanda máxima CAI",
+          "hysteresis": "Histéresis (% de demanda)",
+          "rise_seconds": "Confirmación de subida (segundos)",
+          "fall_seconds": "Confirmación de bajada (segundos)",
+          "filter_rise_seconds": "Tiempo de filtro al subir (segundos)",
+          "filter_fall_seconds": "Tiempo de filtro al bajar (segundos)",
+          "minimum_interval": "Intervalo mínimo entre órdenes (segundos)",
+          "stale_seconds": "Antigüedad máxima de sensores (segundos)"
+        }
+      }
+    },
+    "error": {
+      "invalid_automatic_config": "Comprueba unidades y rangos: mínima ≤ máxima, objetivo < demanda máxima y tiempos de bajada ≥ subida."
     }
   }
 }

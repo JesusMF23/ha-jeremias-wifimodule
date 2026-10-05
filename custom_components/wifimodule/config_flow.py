@@ -6,6 +6,7 @@ import voluptuous as vol
 from aiohttp import CookieJar
 from homeassistant.config_entries import ConfigFlow
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
+from homeassistant.core import callback
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
 from homeassistant.helpers.selector import (
     TextSelector,
@@ -16,6 +17,7 @@ from homeassistant.helpers.selector import (
 from .api import ApiError, AuthError, DeviceError, WifiModuleApi
 from .const import DOMAIN
 from .models import normalize_building, record
+from .options_flow import WifiModuleOptionsFlow
 
 CREDENTIALS = vol.Schema(
     {
@@ -31,6 +33,11 @@ CREDENTIALS = vol.Schema(
 
 class WifiModuleConfigFlow(ConfigFlow, domain=DOMAIN):
     VERSION = 2
+
+    @staticmethod
+    @callback
+    def async_get_options_flow(config_entry):
+        return WifiModuleOptionsFlow()
 
     def __init__(self):
         self._credentials = {}

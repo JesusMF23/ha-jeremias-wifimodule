@@ -1,5 +1,6 @@
 """Real localhost HTTP, private cookie jars and observed response contracts."""
 
+import asyncio
 from collections import Counter
 
 import pytest
@@ -85,3 +86,36 @@ async def test_ambiguous_writes_not_retried_or_redirected(server, failure):
     with pytest.raises(ApiError):
         await api.write("unit-config", {"building": 1, "manual": False})
     assert calls["unit-config"] == 1 and calls["trap"] == 0
+
+
+async def test_cancel_automatic_write_waiting_on_api_lock(server):
+    from custom_components.wifimodule.api import ControlCancelled
+
+    api, calls, _ = server
+    active = True
+    await api.lock.acquire()
+    task = asyncio.create_task(
+        api.write(
+            "unit-config", {"building": 1, "manual": False}, _guard=lambda: active
+        )
+    )
+    await asyncio.sleep(0)
+    active = False
+    api.lock.release()
+    with pytest.raises(ControlCancelled):
+        await task
+    assert calls["unit-config"] == 0
+
+
+async def test_cancel_before_reauthentication_retry(server):
+    from custom_components.wifimodule.api import ControlCancelled
+
+    api, calls, state = server
+    state["reject"] = 1
+    with pytest.raises(ControlCancelled):
+        await api.write(
+            "unit-config",
+            {"building": 1, "manual": False},
+            _guard=lambda: calls["unit-config"] == 0,
+        )
+    assert calls["unit-config"] == 1

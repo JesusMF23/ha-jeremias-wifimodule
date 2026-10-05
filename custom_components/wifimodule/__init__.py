@@ -4,15 +4,20 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from aiohttp import CookieJar
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
+from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
 
+from .airzone_bridge import async_acquire_bridge, async_release_bridge
 from .api import ApiError, AuthError, WifiModuleApi
+from .automatic import AutomaticControl
 from .const import DOMAIN, PLATFORMS
 from .controller import Controller
 from .coordinator import Coordinator
 from .models import record
 from .panel import async_setup_panel
+
+CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 
 async def async_setup(hass, config):
@@ -44,6 +49,13 @@ async def async_setup_entry(hass, entry):
     controller.duration = entry.options.get("duration", 30)
     coordinator = Coordinator(hass, entry, controller)
     await coordinator.async_config_entry_first_refresh()
+    coordinator.automatic = AutomaticControl(hass, coordinator)
+    coordinator.airq = await async_acquire_bridge(hass, entry)
+
+    async def release_airq():
+        await async_release_bridge(hass, entry)
+
+    entry.async_on_unload(release_airq)
     entry.runtime_data = coordinator
     hass.data[DOMAIN]["entries"][entry.entry_id] = coordinator
     try:
@@ -51,12 +63,17 @@ async def async_setup_entry(hass, entry):
     except Exception:
         hass.data[DOMAIN]["entries"].pop(entry.entry_id, None)
         raise
+    coordinator.automatic.start()
+    entry.async_on_unload(coordinator.automatic._cancel)
     return True
 
 
 async def async_unload_entry(hass, entry):
     unloaded = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if unloaded:
+        coordinator = hass.data[DOMAIN]["entries"].get(entry.entry_id)
+        if getattr(coordinator, "automatic", None) is not None:
+            await coordinator.automatic.stop()
         hass.data[DOMAIN]["entries"].pop(entry.entry_id, None)
     return unloaded
 

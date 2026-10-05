@@ -21,3 +21,8 @@ Account registration, password resets, unit pairing/ownership transfer and insta
 ## Verification and release
 
 Protocol evidence: actual user status/control captures plus public JS request construction. New API methods are source-confirmed but need authenticated acceptance testing before a stable release. Build as 0.2.0b1, not an official/vendor-supported integration. Test protocol, isolated HTTP authentication, group protection, weekly edits, conflicts, permissions, entities and local UI. Produce source ZIP and installable integration ZIP. Publishing to GitHub and HACS default catalog is a separate final step after a reviewable result exists.
+
+
+## Sensor demand extension (0.3.0b1)
+
+`demand.py` contains a deterministic, I/O-free demand/filter/timing engine. `automatic.py` owns HA state reads, config-entry persistence, diagnostics, lifecycle and guarded lease writes through the existing Controller/API. Options and native entities expose the same validated settings; the existing panel adds a separate regulation section. Cancellation guards reach the serialized API immediately before each write attempt, including reauthentication. Commands from existing manual surfaces pause regulation first. See [behavior](AUTOMATIC_CONTROL.md) and [acceptance](VALIDATION.md).
