@@ -77,11 +77,16 @@ class JeremiasPanel extends HTMLElement {
         else if (settingsChanged) this.paintQualityHistory();
         const box = this.shadowRoot.querySelector("#automatic-status");
         if (box) box.innerHTML = automaticStatus(a, this.t.regulation);
+        const equipment = this.shadowRoot.querySelector(
+          "#equipment-control-state",
+        );
+        if (equipment) equipment.textContent = this.equipmentControlText();
         const zones = this.shadowRoot.querySelector("#zone-cards");
         if (zones) zones.innerHTML = zoneCards(a, this.t.regulation);
         for (const [action, active] of [
           ["automatic-enable", a.enabled],
-          ["automatic-manual", !a.enabled],
+          ["automatic-manual", a.mode === "manual"],
+          ["automatic-schedule", a.mode === "schedule"],
         ])
           this.shadowRoot
             .querySelector(`[data-action="${action}"]`)
@@ -331,9 +336,19 @@ class JeremiasPanel extends HTMLElement {
     );
     if (historyRefresh)
       historyRefresh.onclick = () => this.loadQualityHistory();
+    const updateDuration = () => {
+      const row = this.shadowRoot.querySelector("#duration-row");
+      if (row)
+        row.hidden =
+          Number(this.shadowRoot.querySelector("#speed").value) !== 8 &&
+          this.shadowRoot.querySelector("#control-mode").value === "manual";
+    };
+    const controlMode = this.shadowRoot.querySelector("#control-mode");
+    if (controlMode) controlMode.onchange = updateDuration;
     const speed = this.shadowRoot.querySelector("#speed");
     if (speed)
       speed.oninput = () => {
+        updateDuration();
         this.shadowRoot.querySelector("#speed-value").textContent =
           Number(speed.value) === 0
             ? t.off
@@ -401,14 +416,30 @@ class JeremiasPanel extends HTMLElement {
         }),
     );
   }
+  equipmentControlText() {
+    const mode =
+      this.automatic?.reported_mode ??
+      (this.view?.building?.manual_active === false
+        ? "schedule"
+        : this.view?.building?.manual_mode);
+    return (
+      {
+        manual: this.t.manual,
+        schedule: this.t.scheduleMode,
+        auto: this.t.auto,
+      }[mode] ?? this.t.unknown
+    );
+  }
   content() {
     const t = this.t,
       v = this.view,
       b = v.building,
       manualSpeed =
-        b.manual_active === false && this.automatic?.actual_speed != null
-          ? this.automatic.actual_speed
-          : (b.manual_speed ?? 1);
+        this.automatic?.mode === "manual"
+          ? (this.automatic.manual_speed ?? 0)
+          : b.manual_active === false && this.automatic?.actual_speed != null
+            ? this.automatic.actual_speed
+            : (b.manual_speed ?? 1);
     if (this.page === "controls")
       return `${dashboard(this.automatic, this.qualityHistory, this.historyHours, t.regulation, this._hass.language)}<section><div class="section-heading"><h2>${t.regulation.manualControl}</h2><span class="pill">${v.ready ? t.ready : t.waiting}</span></div><p class="muted">${t.scope} (${v.units.length})</p><p id="manual-command-help" class="muted">${t.regulation.manualCommandHelp}</p><div class="manual-speed"><label for="speed">${t.regulation.commandSpeed}</label><output id="speed-value" for="speed">${manualSpeed === 0 ? t.off : manualSpeed === 8 ? t.boost : esc(manualSpeed)}</output><input id="speed" aria-describedby="manual-command-help" type="range" min="0" max="8" step="1" value="${manualSpeed}" ${this.busy ? "disabled" : ""}><div class="range-labels"><span>0 · ${t.off}</span><span>1–7</span><span>8 · ${t.boost}</span></div></div><div class="grid spaced">
       <label>${t.mode}<select id="control-mode">${this.options(
@@ -418,10 +449,10 @@ class JeremiasPanel extends HTMLElement {
         ],
         b.manual_mode ?? "manual",
       )}</select></label>
-      <label>${t.duration}<input id="duration" type="number" min="0" max="10080" step="1" value="${v.duration}"></label>
+      <label id="duration-row" ${manualSpeed !== 8 && b.manual_mode !== "auto" ? "hidden" : ""}>${t.duration}<input id="duration" type="number" min="0" max="10080" step="1" value="${v.duration}"></label>
       <label class="check"><input id="bypass" type="checkbox" ${b.manual_bypass ? "checked" : ""}>${t.bypass}</label></div>
-      <small>${t.never}</small><div class="actions spaced">${this.button("apply", t.apply, "primary", !v.ready)}${this.button("resume", t.resume, "", !v.ready)}</div>
-      <p class="muted">${t.regulation.equipmentControl}: ${b.manual_active ? `${t.manual} · ${esc(b.manual_override_until ?? t.never)}` : t.scheduleMode}</p></section>
+      <small>${t.regulation.manualHoldHelp}</small><div class="actions spaced">${this.button("apply", t.apply, "primary", !v.ready)}${this.button("resume", t.resume, "", !v.ready)}</div>
+      <p class="muted">${t.regulation.equipmentControl}: <span id="equipment-control-state">${esc(this.equipmentControlText())}</span></p></section>
       <div class="units">${v.units.map((u) => `<div class="card"><h2>${esc(u.name)}</h2><dl><dt>${t.power}</dt><dd>${u.values?.pwr === 1 ? t.on : u.values?.pwr === 0 ? t.off : t.unknown}</dd><dt>${t.speed}</dt><dd>${u.values?.pwr === 0 ? t.off : esc(u.values?.spe ?? t.unknown)}</dd><dt>${t.filter}</dt><dd>${esc(u.values?.fil ?? t.unknown)}</dd><dt>${t.errors}</dt><dd>${esc(u.values?.err ?? t.unknown)}</dd></dl><small>${t.lastComm}: ${esc(u.last_comm)}</small></div>`).join("")}</div>`;
     if (this.page === "schedule")
       return `<section><div class="toolbar"><label>${t.profile}<select id="profile">${this.options(
@@ -494,7 +525,9 @@ class JeremiasPanel extends HTMLElement {
   handle(action, element) {
     if (this.busy) return;
     const q = (s) => this.shadowRoot.querySelector(s);
-    if (action.startsWith("automatic-")) {
+    if (action === "automatic-schedule") {
+      this.run(() => this.mutate("control", { schedule: true }));
+    } else if (action.startsWith("automatic-")) {
       const data =
         action === "automatic-manual"
           ? { enabled: false }
@@ -524,7 +557,11 @@ class JeremiasPanel extends HTMLElement {
         speed: Number(q("#speed").value),
         mode: q("#control-mode").value,
         bypass: q("#bypass").checked,
-        duration: Number(q("#duration").value),
+        duration:
+          Number(q("#speed").value) !== 8 &&
+          q("#control-mode").value === "manual"
+            ? 0
+            : Number(q("#duration").value),
       };
       this.run(() => this.mutate("control", data));
     } else if (action === "resume")

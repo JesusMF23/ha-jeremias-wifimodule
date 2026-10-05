@@ -50,6 +50,9 @@
     },
     "invalid_automatic_config": {
       "message": "Comprueba unidades y rangos: mínima ≤ máxima, objetivo < demanda máxima y tiempos de bajada ≥ subida."
+    },
+    "control_superseded": {
+      "message": "Orden cancelada por una selección posterior."
     }
   },
   "entity": {
@@ -82,7 +85,8 @@
         "name": "Regulación HA",
         "state": {
           "manual": "Manual",
-          "automatic": "Automático"
+          "automatic": "Automático",
+          "schedule": "Horario Jeremias"
         }
       }
     },
@@ -177,7 +181,7 @@
       "regulation_status": {
         "name": "Estado de regulación",
         "state": {
-          "manual": "Manual · regulación HA pausada",
+          "manual": "Manual · sin caducidad",
           "warming_up": "Esperando demanda nueva",
           "no_data": "Sin lecturas válidas",
           "partial_data": "Faltan sensores · bajadas pausadas",
@@ -188,7 +192,12 @@
           "awaiting_device": "Orden aceptada · esperando al equipo",
           "device_timeout": "Manual · el equipo no confirmó la velocidad",
           "command_error": "Manual · orden no confirmada",
-          "external_control": "Manual · otro control cambió el equipo"
+          "external_control": "Manual · otro control cambió el equipo",
+          "manual_pending": "Manual · esperando aplicar velocidad",
+          "manual_awaiting": "Manual · esperando confirmación",
+          "schedule": "Horario Jeremias",
+          "paused": "Control HA pausado",
+          "device_control": "Control del equipo / temporal"
         }
       },
       "airq_co2": {

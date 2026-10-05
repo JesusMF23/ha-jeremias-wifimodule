@@ -28,6 +28,7 @@ class Controller:
         self.heartbeats = {}
         self.data = None
         self.duration = 30
+        self.last_control = None
 
     async def poll(self):
         raw = record(await self.api.read("status", "status"), self.building_id)
@@ -152,8 +153,11 @@ class Controller:
             if _guard is not None and not _guard():
                 raise ControlCancelled("Automatic control cancelled")
             if _guard is not None:
-                return await self.api.write("unit-config", payload, _guard=_guard)
-            return await self.api.write("unit-config", payload)
+                result = await self.api.write("unit-config", payload, _guard=_guard)
+            else:
+                result = await self.api.write("unit-config", payload)
+            self.last_control = payload
+            return result
 
     async def activate(self, profile_id):
         async with self.lock:

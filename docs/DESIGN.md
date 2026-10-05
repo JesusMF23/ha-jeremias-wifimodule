@@ -64,3 +64,8 @@ entity identifiers, history, Airzone links and ventilation settings are untouche
 The dialog lives outside periodically replaced cards. Save validates a trimmed
 1–100 character name, blocks duplicate submissions and retains the draft on error.
 Cancel/Escape discards an unsaved edit. Focus returns to the matching card.
+
+
+## Persistent manual ownership (0.4.0b4)
+
+ManualControl isolates persistent manual intent from sensor demand. It sends a single non-expiring command after fresh telemetry, verifies acknowledgement and restores saved speed on restart. Explicit schedule release clears ownership. Uncertain writes or external changes clear restoration intent; no blind retries. Generation guards cancel superseded writes before transmission. Normal manual UI hides irrelevant duration; temporary boost/device-auto controls retain it.

@@ -7,7 +7,7 @@ from time import monotonic
 from homeassistant.exceptions import ConfigEntryAuthFailed, HomeAssistantError
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .api import ApiError, AuthError
+from .api import ApiError, AuthError, ControlCancelled
 from .const import DOMAIN, POLL_SECONDS
 
 
@@ -39,11 +39,26 @@ class Coordinator(DataUpdateCoordinator):
             raise UpdateFailed("WifiModule cloud data unavailable") from None
 
     async def command(self, method, *args, **kwargs):
+        generation = None
         if self.automatic is not None and method in (
             self.controller.control,
             self.controller.activate,
         ):
             await self.automatic.manual()
+            generation = self.automatic.generation
+        if method == self.controller.control:
+            if (
+                not kwargs.get("schedule")
+                and kwargs.get("speed") != 8
+                and kwargs.get("mode") != "auto"
+            ):
+                kwargs.update(duration=0, mode="manual")
+            if generation is not None:
+                kwargs["_guard"] = lambda: (
+                    not self.automatic._closed
+                    and generation == self.automatic.generation
+                    and not self.automatic.enabled
+                )
         try:
             result = await method(*args, **kwargs)
         except AuthError:
@@ -51,10 +66,24 @@ class Coordinator(DataUpdateCoordinator):
             raise HomeAssistantError(
                 translation_domain=DOMAIN, translation_key="auth_required"
             ) from None
+        except ControlCancelled:
+            raise HomeAssistantError(
+                translation_domain=DOMAIN, translation_key="control_superseded"
+            ) from None
         except ApiError:
+            if generation is not None and generation == self.automatic.generation:
+                await self.automatic.manual("command_error")
             raise HomeAssistantError(
                 translation_domain=DOMAIN, translation_key="command_failed"
             ) from None
+        if generation is not None and generation == self.automatic.generation:
+            if method == self.controller.control:
+                self.automatic.manual_control.record(
+                    self.controller.last_control, monotonic()
+                )
+            elif method == self.controller.activate:
+                self.automatic.status = "schedule"
+                self.automatic._persist()
         self._metadata_at = 0
         await self.async_request_refresh()
         return result
