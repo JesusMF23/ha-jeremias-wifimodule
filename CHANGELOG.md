@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.0b2
+
+Fix panel loading after an upgrade by versioning the whole frontend module directory. Relative and nested imports now receive new URLs on every release; old cached translations can no longer break the new regulation controls. Adds a regression covering module URLs across two releases.
+
 ## 0.3.0b1
 
 Adds persistent Home Assistant Automatic/Manual demand control using selected CO₂, TVOC, optional humidity/AQI entities. Worst-zone progressive speeds, asymmetric filtering/delays, hysteresis, min/max bounds, native settings/diagnostics and existing-panel configuration. Manual controls take priority. Renewable overrides expire back to the vendor schedule, and uncertain writes stop automatic control. No new hardware, dependencies or hardcoded household entities. Optional AirQ gas adapter reuses the existing Airzone Cloud session to expose native CO₂/TVOC/humidity readings with availability checks. See docs/VALIDATION.md for acceptance evidence.

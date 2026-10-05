@@ -173,10 +173,12 @@ async def websocket_manage(hass, connection, msg):
 async def async_setup_panel(hass):
     if hass.data[DOMAIN].get("panel_registered"):
         return
+    # Version the directory so relative and nested imports cannot reuse old modules.
+    static_url = f"/wifimodule_static/{VERSION}"
     await hass.http.async_register_static_paths(
         [
             StaticPathConfig(
-                "/wifimodule_static",
+                static_url,
                 str(Path(__file__).parent / "frontend"),
                 cache_headers=False,
             )
@@ -188,7 +190,7 @@ async def async_setup_panel(hass):
         webcomponent_name="jeremias-panel",
         sidebar_title="Jeremias",
         sidebar_icon="mdi:hvac",
-        module_url=f"/wifimodule_static/panel.js?v={VERSION}",
+        module_url=f"{static_url}/panel.js",
         require_admin=True,
     )
     websocket_api.async_register_command(hass, websocket_manage)
