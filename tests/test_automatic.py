@@ -317,3 +317,19 @@ async def test_zero_speed_is_confirmed_renewed_and_still_yields_to_manual():
     assert c.controller.control.await_count == 2
     restored = AutomaticControl(a.hass, c)
     assert restored.settings.min_speed == 0 and not restored.enabled
+
+
+@pytest.mark.parametrize("cloud_ok,device_ready", [(False, True), (True, False)])
+def test_display_does_not_present_old_equipment_speed_as_current(
+    cloud_ok, device_ready
+):
+    a, c, _ = make_auto(False)
+    c.last_update_success = cloud_ok
+    c.controller.ready = device_ready
+    assert a.snapshot["actual_speed"] is None
+
+
+def test_reported_off_overrides_a_retained_speed_register():
+    a, c, _ = make_auto(False)
+    c.controller.data["units"][0]["values"].update(pwr=0, spe=4)
+    assert a.snapshot["actual_speed"] == 0

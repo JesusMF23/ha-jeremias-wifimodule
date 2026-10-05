@@ -2,7 +2,7 @@
 
 Integración comunitaria con entidades nativas y un panel **Jeremias** para controlar el recuperador y editar la programación de wifimodule.eu. **No requiere hardware adicional, pero sí Internet y la nube del fabricante.**
 
-La versión **0.4.0b1 es una beta**: control y lectura básica tienen capturas reales; perfiles, modos y programación se han implementado a partir del código público de la web y probado con respuestas simuladas. Falta completar las pruebas autenticadas con equipos reales. No es una integración oficial ni está incluida en el catálogo predeterminado de HACS.
+La versión **0.4.0b2 es una beta**: control y lectura básica tienen capturas reales; perfiles, modos y programación se han implementado a partir del código público de la web y probado con respuestas simuladas. Falta completar las pruebas autenticadas con equipos reales. No es una integración oficial ni está incluida en el catálogo predeterminado de HACS.
 
 ## Qué incluye
 
@@ -68,7 +68,7 @@ Las credenciales se guardan en HA y no se envían al panel. Protege las copias d
 
 [Documentación completa](README.md) · [Protocolo](docs/PROTOCOL.md) · [Pruebas y pendientes](docs/VALIDATION.md)
 
-## Panel renovado y apagado opcional (0.4.0b1)
+## Panel renovado y apagado opcional (0.4.0b2)
 
 La misma integración incluye tarjetas por zona, gráficos reales del historial de
 Home Assistant (6 h, 24 h y 7 días), deslizadores con valor exacto y casillas para

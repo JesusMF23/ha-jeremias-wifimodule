@@ -116,3 +116,68 @@ test("reconnecting reloads pending history and ignores the old response", async 
   panel.isConnected = false;
   panel.disconnectedCallback();
 });
+
+test("an expired off override does not preload Off over a fresh running state", () => {
+  const panel = new Panel();
+  panel.t = locales.es;
+  panel._hass = { language: "es" };
+  panel.automatic = {
+    actual_speed: 4,
+    sensors: { co2: [], tvoc: [], humidity: [], aqi: [] },
+    candidates: {},
+    settings: {},
+  };
+  panel.view = {
+    building: { manual_speed: 0, manual_active: false },
+    units: [{ name: "Test unit", values: { pwr: 1, spe: 4 } }],
+    ready: true,
+    duration: 30,
+  };
+  let html = panel.content();
+  assert.equal(html.match(/<input id="speed"[^>]*value="([^"]*)"/)?.[1], "4");
+  panel.automatic.actual_speed = 0;
+  panel.view.units[0].values.pwr = 0;
+  html = panel.content();
+  assert.equal(
+    html.match(/<output id="speed-value"[^>]*>([^<]*)<\/output>/)?.[1],
+    "Apagado",
+  );
+});
+
+test("an active off command stays distinct from the device's reported running speed", () => {
+  const panel = new Panel();
+  panel.t = locales.es;
+  panel._hass = { language: "es" };
+  panel.automatic = {
+    actual_speed: 4,
+    sensors: { co2: [], tvoc: [], humidity: [], aqi: [] },
+    candidates: {},
+    settings: {},
+  };
+  panel.view = {
+    building: { manual_active: true, manual_speed: 0 },
+    units: [{ name: "Test unit", values: { pwr: 1, spe: 4 } }],
+    ready: true,
+    duration: 30,
+  };
+  const html = panel.content();
+  assert.equal(html.match(/<input id="speed"[^>]*value="([^"]*)"/)?.[1], "0");
+  assert.equal(html.match(/<dt>Velocidad<\/dt><dd>([^<]*)<\/dd>/)?.[1], "4");
+});
+
+test("an off unit card does not display the retained running speed", () => {
+  const panel = new Panel();
+  panel.t = locales.es;
+  panel._hass = { language: "es" };
+  panel.view = {
+    building: { manual_active: false, manual_speed: 4 },
+    units: [{ name: "Test unit", values: { pwr: 0, spe: 4 } }],
+    ready: true,
+    duration: 30,
+  };
+  const html = panel.content();
+  assert.equal(
+    html.match(/<dt>Velocidad<\/dt><dd>([^<]*)<\/dd>/)?.[1],
+    "Apagado",
+  );
+});

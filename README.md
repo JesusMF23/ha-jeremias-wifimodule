@@ -4,7 +4,7 @@
 
 Community integration for heat-recovery ventilation controlled through **wifimodule.eu**. Includes native Home Assistant entities and a **Jeremias** sidebar panel for modes, profiles and weekly programming. No extra hardware is required. This integration depends on the WifiModule cloud and is not a local Modbus integration.
 
-**0.4.0b1 is a beta.** The basic status and control endpoints have user-captured evidence. Programming endpoints are implemented from the website's public JavaScript and tested against simulated responses; complete authenticated hardware acceptance is still pending. This is not an official Jeremias product and is not yet listed in the HACS default catalogue.
+**0.4.0b2 is a beta.** The basic status and control endpoints have user-captured evidence. Programming endpoints are implemented from the website's public JavaScript and tested against simulated responses; complete authenticated hardware acceptance is still pending. This is not an official Jeremias product and is not yet listed in the HACS default catalogue.
 
 [Español](README.es.md) · [Protocol and coverage](docs/PROTOCOL.md) · [Validation](docs/VALIDATION.md)
 
@@ -65,7 +65,7 @@ HACS custom repositories and inclusion in the default catalogue are different: d
 
 Copy the entire `custom_components/wifimodule` directory into `/config/custom_components/wifimodule`. Do not nest another `wifimodule` directory inside it. Restart Home Assistant. For a new installation, follow steps 5–6 above. When upgrading, back up the existing folder and preserve the integration entry and credentials. No YAML, copied browser cookie or API key is needed.
 
-The `jeremias-wifimodule-0.4.0b1-install.zip` distribution contains the `custom_components` directory and license. Extract it into the Home Assistant configuration directory, preserving that structure.
+The `jeremias-wifimodule-0.4.0b2-install.zip` distribution contains the `custom_components` directory and license. Extract it into the Home Assistant configuration directory, preserving that structure.
 
 ## Use
 
