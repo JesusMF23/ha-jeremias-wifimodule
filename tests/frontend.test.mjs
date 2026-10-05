@@ -38,3 +38,16 @@ test('English and Spanish UI keys remain in parity',()=>{
  const keys=o=>Object.entries(o).flatMap(([k,v])=>typeof v==='object'?keys(v).map(s=>k+'.'+s):[k]).sort();
  assert.deepEqual(keys(locales.en),keys(locales.es));
 });
+
+
+test("zone names can be edited only for registered devices and stay escaped", () => {
+  const a = {sensors:{co2:["sensor.a", "sensor.b"]}, candidates:{co2:[
+    {entity_id:"sensor.a", device_id:"device-a", zone_id:"device-a", zone:'Room <one>', valid:true, value:800},
+    {entity_id:"sensor.b", zone_id:"sensor.b", zone:"Standalone", valid:true, value:700}
+  ]}};
+  const html = zoneCards(a, locales.en);
+  assert.match(html, /data-rename-device="device-a"/);
+  assert.equal((html.match(/data-rename-device=/g)||[]).length,1);
+  assert.match(html, /Room &lt;one&gt;/);
+  assert.doesNotMatch(html, /Room <one>/);
+});

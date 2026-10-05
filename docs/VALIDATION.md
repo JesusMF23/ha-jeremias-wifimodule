@@ -81,3 +81,13 @@ Equipment control remained Schedule, with reported power on and speed 4. AirQ
 measurements and Recorder graphs loaded. No live equipment command was issued.
 The physical-off/cloud-on discrepancy remains unverified pending an independent
 observation from the equipment or its local control.
+
+## 0.4.0b3 editable sensor names
+
+105 Python and 15 frontend tests pass. Coverage checks registered versus standalone
+sensor cards, escaped names, exact device-registry-only writes, input validation
+and error propagation. Isolated browser checks verify Cancel without a write,
+blank-name rejection, failure retaining the draft, persistence through the 10-second
+reading refresh, Save refreshing both card and graph names, and a 390 px editor.
+Live installation evidence is recorded separately; simulation does not establish
+physical equipment behavior.

@@ -1,5 +1,15 @@
 export const regulationLocales = {
   en: {
+    editName: "Edit name",
+    sensorName: "Device name",
+    nameHelp:
+      "This name is saved in Home Assistant and used in cards, charts and diagnostics. Entities and history stay the same.",
+    nameSave: "Save",
+    nameCancel: "Cancel",
+    nameSaving: "Saving…",
+    nameError:
+      "The name could not be confirmed. Check your connection and try again.",
+
     commandSpeed: "Speed to send",
     equipmentControl: "Equipment control",
     manualCommandHelp:
@@ -103,6 +113,16 @@ export const regulationLocales = {
     },
   },
   es: {
+    editName: "Editar nombre",
+    sensorName: "Nombre del dispositivo",
+    nameHelp:
+      "El nombre se guarda en Home Assistant y se usa en tarjetas, gráficas y diagnóstico. Las entidades y el historial se conservan.",
+    nameSave: "Guardar",
+    nameCancel: "Cancelar",
+    nameSaving: "Guardando…",
+    nameError:
+      "No se pudo confirmar el nombre. Comprueba la conexión e inténtalo de nuevo.",
+
     commandSpeed: "Velocidad a enviar",
     equipmentControl: "Control del equipo",
     manualCommandHelp:

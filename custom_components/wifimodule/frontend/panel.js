@@ -10,6 +10,7 @@ import {
   historyCharts,
   selectedReadings,
 } from "./dashboard.js";
+import { editDeviceName } from "./sensor-name.js";
 import { locales } from "./locales.js";
 import { styles } from "./styles.js";
 const esc = (v) =>
@@ -276,6 +277,30 @@ class JeremiasPanel extends HTMLElement {
     this.shadowRoot
       .querySelectorAll("[data-action]")
       .forEach((el) => (el.onclick = () => this.handle(el.dataset.action, el)));
+    const zoneBox = this.shadowRoot.querySelector("#zone-cards");
+    if (zoneBox)
+      zoneBox.onclick = (event) => {
+        const button = event.target.closest("[data-rename-device]");
+        if (!button || this.busy) return;
+        const sensor = selectedReadings(this.automatic).find(
+          (s) => s.device_id === button.dataset.renameDevice,
+        );
+        if (!sensor) return;
+        const entry = this.entryId;
+        editDeviceName(
+          this.shadowRoot,
+          this._hass,
+          sensor,
+          this.t.regulation,
+          async () => {
+            const automatic = await this.api("automatic");
+            if (entry !== this.entryId || !this.isConnected) return;
+            this.automatic = automatic;
+            zoneBox.innerHTML = zoneCards(automatic, this.t.regulation);
+            this.paintQualityHistory();
+          },
+        );
+      };
     bindAutomatic(this.shadowRoot, (draft) => {
       this.automaticDraft = draft;
     });

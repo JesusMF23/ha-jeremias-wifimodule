@@ -54,3 +54,13 @@ Minimum speed now accepts 0 without migrating existing configurations away from
 command acknowledgement and finite renewable leases still apply. Invalid input
 never authorizes a reduction or renews an off command. Physical off/restart
 acceptance remains required before declaring 1.0.0 stable.
+
+## Editable sensor names (0.4.0b3)
+
+Zone cards expose an Edit name action only when a registered device exists. A
+small shared dialog module uses HA's admin-only device-registry update command,
+changing only name_by_user. The native registry persists names across restarts;
+entity identifiers, history, Airzone links and ventilation settings are untouched.
+The dialog lives outside periodically replaced cards. Save validates a trimmed
+1–100 character name, blocks duplicate submissions and retains the draft on error.
+Cancel/Escape discards an unsaved edit. Focus returns to the matching card.
