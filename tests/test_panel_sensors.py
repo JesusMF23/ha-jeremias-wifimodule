@@ -56,6 +56,8 @@ def test_catalogue_groups_registered_devices_and_uses_regulation_validity():
         650,
         "ppm",
     )
+    assert good["device_id"] == "airq"
+    assert stale["device_id"] is None
     assert good["valid"]
     assert stale["value"] is restored["value"] is None
     assert not stale["valid"] and not restored["valid"]

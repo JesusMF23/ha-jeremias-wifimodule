@@ -45,6 +45,7 @@ def sensor_catalogue(hass, max_age):
                 {
                     "entity_id": state.entity_id,
                     "name": state.name,
+                    "device_id": device.id if device else None,
                     "zone_id": device.id if device else state.entity_id,
                     "zone": (device.name_by_user or device.name)
                     if device

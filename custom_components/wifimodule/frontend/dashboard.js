@@ -21,11 +21,15 @@ export function zoneCards(a, t) {
   for (const s of selectedReadings(a)) {
     const key = s.zone_id || s.entity_id;
     if (!zones.has(key))
-      zones.set(key, { name: s.zone || s.name, readings: [] });
+      zones.set(key, {
+        name: s.zone || s.name,
+        deviceId: s.device_id,
+        readings: [],
+      });
     zones.get(key).readings.push(s);
   }
   if (!zones.size) return `<p class="empty-state">${e(t.chooseSensors)}</p>`;
-  return `<div class="zone-grid">${[...zones.values()].map((z) => `<article class="zone-card"><h3>${e(z.name)}</h3><div class="zone-values">${z.readings.map((s) => `<div><span class="eyebrow">${e(t.kinds[s.kind])}</span><strong>${s.valid ? e(s.value) : "—"} <small>${e(s.unit)}</small></strong><span class="reading-caption">${s.valid ? e(t.fresh) : e(t.unavailable)}${s.valid && s.age_seconds != null ? ` · ${e(s.age_seconds)} s` : ""}</span></div>`).join("")}</div></article>`).join("")}</div>`;
+  return `<div class="zone-grid">${[...zones.values()].map((z) => `<article class="zone-card"><div class="section-heading"><h3>${e(z.name)}</h3>${z.deviceId ? `<button type="button" data-rename-device="${e(z.deviceId)}" aria-label="${e(t.editName + ": " + z.name)}">${e(t.editName)}</button>` : ""}</div><div class="zone-values">${z.readings.map((s) => `<div><span class="eyebrow">${e(t.kinds[s.kind])}</span><strong>${s.valid ? e(s.value) : "—"} <small>${e(s.unit)}</small></strong><span class="reading-caption">${s.valid ? e(t.fresh) : e(t.unavailable)}${s.valid && s.age_seconds != null ? ` · ${e(s.age_seconds)} s` : ""}</span></div>`).join("")}</div></article>`).join("")}</div>`;
 }
 
 // Recorder is state history: step lines show each reported state until its next change.

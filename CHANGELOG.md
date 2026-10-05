@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.0b3
+
+Edit sensor device names directly from zone cards with Save/Cancel. Names persist in the Home Assistant device registry without changing entity IDs, history or ventilation settings. The editor survives live reading refreshes, rejects blank names, preserves drafts on errors and supports keyboard use, mobile layouts and English/Spanish.
+
 ## 0.4.0b2
 
 Fix confusing command/state presentation: an expired manual-off override no longer preloads Off when fresh equipment telemetry reports a running speed. The slider explicitly prepares a command and does not represent equipment status. Reported off takes precedence over the retained speed register in unit cards; missing fresh equipment/cloud data no longer appears as a current speed in the regulation summary. Manual regulation is explicitly described as pausing HA control, not switching the unit off.
