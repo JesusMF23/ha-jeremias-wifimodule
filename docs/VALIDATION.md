@@ -68,3 +68,16 @@ for pwr=0 even when spe retains a previous level. 105 Python and 11 frontend
 tests pass. No live equipment command was used to manufacture a matching state.
 The user's physical-off observation is not disproved by cloud telemetry; an
 independent local indication is still needed if the device and cloud disagree.
+
+### Live 0.4.0b2 update
+
+Installed the exact 0.4.0b2 prerelease through HACS. The HA configuration check
+passed and the restart confirmation reported no active scripts or automations.
+After restarting and reloading the browser, the new labels appeared and Manual
+regulation was preserved. During initial heartbeat warmup, the reported speed was
+hidden; after communication advanced, it showed 4. Refreshing the panel selected
+4 in the clearly labelled command slider instead of the inactive Off value.
+Equipment control remained Schedule, with reported power on and speed 4. AirQ
+measurements and Recorder graphs loaded. No live equipment command was issued.
+The physical-off/cloud-on discrepancy remains unverified pending an independent
+observation from the equipment or its local control.
