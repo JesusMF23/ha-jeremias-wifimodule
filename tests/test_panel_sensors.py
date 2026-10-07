@@ -48,7 +48,7 @@ def test_catalogue_groups_registered_devices_and_uses_regulation_validity():
         ),
     ):
         result = sensor_catalogue(hass, 900)
-    assert result["tvoc"] == []
+    assert result["tvoc"][0]["reason"] == "incompatible_unit"
     good, stale, restored = result["co2"]
     assert (good["zone_id"], good["zone"], good["value"], good["unit"]) == (
         "airq",
@@ -61,3 +61,40 @@ def test_catalogue_groups_registered_devices_and_uses_regulation_validity():
     assert good["valid"]
     assert stale["value"] is restored["value"] is None
     assert not stale["valid"] and not restored["valid"]
+
+
+def test_catalogue_accepts_unclassified_third_party_co2_and_explains_mass_voc():
+    hass = Mock()
+    hass.states.async_all.return_value = [
+        State("sensor.third_party", "720", {"unit_of_measurement": "ppm"}),
+        State(
+            "sensor.mass_voc",
+            "50",
+            {
+                "device_class": "volatile_organic_compounds",
+                "unit_of_measurement": "µg/m³",
+            },
+        ),
+    ]
+    registry = Mock()
+    registry.async_get.return_value = None
+    with (
+        patch(
+            "custom_components.wifimodule.panel_sensors.er.async_get",
+            return_value=registry,
+        ),
+        patch(
+            "custom_components.wifimodule.panel_sensors.dr.async_get",
+            return_value=registry,
+        ),
+    ):
+        result = sensor_catalogue(hass, 900)
+    assert result["co2"][0]["entity_id"] == "sensor.third_party"
+    assert result["co2"][0]["compatible"]
+    assert (
+        next(x for x in result["tvoc"] if x["entity_id"] == "sensor.mass_voc")["reason"]
+        == "incompatible_unit"
+    )
+    assert not next(x for x in result["tvoc"] if x["entity_id"] == "sensor.mass_voc")[
+        "compatible"
+    ]

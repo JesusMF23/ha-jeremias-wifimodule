@@ -248,3 +248,54 @@ async def test_manual_widget_saves_permanent_off_and_schedule_explicitly_release
     await restarted.tick(1000)
     assert api.write.await_count == count
     assert not restarted.manual_control.active
+
+
+@pytest.mark.parametrize("destination", ["automatic", "schedule"])
+async def test_timed_manual_keeps_deadline_and_bypass_across_restart(
+    controller, destination
+):
+    from test_automatic import make_auto
+
+    from custom_components.wifimodule.automatic import AutomaticControl
+    from custom_components.wifimodule.coordinator import Coordinator
+
+    physical, api, data, _ = controller
+    await physical.poll()
+    data["units"][0]["last_comm"] = "2026-01-01 12:00:01"
+    await physical.poll()
+    a, c, _ = make_auto()
+    c.controller = a.control = physical
+    c.automatic = a
+    await Coordinator.command(
+        c, physical.control, speed=0, duration=30, return_to=destination, bypass=True
+    )
+    payload = api.write.call_args.args[1]
+    assert (payload["switch"] == "never") == (destination == "automatic")
+    end = a.manual_control.expires_at
+    wire = payload["switch"]
+    restored = AutomaticControl(a.hass, c)
+    c.automatic = restored
+    await restored.tick(1)
+    assert api.write.call_args.args[1]["switch"] == wire
+    assert api.write.call_args.args[1]["bypass"] is True
+    await Coordinator.command(c, physical.control, bypass=False)
+    assert restored.manual_control.expires_at == end
+    assert restored.manual_control.return_to == destination
+    assert api.write.call_args.args[1]["switch"] == wire
+
+
+async def test_invalid_return_timer_cannot_pause_automatic_or_write(controller):
+    from test_automatic import make_auto
+
+    from custom_components.wifimodule.coordinator import Coordinator
+
+    physical, api, _, _ = controller
+    a, c, _ = make_auto()
+    c.controller = a.control = physical
+    c.automatic = a
+    with pytest.raises(DeviceError):
+        await Coordinator.command(
+            c, physical.control, speed=0, duration=0, return_to="automatic"
+        )
+    assert a.enabled
+    api.write.assert_not_awaited()

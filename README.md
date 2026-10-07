@@ -4,7 +4,7 @@
 
 Community integration for heat-recovery ventilation controlled through **wifimodule.eu**. Includes native Home Assistant entities and a **Jeremias** sidebar panel for modes, profiles and weekly programming. No extra hardware is required. This integration depends on the WifiModule cloud and is not a local Modbus integration.
 
-**0.4.0b4 is a beta.** The basic status and control endpoints have user-captured evidence. Programming endpoints are implemented from the website's public JavaScript and tested against simulated responses; complete authenticated hardware acceptance is still pending. This is not an official Jeremias product and is not yet listed in the HACS default catalogue.
+**0.5.0b1 is a beta.** The basic status and control endpoints have user-captured evidence. Programming endpoints are implemented from the website's public JavaScript and tested against simulated responses; complete authenticated hardware acceptance is still pending. This is not an official Jeremias product and is not yet listed in the HACS default catalogue.
 
 [Español](README.es.md) · [Protocol and coverage](docs/PROTOCOL.md) · [Validation](docs/VALIDATION.md)
 
@@ -65,7 +65,7 @@ HACS custom repositories and inclusion in the default catalogue are different: d
 
 Copy the entire `custom_components/wifimodule` directory into `/config/custom_components/wifimodule`. Do not nest another `wifimodule` directory inside it. Restart Home Assistant. For a new installation, follow steps 5–6 above. When upgrading, back up the existing folder and preserve the integration entry and credentials. No YAML, copied browser cookie or API key is needed.
 
-The `jeremias-wifimodule-0.4.0b4-install.zip` distribution contains the `custom_components` directory and license. Extract it into the Home Assistant configuration directory, preserving that structure.
+The `jeremias-wifimodule-0.5.0b1-install.zip` distribution contains the `custom_components` directory and license. Extract it into the Home Assistant configuration directory, preserving that structure.
 
 ## Use
 
@@ -105,3 +105,11 @@ MIT licensed. Brand names identify compatible products; no affiliation or endors
 AirQ gas readings: when Airzone Cloud is configured, the same integration reuses its session for read-only device status polling every 60 seconds, exposing native CO₂ (ppm), TVOC (ppb), and humidity sensors. No additional credentials or integration are needed. Missing, disconnected, or failed readings become unavailable.
 
 Use **Edit name** on a sensor card to save its device name in Home Assistant. Cards, charts and diagnostics use the name while entity IDs and history remain unchanged. **Cancel** discards the edit.
+
+## Flexible controls (0.5.0b1)
+
+The sensor picker supports HA integrations independently of brand, search and room/area filtering, unclassified-sensor notices and incompatible-unit explanations. CO₂ ppm, VOC ppb/ppm (normalized to ppb), humidity %, and known-scale AQI are supported. Mass VOC is not converted without composition. Up to 32 entities per variable drive common building-wide demand, not individual outlets.
+
+Manual can remain indefinite or return to sensor Automatic/vendor Schedule after 1–10080 minutes, entered in minutes or hours. Absolute deadlines survive restart. Automatic return requires HA; vendor Schedule also receives the original cloud expiry (minute precision). Boost remains limited to 60 minutes. Select Manual or apply No time limit to cancel a return.
+
+The independent bypass toggle and native switch preserve Automatic and existing Manual timers. Saved request and reported state remain distinct. No outdoor-temperature cooling algorithm is introduced.

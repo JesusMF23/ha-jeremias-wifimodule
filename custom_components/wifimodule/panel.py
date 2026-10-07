@@ -14,6 +14,7 @@ from .models import integer, revision
 from .panel_sensors import sensor_catalogue
 
 OPERATIONS = [
+    "bypass",
     "automatic",
     "list",
     "view",
@@ -40,6 +41,10 @@ async def dispatch(hass, message):
     coordinator = entries[identity]
     control = coordinator.controller
     data = message.get("data", {})
+    if operation == "bypass":
+        if set(data) != {"enabled"}:
+            raise ValueError("Invalid bypass fields")
+        return await coordinator.automatic.set_bypass(data["enabled"])
     if operation == "automatic":
         if set(data) - {"enabled", "settings", "sensors"}:
             raise ValueError("Unknown automatic setting")
@@ -111,7 +116,7 @@ async def dispatch(hass, message):
             data["unit_id"], data.get("start"), data.get("end")
         )
     if operation == "control":
-        allowed = {"speed", "bypass", "mode", "duration", "schedule"}
+        allowed = {"speed", "bypass", "mode", "duration", "schedule", "return_to"}
         if set(data) - allowed:
             raise HomeAssistantError("Unknown control fields")
         if "schedule" in data and type(data["schedule"]) is not bool:

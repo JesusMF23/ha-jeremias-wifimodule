@@ -34,7 +34,7 @@ export function zoneCards(a, t) {
 
 // Recorder is state history: step lines show each reported state until its next change.
 // Unknown/unavailable samples explicitly break the line; they never become zero.
-export function historySegments(samples, start, end, kind) {
+export function historySegments(samples, start, end, kind, sourceUnit) {
   const limits = {
     co2: [250, 100000],
     tvoc: [0, 1000000],
@@ -47,7 +47,11 @@ export function historySegments(samples, start, end, kind) {
       value:
         p.state == null || String(p.state).trim() === ""
           ? NaN
-          : Number(p.state),
+          : Number(p.state) *
+            (kind === "tvoc" &&
+            (p.attributes?.unit_of_measurement ?? sourceUnit) === "ppm"
+              ? 1000
+              : 1),
     }))
     .filter((p) => Number.isFinite(p.time) && p.time <= end)
     .sort((a, b) => a.time - b.time);
@@ -134,6 +138,7 @@ export function historyCharts(a, history, t, language) {
               history.start,
               history.end,
               kind,
+              s.source_unit,
             ),
           })),
         kind,

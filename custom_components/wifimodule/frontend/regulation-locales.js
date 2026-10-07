@@ -1,12 +1,40 @@
 export const regulationLocales = {
   en: {
+    afterManual: "After Manual",
+    noLimit: "No time limit",
+    durationLabel: "Duration",
+    durationUnit: "Time unit",
+    minutes: "minutes",
+    hours: "hours",
+    returnIn: "Return in",
+    bypassLabel: "Bypass",
+    bypassHelp:
+      "Change bypass without leaving sensor Automatic. Equipment protections may limit activation.",
+    bypassReported: "Reported bypass",
+    bypassPending: "Awaiting confirmation",
+    unknown: "Unknown",
+    on: "On",
+    sensorSearch: "Search sensor or room",
+    allRooms: "All rooms",
+    unassigned: "No room assigned",
+    incompatible_unit:
+      "Incompatible unit: use CO₂ in ppm, VOC in ppb/ppm, humidity in %. Mass VOC cannot be converted without its composition.",
+    unclassified:
+      "Check the measurement type; the integration has not classified it.",
+    genericSensors:
+      "Choose sensors from any Home Assistant integration. Rooms come from HA areas. The highest demand controls the common ventilation speed.",
+    manualTimed: "Manual · timed",
+    timerError: "Check the duration: 1–10080 minutes; Boost accepts 1–60.",
+    timerHelp:
+      "Return to sensor Automatic needs Home Assistant running. Schedule return also uses the manufacturer timer. Restart keeps the deadline.",
+
     schedule: "Jeremias schedule",
     scheduleHelp:
       "The equipment follows its own schedule. Choose Manual to hold a speed without expiry.",
     manualHold:
       "Manual speed without expiry; restored after a Home Assistant restart.",
     manualHoldHelp:
-      "Manual speeds 0–7 do not expire and are restored after restart. 0 switches off. Boost and device-sensor Auto are separate controls; their timer can return the equipment to its schedule.",
+      "Manual speeds 0–7 can be permanent or timed. 0 switches off. Choose a duration and return destination before applying. Boost and device-native Auto keep their own timers.",
 
     editName: "Edit name",
     sensorName: "Device name",
@@ -107,6 +135,7 @@ export const regulationLocales = {
     },
     states: {
       manual: "Manual · no expiry",
+      return_waiting: "Waiting to return; check connection and sensors",
       manual_pending: "Manual · waiting to apply saved speed",
       manual_awaiting: "Manual · waiting for equipment confirmation",
       schedule: "Jeremias schedule",
@@ -127,13 +156,40 @@ export const regulationLocales = {
     },
   },
   es: {
+    afterManual: "Después del Manual",
+    noLimit: "Sin límite de tiempo",
+    durationLabel: "Duración",
+    durationUnit: "Unidad de tiempo",
+    minutes: "minutos",
+    hours: "horas",
+    returnIn: "Volver en",
+    bypassLabel: "Bypass",
+    bypassHelp:
+      "Cambia el bypass sin salir del Automático por sensores. Las protecciones del equipo pueden limitar su activación.",
+    bypassReported: "Bypass reportado",
+    bypassPending: "Pendiente de confirmación",
+    unknown: "Desconocido",
+    on: "Activado",
+    sensorSearch: "Buscar sensor o habitación",
+    allRooms: "Todas las habitaciones",
+    unassigned: "Sin habitación asignada",
+    incompatible_unit:
+      "Unidad incompatible: CO₂ en ppm, TVOC en ppb/ppm y humedad en %. No se convierte TVOC en masa sin conocer su composición.",
+    unclassified: "Comprueba qué mide: su integración no lo ha clasificado.",
+    genericSensors:
+      "Selecciona sensores de cualquier integración de Home Assistant. Las habitaciones se toman de sus áreas. La mayor demanda gobierna la velocidad común de ventilación.",
+    manualTimed: "Manual · temporizado",
+    timerError: "Revisa la duración: 1–10080 minutos; Boost admite 1–60.",
+    timerHelp:
+      "Volver a Automático por sensores requiere Home Assistant funcionando. Volver al horario usa también el temporizador del fabricante. Reiniciar conserva el vencimiento.",
+
     schedule: "Horario Jeremias",
     scheduleHelp:
       "El equipo sigue su horario. Selecciona Manual para mantener una velocidad sin caducidad.",
     manualHold:
       "Velocidad manual sin caducidad; se restaura al reiniciar Home Assistant.",
     manualHoldHelp:
-      "Las velocidades manuales 0–7 no caducan y se restauran tras reiniciar. 0 apaga el equipo. Boost y Automático con sondas del equipo son controles separados; su temporizador puede devolverlo al horario.",
+      "Las velocidades manuales 0–7 pueden ser permanentes o temporizadas. 0 apaga. Elige duración y destino de retorno antes de aplicar. Boost y el Automático propio del equipo conservan sus temporizadores.",
 
     editName: "Editar nombre",
     sensorName: "Nombre del dispositivo",
@@ -201,7 +257,7 @@ export const regulationLocales = {
     wait: "Tiempo restante",
     invalid: "Sensores ausentes, antiguos o incompatibles",
     explanation:
-      "Manual toma el control sin caducidad y restaura su velocidad tras reiniciar. Automático utiliza órdenes renovables de 15 minutos y se reanuda con datos nuevos. Horario Jeremias devuelve expresamente el control a su programación.",
+      "Manual restaura su velocidad guardada y permite un retorno temporizado opcional. Automático utiliza órdenes renovables de 15 minutos y se reanuda con datos nuevos. Horario Jeremias devuelve expresamente el control a su programación.",
     units:
       "CO₂: ppm. TVOC: solo ppb. Humedad: %. CAI es opcional y un valor mayor debe significar peor calidad; confirma su escala antes de seleccionarlo. Los grupos vacíos se ignoran.",
     multi:
@@ -234,6 +290,7 @@ export const regulationLocales = {
     },
     states: {
       manual: "Manual · sin caducidad",
+      return_waiting: "Retorno pendiente: revisa conexión y sensores",
       manual_pending: "Manual · esperando aplicar la velocidad guardada",
       manual_awaiting: "Manual · esperando confirmación del equipo",
       schedule: "Horario Jeremias",

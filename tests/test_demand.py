@@ -172,3 +172,8 @@ def test_zero_minimum_restarts_on_valid_demand_and_never_on_missing_data():
     assert e.evaluate([reading(1000)], 0, 620).target == 2
     assert e.evaluate([reading(1000)], 0, 649).command is None
     assert e.evaluate([reading(1000)], 0, 650).command == 2
+
+
+def test_tvoc_ppm_is_normalized_to_ppb_without_mass_conversion():
+    assert Reading("sensor.voc", "VOC", "tvoc", "0.3", "ppm", 0).numeric(900) == 300
+    assert Reading("sensor.voc", "VOC", "tvoc", "300", "µg/m³", 0).numeric(900) is None

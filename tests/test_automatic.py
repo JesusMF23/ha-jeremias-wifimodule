@@ -15,7 +15,13 @@ from custom_components.wifimodule.coordinator import Coordinator
 
 def make_auto(enabled=True):
     state = State(
-        "sensor.room", "1500", {"unit_of_measurement": "ppm", "friendly_name": "Room"}
+        "sensor.room",
+        "1500",
+        {
+            "unit_of_measurement": "ppm",
+            "friendly_name": "Room",
+            "device_class": "carbon_dioxide",
+        },
     )
     hass = Mock(data={})
     hass.states.get = lambda entity: state if entity == "sensor.room" else None

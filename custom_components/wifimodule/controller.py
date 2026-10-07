@@ -12,6 +12,7 @@ from .models import (
     mode_payload,
     name,
     normalize_building,
+    override_expiry,
     override_until,
     record,
     revision,
@@ -93,6 +94,7 @@ class Controller:
         duration=None,
         schedule=False,
         _guard=None,
+        _expires_at=None,
     ):
         async with self.lock:
             await self.poll()
@@ -141,7 +143,11 @@ class Controller:
                     raise DeviceError(
                         "Boost requires a duration between 1 and 60 minutes"
                     )
-                until = override_until(minutes, self.timezone)
+                until = (
+                    override_expiry(datetime.fromisoformat(_expires_at), self.timezone)
+                    if _expires_at
+                    else override_until(minutes, self.timezone)
+                )
                 payload = {
                     "building": self.building_id,
                     "manual": True,

@@ -2,6 +2,7 @@
 
 from datetime import UTC, datetime
 
+from homeassistant.helpers import area_registry as ar
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 
@@ -24,8 +25,15 @@ def sensor_catalogue(hass, max_age):
         attrs = state.attributes
         for kind in KINDS:
             unit = attrs.get("unit_of_measurement")
-            if attrs.get("device_class") != CLASSES[kind] or unit not in UNITS[kind]:
+            device_class = attrs.get("device_class")
+            matches_class = device_class == CLASSES[kind] or (
+                kind == "tvoc" and device_class == "volatile_organic_compounds"
+            )
+            if not matches_class and not (
+                device_class is None and unit in UNITS[kind] and unit not in (None, "")
+            ):
                 continue
+            compatible = unit in UNITS[kind]
             age = (now - state.last_reported).total_seconds()
             reading = Reading(
                 state.entity_id,
@@ -41,6 +49,14 @@ def sensor_catalogue(hass, max_age):
                 if entry and entry.device_id
                 else None
             )
+            area_id = getattr(entry, "area_id", None) or getattr(
+                device, "area_id", None
+            )
+            area = (
+                ar.async_get(hass).async_get_area(area_id)
+                if isinstance(area_id, str)
+                else None
+            )
             candidates[kind].append(
                 {
                     "entity_id": state.entity_id,
@@ -50,8 +66,13 @@ def sensor_catalogue(hass, max_age):
                     "zone": (device.name_by_user or device.name)
                     if device
                     else state.name,
+                    "compatible": compatible,
+                    "reason": None if compatible else "incompatible_unit",
+                    "area": area.name if area else None,
+                    "unclassified": device_class is None,
+                    "source_unit": unit or "",
                     "value": reading.numeric(max_age),
-                    "unit": unit or "",
+                    "unit": "ppb" if kind == "tvoc" and compatible else unit or "",
                     "age_seconds": round(max(0, age)),
                     "valid": reading.numeric(max_age) is not None,
                 }

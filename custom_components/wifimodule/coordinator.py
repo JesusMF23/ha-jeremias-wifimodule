@@ -1,7 +1,7 @@
 """Shared cloud polling and entity command errors."""
 
 import logging
-from datetime import timedelta
+from datetime import UTC, datetime, timedelta
 from time import monotonic
 
 from homeassistant.exceptions import ConfigEntryAuthFailed, HomeAssistantError
@@ -9,6 +9,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 
 from .api import ApiError, AuthError, ControlCancelled
 from .const import DOMAIN, POLL_SECONDS
+from .models import integer, override_expiry
 
 
 class Coordinator(DataUpdateCoordinator):
@@ -40,6 +41,38 @@ class Coordinator(DataUpdateCoordinator):
 
     async def command(self, method, *args, **kwargs):
         generation = None
+        return_to = kwargs.pop("return_to", "none")
+        expires_at = None
+        if return_to not in ("none", "automatic", "schedule"):
+            raise HomeAssistantError("Invalid return destination")
+        a = self.automatic
+        bypass_only = method == self.controller.control and set(kwargs) == {"bypass"}
+        if bypass_only and a is not None and a.enabled:
+            return await a.set_bypass(kwargs["bypass"])
+        if bypass_only and a is not None and a.manual_control.active:
+            return_to = a.manual_control.return_to
+            expires_at = a.manual_control.expires_at
+            kwargs["speed"] = a.manual_control.speed
+        if return_to != "none" and expires_at is None:
+            if (
+                method != self.controller.control
+                or kwargs.get("schedule")
+                or kwargs.get("speed") == 8
+                or kwargs.get("mode") == "auto"
+            ):
+                raise HomeAssistantError("Timed return requires manual speed 0–7")
+            minutes = integer(kwargs.get("duration"), 1, 10080)
+            if return_to == "automatic" and (a is None or not any(a.sensors.values())):
+                raise HomeAssistantError("Select sensors before returning to Automatic")
+            end = datetime.now(UTC) + timedelta(minutes=minutes)
+            if return_to == "schedule":
+                end = end.replace(second=0, microsecond=0)
+                override_expiry(end, self.controller.timezone)
+            expires_at = end.isoformat()
+        if expires_at and datetime.fromisoformat(expires_at) <= datetime.now(UTC):
+            raise HomeAssistantError(
+                "Timer expired; wait for the return before changing bypass"
+            )
         if self.automatic is not None and method in (
             self.controller.control,
             self.controller.activate,
@@ -53,6 +86,8 @@ class Coordinator(DataUpdateCoordinator):
                 and kwargs.get("mode") != "auto"
             ):
                 kwargs.update(duration=0, mode="manual")
+                if return_to == "schedule":
+                    kwargs["_expires_at"] = expires_at
             if generation is not None:
                 kwargs["_guard"] = lambda: (
                     not self.automatic._closed
@@ -78,8 +113,14 @@ class Coordinator(DataUpdateCoordinator):
             ) from None
         if generation is not None and generation == self.automatic.generation:
             if method == self.controller.control:
+                payload = self.controller.last_control
+                if type(payload.get("bypass")) is bool:
+                    self.automatic.bypass_requested = payload["bypass"]
                 self.automatic.manual_control.record(
-                    self.controller.last_control, monotonic()
+                    self.controller.last_control,
+                    monotonic(),
+                    return_to=return_to,
+                    expires_at=expires_at,
                 )
             elif method == self.controller.activate:
                 self.automatic.status = "schedule"

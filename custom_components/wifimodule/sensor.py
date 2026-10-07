@@ -89,6 +89,7 @@ class RegulationStatus(AutomaticEntity, SensorEntity):
     _attr_device_class = SensorDeviceClass.ENUM
     _attr_options = [
         "manual",
+        "return_waiting",
         "manual_pending",
         "manual_awaiting",
         "schedule",

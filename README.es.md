@@ -2,7 +2,7 @@
 
 Integración comunitaria con entidades nativas y un panel **Jeremias** para controlar el recuperador y editar la programación de wifimodule.eu. **No requiere hardware adicional, pero sí Internet y la nube del fabricante.**
 
-La versión **0.4.0b4 es una beta**: control y lectura básica tienen capturas reales; perfiles, modos y programación se han implementado a partir del código público de la web y probado con respuestas simuladas. Falta completar las pruebas autenticadas con equipos reales. No es una integración oficial ni está incluida en el catálogo predeterminado de HACS.
+La versión **0.5.0b1 es una beta**: control y lectura básica tienen capturas reales; perfiles, modos y programación se han implementado a partir del código público de la web y probado con respuestas simuladas. Falta completar las pruebas autenticadas con equipos reales. No es una integración oficial ni está incluida en el catálogo predeterminado de HACS.
 
 ## Qué incluye
 
@@ -68,7 +68,7 @@ Las credenciales se guardan en HA y no se envían al panel. Protege las copias d
 
 [Documentación completa](README.md) · [Protocolo](docs/PROTOCOL.md) · [Pruebas y pendientes](docs/VALIDATION.md)
 
-## Panel renovado y apagado opcional (0.4.0b4)
+## Panel renovado y apagado opcional (0.5.0b1)
 
 La misma integración incluye tarjetas por zona, gráficos reales del historial de
 Home Assistant (6 h, 24 h y 7 días), deslizadores con valor exacto y casillas para
@@ -85,3 +85,11 @@ ruta. Sigue necesitando Internet: una segunda vía local requiere verificar el
 protocolo del equipo y todavía no está implementada.
 
 En cada tarjeta de sensor, **Editar nombre** permite guardar un nombre en Home Assistant. Se usa también en gráficas y diagnóstico, conservando entidades e historial. **Cancelar** descarta el cambio.
+
+## Sensores de distintas marcas, retorno temporal y bypass (0.5.0b1)
+
+Selecciona entidades de cualquier integración de HA en Sensores y umbrales: búsqueda por nombre y filtro por área/habitación. Se admiten CO₂ en ppm, TVOC en ppb o ppm (normalizado a ppb), humedad en % y CAI numérico de escala conocida. Los sensores sin clasificación muestran un aviso para comprobar qué miden. Las unidades incompatibles se explican; no se convierte TVOC en masa a concentración molar. Hasta 32 entidades por variable; gobierna la demanda máxima de la instalación, sin regular salidas individuales. La compatibilidad depende de las entidades expuestas, no de la marca.
+
+En Control manual, elige Sin límite o retorno a Automático/Horario Jeremias y una duración de 1–10080 minutos, también expresable en horas. Aplicar guarda la fecha de vencimiento; reiniciar no alarga el plazo. Para cancelar, selecciona Manual o aplica Sin límite. El retorno a Automático necesita HA funcionando y sensores utilizables; si HA estuvo apagado se procesa al arrancar. El retorno a Horario se envía también a la nube con el vencimiento original (precisión de minutos). Boost mantiene su límite de 60 minutos.
+
+El interruptor Bypass superior y la entidad nativa cambian el bypass sin desactivar Automático. Se conservan la selección y los temporizadores manuales vigentes. La interfaz distingue petición y estado reportado: el equipo puede limitar el bypass. Activarlo no comprueba que el aire exterior esté más fresco; no se añade un algoritmo de refrigeración por temperatura.
