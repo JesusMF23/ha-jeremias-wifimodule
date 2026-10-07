@@ -117,3 +117,10 @@ A second real HA restart restored Manual/off without touching controls. Fresh eq
 Regression coverage adds absolute deadline persistence, both return destinations, bypass retention without cancelling Automatic or timers, ambiguous-write suppression, invalid timer rejection, generic unclassified sensor discovery, incompatible mass VOC, ppm/ppb normalization and hour-to-minute UI conversion. Isolated browser verified a 2-hour Automatic return payload and filtering the picker by bedroom. Live acceptance is recorded after installation. No brand-specific sensor hardware acceptance is inferred from fixtures.
 
 Final local verification: 130 Python and 19 frontend tests; Ruff, Prettier, JS syntax and whitespace checks.
+
+
+### Live acceptance — 2026-10-07
+
+Installed exact 0.5.0b1 through HACS after all six GitHub checks passed. HA configuration validation passed and HA restarted successfully, preserving Manual speed 4 and bypass on. Applied a one-minute Manual override returning to HA Automatic; the panel subsequently selected Automatic, with target/reported speed 7 driven by living-room TVOC. Toggled the independent bypass off and on: both changes were confirmed by cloud telemetry while Automatic remained selected. Restored indefinite Manual speed 4 and bypass on; fresh telemetry reported 4 and bypass activated. Existing AirQ selections, names and Recorder graphs remained available.
+
+These are live UI and cloud telemetry observations, not independent physical airflow/bypass measurements. Timed return to the vendor schedule and preserving its exact deadline across restart are covered by automated controller tests, not a live timed-schedule/restart trial. No third-party sensor hardware was added during acceptance.
