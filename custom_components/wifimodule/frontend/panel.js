@@ -1,3 +1,4 @@
+import { timerControls, timerInputs, bindTimer } from "./control-options.js";
 import {
   automaticCard,
   automaticStatus,
@@ -81,6 +82,25 @@ class JeremiasPanel extends HTMLElement {
           "#equipment-control-state",
         );
         if (equipment) equipment.textContent = this.equipmentControlText();
+        const bp = this.shadowRoot.querySelector("#regulation-bypass");
+        if (bp && !this.busy) {
+          bp.checked = a.bypass_requested ?? a.bypass_reported ?? false;
+          bp.disabled = !a.connection?.device_ready;
+        }
+        const bs = this.shadowRoot.querySelector("#bypass-status");
+        if (bs)
+          bs.textContent =
+            this.t.regulation.bypassReported +
+            ": " +
+            (a.bypass_reported == null
+              ? this.t.regulation.unknown
+              : a.bypass_reported
+                ? this.t.regulation.on
+                : this.t.regulation.off) +
+            (a.bypass_requested != null &&
+            a.bypass_requested !== a.bypass_reported
+              ? " · " + this.t.regulation.bypassPending
+              : "");
         const zones = this.shadowRoot.querySelector("#zone-cards");
         if (zones) zones.innerHTML = zoneCards(a, this.t.regulation);
         for (const [action, active] of [
@@ -168,8 +188,6 @@ class JeremiasPanel extends HTMLElement {
       const params = new URLSearchParams({
         filter_entity_id: ids.join(","),
         end_time: new Date(end).toISOString(),
-        minimal_response: "",
-        no_attributes: "",
       });
       const rows = ids.length
         ? await this._hass.callApi(
@@ -336,13 +354,23 @@ class JeremiasPanel extends HTMLElement {
     );
     if (historyRefresh)
       historyRefresh.onclick = () => this.loadQualityHistory();
-    const updateDuration = () => {
-      const row = this.shadowRoot.querySelector("#duration-row");
-      if (row)
-        row.hidden =
-          Number(this.shadowRoot.querySelector("#speed").value) !== 8 &&
-          this.shadowRoot.querySelector("#control-mode").value === "manual";
-    };
+    const updateDuration = this.shadowRoot.querySelector("#return-to")
+      ? bindTimer(this.shadowRoot)
+      : () => {};
+    const bypass = this.shadowRoot.querySelector("#regulation-bypass");
+    if (bypass)
+      bypass.onchange = () =>
+        this.run(() => this.mutate("bypass", { enabled: bypass.checked }));
+    const search = this.shadowRoot.querySelector("#sensor-search"),
+      area = this.shadowRoot.querySelector("#sensor-area");
+    const filterSensors = () =>
+      this.shadowRoot.querySelectorAll(".sensor-choice").forEach((el) => {
+        el.hidden =
+          !el.dataset.search.includes(search.value.trim().toLowerCase()) ||
+          (!!area.value && el.dataset.area !== area.value);
+      });
+    if (search) search.oninput = filterSensors;
+    if (area) area.onchange = filterSensors;
     const controlMode = this.shadowRoot.querySelector("#control-mode");
     if (controlMode) controlMode.onchange = updateDuration;
     const speed = this.shadowRoot.querySelector("#speed");
@@ -449,9 +477,9 @@ class JeremiasPanel extends HTMLElement {
         ],
         b.manual_mode ?? "manual",
       )}</select></label>
-      <label id="duration-row" ${manualSpeed !== 8 && b.manual_mode !== "auto" ? "hidden" : ""}>${t.duration}<input id="duration" type="number" min="0" max="10080" step="1" value="${v.duration}"></label>
+      ${timerControls(this.automatic, t.regulation, v.duration)}
       <label class="check"><input id="bypass" type="checkbox" ${b.manual_bypass ? "checked" : ""}>${t.bypass}</label></div>
-      <small>${t.regulation.manualHoldHelp}</small><div class="actions spaced">${this.button("apply", t.apply, "primary", !v.ready)}${this.button("resume", t.resume, "", !v.ready)}</div>
+      <small>${t.regulation.manualHoldHelp}</small><p class="muted">${t.regulation.timerHelp}</p><div class="actions spaced">${this.button("apply", t.apply, "primary", !v.ready)}${this.button("resume", t.resume, "", !v.ready)}</div>
       <p class="muted">${t.regulation.equipmentControl}: <span id="equipment-control-state">${esc(this.equipmentControlText())}</span></p></section>
       <div class="units">${v.units.map((u) => `<div class="card"><h2>${esc(u.name)}</h2><dl><dt>${t.power}</dt><dd>${u.values?.pwr === 1 ? t.on : u.values?.pwr === 0 ? t.off : t.unknown}</dd><dt>${t.speed}</dt><dd>${u.values?.pwr === 0 ? t.off : esc(u.values?.spe ?? t.unknown)}</dd><dt>${t.filter}</dt><dd>${esc(u.values?.fil ?? t.unknown)}</dd><dt>${t.errors}</dt><dd>${esc(u.values?.err ?? t.unknown)}</dd></dl><small>${t.lastComm}: ${esc(u.last_comm)}</small></div>`).join("")}</div>`;
     if (this.page === "schedule")
@@ -553,15 +581,20 @@ class JeremiasPanel extends HTMLElement {
             : this.loadEntries(),
         );
     } else if (action === "apply") {
+      let timer;
+      try {
+        timer = timerInputs(this.shadowRoot);
+      } catch {
+        this.notice = this.t.regulation.timerError;
+        this.failed = true;
+        this.render();
+        return;
+      }
       const data = {
         speed: Number(q("#speed").value),
         mode: q("#control-mode").value,
         bypass: q("#bypass").checked,
-        duration:
-          Number(q("#speed").value) !== 8 &&
-          q("#control-mode").value === "manual"
-            ? 0
-            : Number(q("#duration").value),
+        ...timer,
       };
       this.run(() => this.mutate("control", data));
     } else if (action === "resume")

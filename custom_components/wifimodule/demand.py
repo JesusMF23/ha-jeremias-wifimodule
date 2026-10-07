@@ -4,7 +4,7 @@ from dataclasses import asdict, dataclass, fields
 from math import ceil, exp, isfinite
 
 KINDS = ("co2", "tvoc", "humidity", "aqi")
-UNITS = {"co2": ("ppm",), "tvoc": ("ppb",), "humidity": ("%",), "aqi": (None, "")}
+UNITS = {"co2": ("ppm",), "tvoc": ("ppb", "ppm"), "humidity": ("%",), "aqi": (None, "")}
 # default, minimum, maximum, step; shared by backend validation and UI.
 PARAMETERS = {
     "min_speed": (1, 0, 7, 1),
@@ -92,6 +92,8 @@ class Reading:
             value = float(self.value)
         except TypeError, ValueError:
             return None
+        if self.kind == "tvoc" and self.unit == "ppm":
+            value *= 1000
         high = {"co2": 100000, "tvoc": 1000000, "humidity": 100, "aqi": 500}[self.kind]
         low = 250 if self.kind == "co2" else 0
         if (

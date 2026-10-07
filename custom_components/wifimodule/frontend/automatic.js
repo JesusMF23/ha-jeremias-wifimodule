@@ -1,3 +1,4 @@
+import { timerSummary, bypassControl } from "./control-options.js";
 // Sensor regulation uses the integration backend; credentials never enter the UI.
 export const escapeText = (v) =>
   String(v ?? "").replace(
@@ -12,8 +13,8 @@ export const speedLabel = (v, t) => (v === 0 ? t.off : (v ?? "—"));
 
 export function automaticStatus(a, t) {
   const s = a.enabled ? a.source : null;
-  return `<div class="status-top"><span class="pill ${a.enabled ? "active" : ""}">${e(t.states[a.status] || a.status)}</span><span class="muted">${e(t.cloud)} · ${e(a.connection?.available ? (a.connection.device_ready ? t.connected : t.deviceWaiting) : t.disconnected)}</span></div>
-    <div class="regulation-metrics"><div><span class="eyebrow">${e(t.actual)}</span><strong class="speed-number">${e(speedLabel(a.actual_speed, t))}</strong></div><div><span class="eyebrow">${e(t.target)}</span><strong class="speed-number">${e(speedLabel(a.enabled ? a.target_speed : a.mode === "manual" ? a.manual_speed : null, t))}</strong></div><div class="demand"><span class="eyebrow">${e(t.source)}</span><strong>${s ? e(s.name) : e(a.enabled ? t.noSource : a.mode === "manual" ? t.manualHold : a.mode === "schedule" ? t.scheduleHelp : t.paused)}</strong>${s ? `<small>${e(t.kinds[s.kind])} · ${e(s.value)} ${e(s.unit)} · ${e(a.demand_percent)}%</small>` : ""}${a.enabled && a.wait_seconds ? `<small>${e(t.wait)}: ${e(a.wait_seconds)} s</small>` : ""}</div></div>
+  return `<div class="status-top"><span class="pill ${a.enabled ? "active" : ""}">${e(a.status === "manual" && a.manual_timer?.expires_at ? t.manualTimed : t.states[a.status] || a.status)}</span><span class="muted">${e(t.cloud)} · ${e(a.connection?.available ? (a.connection.device_ready ? t.connected : t.deviceWaiting) : t.disconnected)}</span></div>
+    <div class="regulation-metrics"><div><span class="eyebrow">${e(t.actual)}</span><strong class="speed-number">${e(speedLabel(a.actual_speed, t))}</strong></div><div><span class="eyebrow">${e(t.target)}</span><strong class="speed-number">${e(speedLabel(a.enabled ? a.target_speed : a.mode === "manual" ? a.manual_speed : null, t))}</strong></div><div class="demand"><span class="eyebrow">${e(t.source)}</span><strong>${s ? e(s.name) : e(a.enabled ? t.noSource : a.mode === "manual" ? timerSummary(a, t) || t.manualHold : a.mode === "schedule" ? t.scheduleHelp : t.paused)}</strong>${s ? `<small>${e(t.kinds[s.kind])} · ${e(s.value)} ${e(s.unit)} · ${e(a.demand_percent)}%</small>` : ""}${a.enabled && a.wait_seconds ? `<small>${e(t.wait)}: ${e(a.wait_seconds)} s</small>` : ""}</div></div>
     ${a.enabled && a.invalid_sensors?.length ? `<p class="notice error">${e(t.invalid)}: ${a.invalid_sensors.map(e).join(", ")}</p>` : ""}`;
 }
 
@@ -26,7 +27,7 @@ function sensorChoices(k, a, t, busy) {
   for (const id of a.sensors[k])
     if (!options.some((x) => x.entity_id === id))
       options.push({ entity_id: id, name: id, value: null, valid: false });
-  return `<fieldset data-sensor-group="${k}"><legend>${e(t.kinds[k])}</legend><div class="sensor-choices">${options.length ? options.map((s) => `<label class="sensor-choice"><input type="checkbox" data-auto-sensors="${k}" value="${e(s.entity_id)}" ${a.sensors[k].includes(s.entity_id) ? "checked" : ""} ${busy ? "disabled" : ""}><span>${e(s.name)}<small>${s.valid ? `${e(s.value)} ${e(s.unit)}` : e(t.unavailable)}</small></span></label>`).join("") : `<p class="muted">${e(t.noSensors)}</p>`}</div></fieldset>`;
+  return `<fieldset data-sensor-group="${k}"><legend>${e(t.kinds[k])}</legend><div class="sensor-choices">${options.length ? options.map((s) => `<label class="sensor-choice" data-search="${e([s.name, s.entity_id, s.zone, s.area].filter(Boolean).join(" ").toLowerCase())}" data-area="${e(s.area || t.unassigned)}"><input type="checkbox" data-auto-sensors="${k}" value="${e(s.entity_id)}" ${a.sensors[k].includes(s.entity_id) ? "checked" : ""} ${busy || (s.compatible === false && !a.sensors[k].includes(s.entity_id)) ? "disabled" : ""}><span>${e(s.name)}<small>${e(s.area || t.unassigned)} · ${e(s.zone || s.entity_id)}</small><small>${s.compatible === false ? e(t[s.reason] || t.unavailable) : s.valid ? `${e(s.value)} ${e(s.unit)}` : e(t.unavailable)}</small>${s.unclassified ? `<small>${e(t.unclassified)}</small>` : ""}</span></label>`).join("") : `<p class="muted">${e(t.noSensors)}</p>`}</div></fieldset>`;
 }
 export function automaticCard(a, t, busy) {
   if (!a) return "";
@@ -49,9 +50,20 @@ export function automaticCard(a, t, busy) {
   );
   return `<section class="regulation" aria-label="${e(t.title)}"><div class="section-heading"><div><span class="eyebrow">${e(t.ventilation)}</span><h2>${e(t.title)}</h2></div><div class="segmented" role="group" aria-label="${e(t.controlMode)}"><button data-action="automatic-enable" aria-pressed="${a.enabled}" ${busy ? "disabled" : ""}>${e(t.enable)}</button><button data-action="automatic-manual" aria-pressed="${(a.mode ?? (a.enabled ? "automatic" : "manual")) === "manual"}" ${busy ? "disabled" : ""}>${e(t.manual)}</button><button data-action="automatic-schedule" aria-pressed="${a.mode === "schedule"}" ${busy ? "disabled" : ""}>${e(t.schedule)}</button></div></div>
     <div id="automatic-status">${automaticStatus(a, t)}</div>
-    <details class="regulation-settings" data-disclosure="settings"><summary>${e(t.settings)}</summary><p class="muted">${e(t.explanation)}</p>
+    ${bypassControl(a, t, busy)}<details class="regulation-settings" data-disclosure="settings"><summary>${e(t.settings)}</summary><p class="muted">${e(t.explanation)}</p>
     <h3>${e(t.limits)}</h3><div class="grid">${core.map((k) => setting(k, a, t, busy)).join("")}</div><p class="muted">${e(t.zeroHint)}</p>
-    <h3>${e(t.zones)}</h3><p class="muted">${e(t.multi)}</p><div class="grid">${["co2", "tvoc"].map((k) => sensorChoices(k, a, t, busy)).join("")}</div>
+    <h3>${e(t.zones)}</h3><div class="grid"><label>${e(t.sensorSearch)}<input id="sensor-search" type="search"></label><label>${e(t.allRooms)}<select id="sensor-area"><option value="">${e(t.allRooms)}</option>${[
+      ...new Set(
+        Object.values(a.candidates)
+          .flat()
+          .map((s) => s.area || t.unassigned),
+      ),
+    ]
+      .sort()
+      .map((area) => `<option value="${e(area)}">${e(area)}</option>`)
+      .join(
+        "",
+      )}</select></label></div><p class="muted">${e(t.genericSensors)}</p><div class="grid">${["co2", "tvoc"].map((k) => sensorChoices(k, a, t, busy)).join("")}</div>
     <details data-disclosure="optional"><summary>${e(t.optional)}</summary><p class="muted">${e(t.units)}</p><div class="grid">${["humidity", "aqi"].map((k) => sensorChoices(k, a, t, busy)).join("")}${optional.map((k) => setting(k, a, t, busy)).join("")}</div></details>
     <details data-disclosure="advanced"><summary>${e(t.advanced)}</summary><div class="grid spaced">${advanced.map((k) => setting(k, a, t, busy)).join("")}</div></details>
     <div class="actions spaced"><button class="primary" data-action="automatic-save" ${busy ? "disabled" : ""}>${e(t.save)}</button><span class="muted">${e(t.savedOnly)}</span></div></details></section>`;

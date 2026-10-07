@@ -69,3 +69,9 @@ Cancel/Escape discards an unsaved edit. Focus returns to the matching card.
 ## Persistent manual ownership (0.4.0b4)
 
 ManualControl isolates persistent manual intent from sensor demand. It sends a single non-expiring command after fresh telemetry, verifies acknowledgement and restores saved speed on restart. Explicit schedule release clears ownership. Uncertain writes or external changes clear restoration intent; no blind retries. Generation guards cancel superseded writes before transmission. Normal manual UI hides irrelevant duration; temporary boost/device-auto controls retain it.
+
+## Flexible controls (0.5.0b1)
+
+ManualControl persists an absolute UTC deadline and explicit return destination. Schedule returns serialize the same deadline on cloud restore; Automatic returns keep the cloud manual hold until HA can resume demand control. Invalid/uncertain commands do not create replay intent. Bypass-only commands retain mode and manual deadline; Automatic bypass changes use guarded finite leases and subsequent speed commands carry the saved preference. Fresh report is distinct from requested bypass.
+
+Sensor catalogues use HA device classes/units rather than brands, include area names for selection and explain unsupported units. VOC ppm is normalized to ppb in both demand calculation and history display; no mass-to-molar inference is made. Browser control-options owns timer presentation/validation; backend validates requests independently.

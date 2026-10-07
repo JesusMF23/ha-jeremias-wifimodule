@@ -181,7 +181,7 @@
       "regulation_status": {
         "name": "Estado de regulación",
         "state": {
-          "manual": "Manual · sin caducidad",
+          "manual": "Manual",
           "warming_up": "Esperando demanda nueva",
           "no_data": "Sin lecturas válidas",
           "partial_data": "Faltan sensores · bajadas pausadas",
@@ -197,7 +197,8 @@
           "manual_awaiting": "Manual · esperando confirmación",
           "schedule": "Horario Jeremias",
           "paused": "Control HA pausado",
-          "device_control": "Control del equipo / temporal"
+          "device_control": "Control del equipo / temporal",
+          "return_waiting": "Retorno pendiente: revisa conexión y sensores"
         }
       },
       "airq_co2": {

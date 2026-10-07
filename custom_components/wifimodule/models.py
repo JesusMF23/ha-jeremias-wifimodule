@@ -150,6 +150,12 @@ def override_until(minutes, timezone, now=None):
     expiry = (
         (now or datetime.now(UTC)).astimezone(UTC) + timedelta(minutes=minutes)
     ).astimezone(timezone)
+    return override_expiry(expiry, timezone)
+
+
+def override_expiry(expiry, timezone):
+    """Serialize an absolute expiry without moving it during restart."""
+    expiry = expiry.astimezone(timezone)
     if expiry.replace(fold=0).utcoffset() != expiry.replace(fold=1).utcoffset():
         raise DeviceError(
             "Expiry falls in a repeated local hour; choose another duration"

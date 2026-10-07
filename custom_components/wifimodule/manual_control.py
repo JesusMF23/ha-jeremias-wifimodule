@@ -1,5 +1,7 @@
 """Persistent manual ownership, independent of sensor demand."""
 
+from datetime import UTC, datetime
+
 from .api import ApiError, ControlCancelled
 
 ACK_SECONDS = 180
@@ -14,6 +16,8 @@ class ManualControl:
         self.active = not automatic.enabled and (saved.get("active") is True or legacy)
         speed = saved.get("speed", 0)
         self.speed = speed if type(speed) is int and 0 <= speed <= 7 else None
+        self.return_to = saved.get("return_to", "none")
+        self.expires_at = saved.get("expires_at")
         self.pending = self.active
         self.sent_at = None
         self.awaiting = False
@@ -21,13 +25,23 @@ class ManualControl:
             automatic.status = "manual_pending"
 
     def snapshot(self):
-        return {"active": self.active, "speed": self.speed}
+        return {
+            "active": self.active,
+            "speed": self.speed,
+            **(
+                {"return_to": self.return_to, "expires_at": self.expires_at}
+                if self.expires_at
+                else {}
+            ),
+        }
 
     def clear(self):
         self.active = self.pending = self.awaiting = False
         self.sent_at = None
+        self.return_to, self.expires_at = "none", None
 
     def select(self):
+        self.clear()
         self.active = self.pending = True
         self.awaiting = False
         self.speed = (
@@ -37,16 +51,17 @@ class ManualControl:
         )
         self.auto.status = "manual_pending"
 
-    def record(self, payload, now):
+    def record(self, payload, now, *, return_to="none", expires_at=None):
         self.clear()
         if payload.get("manual") is False:
             self.auto.status = "schedule"
         elif (
             payload.get("mode") == "manual"
-            and payload.get("switch") == "never"
+            and (payload.get("switch") == "never" or return_to == "schedule")
             and type(payload.get("speed")) is int
             and 0 <= payload["speed"] <= 7
         ):
+            self.return_to, self.expires_at = return_to, expires_at
             self.active = self.awaiting = True
             self.speed = payload["speed"]
             self.sent_at = now
@@ -59,6 +74,23 @@ class ManualControl:
     async def tick(self, now):
         a = self.auto
         if not self.active:
+            return
+        if self.expires_at and datetime.now(UTC) >= datetime.fromisoformat(
+            self.expires_at
+        ):
+            if self.return_to == "automatic":
+                try:
+                    await a.configure(enabled=True)
+                except ValueError:
+                    a.status = "return_waiting"
+                return
+            if not a.coordinator.last_update_success or not a.control.ready:
+                a.status = "return_waiting"
+                return
+            if a.control.data.get("manual_active") is False:
+                await a.manual("schedule")
+            else:
+                await a.coordinator.command(a.control.control, schedule=True)
             return
         fresh = a.coordinator.last_update_success and a.control.ready
         current = a._physical_speed() if fresh else None
@@ -88,7 +120,14 @@ class ManualControl:
             a._persist()
             try:
                 await a.control.control(
-                    speed=self.speed, mode="manual", duration=0, _guard=guard
+                    speed=self.speed,
+                    mode="manual",
+                    duration=0,
+                    bypass=a.bypass_requested,
+                    _expires_at=self.expires_at
+                    if self.return_to == "schedule"
+                    else None,
+                    _guard=guard,
                 )
             except ControlCancelled:
                 if self.active and not a.enabled and not a._closed:

@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.5.0b1
+
+- Select compatible sensors from any HA integration with search, area filtering and unit explanations. Normalize VOC ppm to ppb in regulation and charts.
+- Restore optional timed Manual with return to sensor Automatic or vendor Schedule. Absolute deadlines survive restarts; schedule expiry also lives in the cloud.
+- Independent bypass preserves sensor Automatic and Manual timers. Retain requested preference and show physical reported state separately.
+- Preserve permanent Manual/off, existing widget calls, saved sensors and limits.
+
+## 0.4.0b4
+
+Permanent Manual ownership and saved speed restoration after fresh communication on restart; explicit Schedule release. Verified Manual/off across two real HA restarts.
+
+
 ## 0.4.0b3
 
 Edit sensor device names directly from zone cards with Save/Cancel. Names persist in the Home Assistant device registry without changing entity IDs, history or ventilation settings. The editor survives live reading refreshes, rejects blank names, preserves drafts on errors and supports keyboard use, mobile layouts and English/Spanish.

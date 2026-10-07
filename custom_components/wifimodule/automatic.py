@@ -10,6 +10,7 @@ from homeassistant.helpers.event import async_track_time_interval
 from .api import ApiError, ControlCancelled
 from .demand import KINDS, UNITS, DemandEngine, Reading, Settings
 from .manual_control import ManualControl
+from .panel_sensors import CLASSES
 
 LEASE_MINUTES = 15
 RENEW_SECONDS = 300
@@ -35,6 +36,7 @@ def validate_sensors(hass, sensors):
             if (
                 state is None
                 or state.attributes.get("unit_of_measurement") not in UNITS[kind]
+                or state.attributes.get("device_class") not in (None, CLASSES[kind])
             ):
                 raise ValueError("Sensor missing or incompatible unit")
             seen.add(entity)
@@ -50,6 +52,9 @@ class AutomaticControl:
         self.settings = Settings.from_dict(stored.get("settings", {}))
         self.sensors = {k: list(stored.get("sensors", {}).get(k, [])) for k in KINDS}
         self.enabled = stored.get("enabled") is True
+        self.bypass_requested = (
+            stored.get("bypass") if type(stored.get("bypass")) is bool else None
+        )
         self.status = "warming_up" if self.enabled else stored.get("reason", "manual")
         self.engine = DemandEngine(self.settings)
         self.signal = f"wifimodule_automatic_{self.entry.entry_id}"
@@ -97,6 +102,7 @@ class AutomaticControl:
                     "settings": self.settings.as_dict(),
                     "reason": self.status if not self.enabled else "manual",
                     "manual": self.manual_control.snapshot(),
+                    "bypass": self.bypass_requested,
                 },
             },
         )
@@ -159,6 +165,59 @@ class AutomaticControl:
         self._persist()
         self._notify()
 
+    def reported_bypass(self):
+        if not self.coordinator.last_update_success or not self.control.ready:
+            return None
+        values = {
+            u.get("values", {}).get("byp")
+            for u in (self.control.data or {}).get("units", [])
+        }
+        return (
+            bool(next(iter(values))) if len(values) == 1 and values <= {0, 1} else None
+        )
+
+    async def set_bypass(self, value):
+        if type(value) is not bool:
+            raise ValueError("Invalid bypass")
+        if not self.enabled:
+            return await self.coordinator.command(self.control.control, bypass=value)
+        if not self.coordinator.last_update_success or not self.control.ready:
+            raise ValueError("Device unavailable")
+        speed = self.last_speed if self.awaiting else self._physical_speed()
+        if speed is None:
+            raise ValueError("Device state unavailable")
+        self.generation += 1
+        generation = self.generation
+
+        def guard():
+            return self.enabled and not self._closed and generation == self.generation
+
+        try:
+            await self.control.control(
+                speed=speed,
+                mode="manual",
+                duration=LEASE_MINUTES,
+                bypass=value,
+                _guard=guard,
+            )
+        except ControlCancelled:
+            return
+        except ApiError:
+            if self.enabled and not self._closed:
+                await self.manual("command_error")
+            raise
+        if not self.enabled or self._closed:
+            return
+        self.bypass_requested = value
+        now = monotonic()
+        self.last_speed, self.last_sent = speed, now
+        self.last_sent_at = datetime.now(UTC).isoformat()
+        self.engine.sent(speed, now, changed=False)
+        self.awaiting = True
+        self._persist()
+        self._notify()
+        await self.coordinator.async_request_refresh()
+
     def readings(self):
         now = datetime.now(UTC)
         result = []
@@ -200,6 +259,12 @@ class AutomaticControl:
     def snapshot(self):
         d = self.decision
         return {
+            "manual_timer": {
+                "return_to": self.manual_control.return_to,
+                "expires_at": self.manual_control.expires_at,
+            },
+            "bypass_requested": self.bypass_requested,
+            "bypass_reported": self.reported_bypass(),
             "enabled": self.enabled,
             "mode": self.mode,
             "reported_mode": "schedule"
@@ -327,7 +392,11 @@ class AutomaticControl:
 
         try:
             await self.control.control(
-                speed=speed, mode="manual", duration=LEASE_MINUTES, _guard=guard
+                speed=speed,
+                mode="manual",
+                duration=LEASE_MINUTES,
+                bypass=self.bypass_requested,
+                _guard=guard,
             )
         except ControlCancelled:
             return

@@ -111,3 +111,9 @@ Local final checks: 118 Python tests and 16 frontend tests passed; Ruff lint/for
 Live acceptance, 2026-10-05: selected exact 0.4.0b4 in HACS, completed download, passed HA configuration validation and restarted. The panel reported Manual without expiry, target off, actual reported off, equipment control Manual and error 0 after fresh communication. Before upgrading, the prior off override had a visible expiry at 14:54; this update took permanent ownership. This confirms cloud-reported state, not independent physical measurement.
 
 A second real HA restart restored Manual/off without touching controls. Fresh equipment communication again reported off, target off, Manual ownership and error 0. AirQ readings continued updating with the saved device names. Physical Automatic actuation and vendor automatic-lease expiry remain outside this acceptance test.
+
+## 0.5.0b1 validation
+
+Regression coverage adds absolute deadline persistence, both return destinations, bypass retention without cancelling Automatic or timers, ambiguous-write suppression, invalid timer rejection, generic unclassified sensor discovery, incompatible mass VOC, ppm/ppb normalization and hour-to-minute UI conversion. Isolated browser verified a 2-hour Automatic return payload and filtering the picker by bedroom. Live acceptance is recorded after installation. No brand-specific sensor hardware acceptance is inferred from fixtures.
+
+Final local verification: 130 Python and 19 frontend tests; Ruff, Prettier, JS syntax and whitespace checks.
