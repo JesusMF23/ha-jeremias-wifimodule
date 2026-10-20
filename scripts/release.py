@@ -39,11 +39,15 @@ def build_release(root: Path, tag: str, output: Path) -> Path:
         )
         and path.suffix not in (".pyc", ".pyo")
     )
+    license_text = (root / "LICENSE").read_text()
     output.mkdir(parents=True, exist_ok=True)
     archive = output / f"jeremias-wifimodule-{tag}-install.zip"
     with ZipFile(archive, "w", compression=ZIP_DEFLATED) as package:
+        package.writestr("LICENSE", license_text)
         for path in files:
-            package.write(path, Path("wifimodule") / path.relative_to(source))
+            package.write(
+                path, Path("custom_components/wifimodule") / path.relative_to(source)
+            )
     archive.with_suffix(".zip.sha256").write_text(
         hashlib.sha256(archive.read_bytes()).hexdigest() + "  " + archive.name + "\n"
     )

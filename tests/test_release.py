@@ -20,6 +20,7 @@ def fixture(tmp_path):
     (source / "frontend" / "panel.js").write_text('export const title = "Demo";\n')
     (source / "__pycache__" / "cached.pyc").write_bytes(b"exclude")
     (source / ".DS_Store").write_bytes(b"exclude")
+    (source.parents[1] / "LICENSE").write_text("Demo MIT license notice\n")
     return source.parents[1]
 
 
@@ -49,13 +50,17 @@ def test_release_packages_the_validated_version_and_checksum(tmp_path):
     archive = output / "jeremias-wifimodule-0.6.0-install.zip"
     with ZipFile(archive) as package:
         assert set(package.namelist()) == {
-            "wifimodule/manifest.json",
-            "wifimodule/const.py",
-            "wifimodule/__init__.py",
-            "wifimodule/frontend/panel.js",
+            "custom_components/wifimodule/manifest.json",
+            "custom_components/wifimodule/const.py",
+            "custom_components/wifimodule/__init__.py",
+            "custom_components/wifimodule/frontend/panel.js",
+            "LICENSE",
         }
         assert (
-            json.loads(package.read("wifimodule/manifest.json"))["version"] == "0.6.0"
+            json.loads(package.read("custom_components/wifimodule/manifest.json"))[
+                "version"
+            ]
+            == "0.6.0"
         )
     assert archive.with_suffix(".zip.sha256").read_text() == (
         hashlib.sha256(archive.read_bytes()).hexdigest() + "  " + archive.name + "\n"

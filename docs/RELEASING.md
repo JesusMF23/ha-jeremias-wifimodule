@@ -8,7 +8,7 @@ The user-approved channel is normal GitHub releases, including during initial de
 4. The Release workflow calls Validate on that exact tag. Only after every job passes does it verify that the commit belongs to main, validate all version sources, build the install ZIP/checksum and create a normal release with `--prerelease=false --latest`. Failed validation publishes nothing. A rerun cannot silently overwrite an existing release.
 5. Install that release through HACS and restart HA. Confirm installed/available versions match and the update entity is off, not merely that the custom panel displays the expected assets. Record any live acceptance separately.
 
-Local packaging: `python scripts/release.py --tag 0.6.0 --output dist`. This validates and packages without publishing. The ZIP contains `wifimodule/` for manual installation under `custom_components`. HACS downloads the tagged integration directory, with main hidden from its selector. GitHub release notes are generated from the merged PRs.
+Local packaging: `python scripts/release.py --tag 0.6.0 --output dist`. This validates and packages without publishing. The ZIP retains the previous distribution structure: `custom_components/wifimodule/` plus LICENSE, extracted into the HA configuration directory. HACS downloads the tagged integration directory, with main hidden from its selector. GitHub release notes are generated from the merged PRs.
 
 ## Update notification investigation
 
