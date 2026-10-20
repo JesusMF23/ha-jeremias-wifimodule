@@ -83,3 +83,7 @@ The initial regulation card owns the Manual editor (speed, native mode and timed
 `filter_days_remaining` derives floor(fil / 24), confirmed in the vendor’s public index-Nhn3YcyL.js display. Negative/missing/noninteger counters stay unknown. The hours entity keeps its identity and raw reading; no assumed installation date or service interval is introduced.
 
 The normal-release channel uses canonical X.Y.Z tags matched to manifest/VERSION. A tag invokes the reusable validation workflow (minimum/latest HA, frontend, hassfest, HACS) before publishing an install ZIP/checksum as a normal GitHub release. Main is hidden from HACS downloads. No changes to HACS internals or its stored installation state are made. Weekly dependency PRs, pinned Actions and scheduled compatibility checks maintain the repo; the HACS default-catalogue request remains deferred until 1.0.0.
+
+## Bypass ownership (0.6.1)
+
+Saved Automatic bypass preference is not an active Schedule request. Snapshots expose an effective request only while HA owns Automatic/Manual. Manual takeover captures fresh reported bypass with speed instead of replaying a prior preference. A mismatch is pending only for 180 seconds after an actual command timestamp; afterward it is explicitly unconfirmed. A shared frontend presentation function handles initial render and polling consistently. Preference persistence, finite Automatic leases and independent Manual deadlines remain unchanged.

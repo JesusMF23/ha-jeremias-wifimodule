@@ -128,3 +128,46 @@ async def test_options_remain_editable_when_cloud_setup_has_failed(tmp_path):
     assert result["data"]["automatic"]["sensors"]["co2"] == ["sensor.zone"]
     await c.async_shutdown()
     await hass.async_stop()
+
+
+async def test_legacy_migration_preserves_existing_fan_entity_and_settings(tmp_path):
+    from homeassistant.helpers import device_registry as dr
+    from homeassistant.helpers import entity_registry as er
+
+    from custom_components.wifimodule import async_migrate_entry
+
+    hass, entry, c = setup(tmp_path)
+    try:
+        with patch.object(hass.config_entries, "async_setup", return_value=True):
+            await hass.config_entries.async_add(entry)
+        hass.config_entries.async_update_entry(
+            entry,
+            version=1,
+            data={"building_id": 1, "unit_id": 2, "username": "test@example.invalid"},
+            options={"duration": 45, "automatic": {"enabled": False}},
+        )
+        if hasattr(dr, "async_setup"):
+            dr.async_setup(hass)
+        await dr.async_load(hass, load_empty=True)
+        await er.async_load(hass, load_empty=True)
+        registry = er.async_get(hass)
+        original = registry.async_get_or_create(
+            "fan",
+            "wifimodule",
+            "1_2_ventilation",
+            config_entry=entry,
+            suggested_object_id="existing_ventilation",
+        )
+        assert await async_migrate_entry(hass, entry)
+        migrated = registry.async_get(original.entity_id)
+        assert migrated.unique_id == "1_ventilation"
+        assert migrated.entity_id == original.entity_id
+        assert entry.data["unit_ids"] == [2] and "unit_id" not in entry.data
+        assert entry.version == 2 and entry.unique_id == "1"
+        assert entry.options["duration"] == 45
+        assert entry.options["automatic"]["enabled"] is False
+        assert await async_migrate_entry(hass, entry)
+        assert registry.async_get(original.entity_id).unique_id == "1_ventilation"
+    finally:
+        await c.async_shutdown()
+        await hass.async_stop()

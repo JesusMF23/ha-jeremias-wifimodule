@@ -4,9 +4,9 @@
 
 Community integration for heat-recovery ventilation controlled through **wifimodule.eu**. Includes native Home Assistant entities and a **Jeremias** sidebar panel for modes, profiles and weekly programming. No extra hardware is required. This integration depends on the WifiModule cloud and is not a local Modbus integration.
 
-**0.6.0 is an initial-development release (before 1.0.0).** The basic status and control endpoints have user-captured evidence. Programming endpoints are implemented from the website's public JavaScript and tested against simulated responses; complete authenticated hardware acceptance is still pending. This is not an official Jeremias product and is not yet listed in the HACS default catalogue.
+**0.6.1 is an initial-development release (before 1.0.0).** The basic status and control endpoints have user-captured evidence. Programming endpoints are implemented from the website's public JavaScript and tested against simulated responses; complete authenticated hardware acceptance is still pending. This is not an official Jeremias product and is not yet listed in the HACS default catalogue.
 
-[Español](README.es.md) · [Protocol and coverage](docs/PROTOCOL.md) · [Validation](docs/VALIDATION.md)
+[Español](README.es.md) · [Protocol and coverage](docs/PROTOCOL.md) · [Validation](docs/VALIDATION.md) · [1.0.0 acceptance](docs/RELEASE_1_0_CHECKLIST.md)
 
 ## Vibe coding disclaimer
 
@@ -31,7 +31,7 @@ Controls act on **every unit in the selected building**, as the website API does
 
 The existing panel now includes independent Home Assistant Automatic/Manual regulation, real-entity selectors, configurable targets/limits/timing and visible worst-zone diagnostics. First use is Manual with no sensors selected. CO₂ must be ppm; TVOC must be ppb; humidity and higher-is-worse AQI are optional. Raw gases cannot be inferred from AQI. Existing entity IDs and widget operations remain unchanged; direct manual controls pause demand regulation before sending their command.
 
-Settings and mode persist across restarts. Automatic commands use renewable 15-minute overrides; loss of healthy data stops renewals. Ambiguous writes disable automatic control until explicit reactivation. See [detailed behavior](docs/AUTOMATIC_CONTROL.md). HACS installation, changing AirQ gas readings, saved settings and a real HA restart have been verified on one installation. Automatic physical actuation and override expiry remain pending. Update the existing custom repository through HACS; no second integration is required.
+Settings and mode persist across restarts. Automatic commands use renewable 15-minute overrides; loss of healthy data stops renewals. Ambiguous writes disable automatic control until explicit reactivation. See [detailed behavior](docs/AUTOMATIC_CONTROL.md). HACS installation, changing AirQ gas readings, saved settings and a real HA restart have been verified on one installation. Cloud telemetry has confirmed Automatic speed changes and timed return to Automatic. Independent physical actuation, failure recovery and sustained operation remain acceptance items. Update the existing custom repository through HACS; no second integration is required.
 
 The dashboard shows selected sensors grouped by their registered devices, plus real
 Home Assistant history for 6 hours, 24 hours or 7 days. Sliders include exact numeric
@@ -69,7 +69,7 @@ HACS custom repositories and inclusion in the default catalogue are different: d
 
 Copy the entire `custom_components/wifimodule` directory into `/config/custom_components/wifimodule`. Do not nest another `wifimodule` directory inside it. Restart Home Assistant. For a new installation, follow steps 5–6 above. When upgrading, back up the existing folder and preserve the integration entry and credentials. No YAML, copied browser cookie or API key is needed.
 
-The `jeremias-wifimodule-0.6.0-install.zip` distribution contains the `custom_components` directory and license. Extract it into the Home Assistant configuration directory, preserving that structure.
+The `jeremias-wifimodule-0.6.1-install.zip` distribution contains the `custom_components` directory and license. Extract it into the Home Assistant configuration directory, preserving that structure.
 
 ## Use
 

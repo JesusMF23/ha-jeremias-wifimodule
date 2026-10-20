@@ -53,8 +53,22 @@ export function bindTimer(root) {
   update();
   return update;
 }
-export function bypassControl(a, t, busy) {
-  const requested = a?.bypass_requested ?? a?.bypass_reported;
+export function bypassPresentation(a, t) {
+  const owned = a?.mode === "automatic" || a?.mode === "manual";
+  const requested = owned ? a?.bypass_requested : null;
   const reported = a?.bypass_reported;
-  return `<div class="bypass-control"><label class="check"><input id="regulation-bypass" type="checkbox" ${requested ? "checked" : ""} ${busy || !a?.connection?.device_ready ? "disabled" : ""}>${e(t.bypassLabel)}</label><small>${e(t.bypassHelp)}</small><small id="bypass-status">${e(t.bypassReported)}: ${e(reported == null ? t.unknown : reported ? t.on : t.off)}${requested != null && requested !== reported ? " · " + e(t.bypassPending) : ""}</small></div>`;
+  const mismatch = requested != null && requested !== reported;
+  const suffix = mismatch
+    ? a?.bypass_pending
+      ? t.bypassPending
+      : t.bypassUnconfirmed
+    : "";
+  return {
+    checked: requested ?? reported ?? false,
+    text: `${t.bypassReported}: ${reported == null ? t.unknown : reported ? t.on : t.off}${suffix ? " · " + suffix : ""}`,
+  };
+}
+export function bypassControl(a, t, busy) {
+  const state = bypassPresentation(a, t);
+  return `<div class="bypass-control"><label class="check"><input id="regulation-bypass" type="checkbox" ${state.checked ? "checked" : ""} ${busy || !a?.connection?.device_ready ? "disabled" : ""}>${e(t.bypassLabel)}</label><small>${e(t.bypassHelp)}</small><small id="bypass-status">${e(state.text)}</small></div>`;
 }

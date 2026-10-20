@@ -1,6 +1,10 @@
 import { manualControls } from "./manual-controls.js";
 import { machineCards } from "./machine-status.js";
-import { timerInputs, bindTimer } from "./control-options.js";
+import {
+  timerInputs,
+  bindTimer,
+  bypassPresentation,
+} from "./control-options.js";
 import {
   automaticCard,
   automaticStatus,
@@ -94,25 +98,14 @@ class JeremiasPanel extends HTMLElement {
           "#equipment-control-state",
         );
         if (equipment) equipment.textContent = this.equipmentControlText();
+        const bypassState = bypassPresentation(a, this.t.regulation);
         const bp = this.shadowRoot.querySelector("#regulation-bypass");
         if (bp && !this.busy) {
-          bp.checked = a.bypass_requested ?? a.bypass_reported ?? false;
+          bp.checked = bypassState.checked;
           bp.disabled = !a.connection?.device_ready;
         }
         const bs = this.shadowRoot.querySelector("#bypass-status");
-        if (bs)
-          bs.textContent =
-            this.t.regulation.bypassReported +
-            ": " +
-            (a.bypass_reported == null
-              ? this.t.regulation.unknown
-              : a.bypass_reported
-                ? this.t.regulation.on
-                : this.t.regulation.off) +
-            (a.bypass_requested != null &&
-            a.bypass_requested !== a.bypass_reported
-              ? " · " + this.t.regulation.bypassPending
-              : "");
+        if (bs) bs.textContent = bypassState.text;
         const zones = this.shadowRoot.querySelector("#zone-cards");
         if (zones) zones.innerHTML = zoneCards(a, this.t.regulation);
         for (const [action, active] of [
