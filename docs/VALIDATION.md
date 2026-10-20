@@ -1,4 +1,12 @@
-# Validation — 0.3.0b2
+# Validation
+
+## Current result — 0.6.1 / 20 October 2026
+
+146 Python and 25 frontend tests pass locally and on minimum/latest HA CI. HACS and hassfest pass. Normal release 0.6.1 is installed in the existing HA instance, with configuration validation and two real restarts. Schedule bypass presentation and Manual takeover are corrected. A four-minute Manual-off → Schedule trial survived the second restart and completed without another command. Real inactive-profile day editing/copy/readback was restored. HACS shows downloaded 0.6.1 with no pending update; the final equipment ownership is Schedule, reported Off/bypass off.
+
+Independent physical bypass/airflow checks, two-zone recovery after the external Airzone Wi-Fi outage, failure recovery at the equipment and 48-hour observation remain on the [1.0.0 checklist](RELEASE_1_0_CHECKLIST.md). Full profile/mode CRUD is exercised over disposable localhost HTTP, not destructive writes on the household account. The sections below are historical evidence, followed by the detailed 0.6.1 results.
+
+## Historical installation — 0.3.0b2
 
 5 October 2026. **Published, installed via the existing HACS repository, configured and checked after a real Home Assistant restart. Automatic physical actuation remains pending.**
 
@@ -148,3 +156,19 @@ The Schedule bypass discrepancy was reproduced with failing backend/frontend tes
 146 Python and 25 frontend tests pass locally. Added acceptance tests exercise full profile/mode CRUD, profile activation, day editing/copy/readback, stale-revision rejection and deletion guards through the real HTTP client against a disposable localhost service. Real HA registry migration verifies that the original fan entity ID and options survive version-1 migration, including a second idempotent migration. These fixtures do not establish manufacturer-cloud write acceptance. Ruff lint/format, Prettier, install ZIP generation and diff whitespace validation pass. Five pre-existing dependency deprecation warnings remain.
 
 Known external incident: the owner confirms that the living-room AirQ's Airzone webserver lost Wi-Fi. Its missing readings are not treated as zero demand or a newly introduced integration defect. Restoration of Wi-Fi and two-zone physical acceptance remain on the [1.0.0 checklist](RELEASE_1_0_CHECKLIST.md). Live 0.6.1 deployment and restart/timer results will be recorded after execution.
+
+### Release and programming checks
+
+PR #13 passed all eight push/PR checks, including minimum HA 2026.9.0, latest stable, HACS and hassfest. Immutable tag 0.6.1 points to d53216a; release workflow 39380457344 passed all four validation jobs before publish. GitHub confirms draft=false/prerelease=false and latest=0.6.1. The actual release install ZIP matches its published SHA256.
+
+Before the update, exercised real cloud daily editing on an existing inactive winter profile: saved the unchanged Monday, changed 06:00 to 06:01, read back 06:01, restored 06:00 and compared every rendered row with the local backup. Also copied Monday to the already identical Tuesday and verified the destination rows. The active summer profile was never activated or modified by this programming test. No new household profiles/modes were created or permanently deleted; full CRUD is covered by the disposable HTTP service rather than a destructive production cleanup.
+
+### Live 0.6.1 installation
+
+Downloaded exact 0.6.1 through the existing HACS repository. HA configuration validation succeeded; the restart prompt reported no active automations/scripts. After startup and fresh unit communication, the panel retained Schedule and reported Off, with the bypass unchecked and caption “Bypass reportado: Apagado” (no stale pending request). The saved AirQ names/selections, live bedroom gas readings and filter countdown remained available.
+
+### Live timed Manual → Schedule across restart
+
+Applied Manual speed 0 with bypass off for four minutes, returning to vendor Schedule. The panel showed timed Manual and four minutes remaining. Restarted HA again after its prompt reported no running scripts/automations. On reconnect, the panel still selected Manual, target/reported speed remained Off, bypass remained off and the remaining time had decreased to one minute instead of restarting at four. Without another control action, it then selected Schedule, cleared the Manual target and reported equipment control Schedule/Off. The footer reports 0.6.1. This closes the live schedule-return/restart trial using UI and cloud telemetry; it does not independently measure airflow or the bypass actuator. Original Schedule ownership, off state and inactive-profile programming were restored.
+
+HACS after both restarts reports downloaded version **0.6.1** and groups the repository under **Downloaded**, with no pending-update group for it. Existing normal-release installation/version handling remains intact.

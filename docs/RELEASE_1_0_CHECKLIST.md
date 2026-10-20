@@ -14,6 +14,8 @@
 - [x] UI EN/ES, controles iniciales, borradores conservados durante bypass, filtro en días, vistas a 390 px sin desbordamiento (preview 0.6.0).
 - [x] Empaquetado y versiones coherentes; release normal desde tag después de CI; HACS/hassfest y HA mínimo/actual en CI.
 
+También se ha probado en la vivienda Manual apagado durante cuatro minutos → Horario, con un reinicio en medio: el plazo disminuye tras arrancar y termina en Horario sin intervención. Se ha corregido y observado el bypass en Horario, y se ha editado/restaurado un día de un perfil inactivo en la nube. Son observaciones de interfaz y telemetría, sin medición física independiente.
+
 Las evidencias de instalación, reinicios y telemetría de la vivienda se añaden a [VALIDATION.md](VALIDATION.md). El AirQ del salón no recibe datos porque el webserver Airzone perdió su conexión Wi-Fi, confirmado por el propietario. Esa incidencia externa debe resolverse para probar las dos zonas juntas; no se cambian sus entidades ni se inventan lecturas.
 
 ## Lo que debe comprobar el propietario físicamente
@@ -35,5 +37,7 @@ Si un paso falla, conservar 0.6.x y corregir/repetirlo. No reiniciar el contador
 - [ ] Ejecutar CI sobre el commit final; alinear manifest/VERSION/CHANGELOG con 1.0.0 y publicar el tag inmutable mediante Release.
 - [ ] Instalar 1.0.0 con HACS, validar/reiniciar HA y verificar versión instalada/ofrecida y conservación de ajustes.
 - [ ] Revalidar requisitos oficiales de HACS y abrir la solicitud de inclusión. Este trabajo no la envía.
+
+La acción HACS de 0.6.1 pasa sus diez comprobaciones; avisa de que no se ha declarado la nueva clasificación `categories` del manifest. Ese campo es [opcional actualmente](https://contributors.home-assistant.io/core/integrations/categories/) y se revisará con los metadatos finales de 1.0.0. Las actualizaciones de herramientas/Actions de Dependabot permanecen en PR para revisión; no se fusionan automáticamente por pasar CI.
 
 Referencias oficiales revisadas el 20/10/2026: [requisitos generales](https://www.hacs.xyz/docs/publish/start/) y [requisitos de integración](https://www.hacs.xyz/docs/publish/integration/). Licencia, descripción/topics, README, manifest, hacs.json, marca y validadores ya están preparados; la aceptación del catálogo depende de sus mantenedores.
