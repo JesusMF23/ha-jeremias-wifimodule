@@ -26,7 +26,7 @@ jobs:
       - run: pip install -r requirements-dev.txt
       - name: Test minimum supported Home Assistant
         if: matrix.core == 'minimum'
-        run: pip install 'homeassistant==2026.9.3'
+        run: pip install 'homeassistant==2026.9.0'
       - name: Test latest stable Home Assistant
         if: matrix.core == 'latest'
         run: pip install --upgrade homeassistant

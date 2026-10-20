@@ -18,6 +18,6 @@ Publishing a normal release gives HACS an unambiguous release channel for both b
 
 ## Maintenance
 
-Dependabot checks pip development tools, npm formatting tools and GitHub Actions weekly, opening reviewable PRs. Actions are pinned to commit hashes. CI tests both HA 2026.9.3 (minimum) and latest stable, and runs every Monday even without source changes. Dependabot PRs are not auto-merged. Dependency alerts and security updates are enabled in repository settings where the authenticated owner has access. Code owners remain responsible for review.
+Dependabot checks pip development tools, npm formatting tools and GitHub Actions weekly, opening reviewable PRs. Actions are pinned to commit hashes. CI tests both HA 2026.9.0 (minimum) and latest stable, and runs every Monday even without source changes. Dependabot PRs are not auto-merged. Dependency alerts and security updates are enabled in repository settings where the authenticated owner has access. Code owners remain responsible for review.
 
 The integration declares no extra runtime Python packages. Development dependency updates must not silently raise the minimum supported HA version. HACS catalogue submission is deferred until 1.0.0; these workflows do not submit any listing PR.
