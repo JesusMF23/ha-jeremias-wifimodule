@@ -21,7 +21,7 @@ All paths below are relative to `https://wifimodule.eu/api/`.
 | GET `buildings` | `{msg:"buildings",buildings:[...]}`; use building `tz` | Source-confirmed |
 | POST `unit-config` | `{building,manual:true,speed,bypass,mode,switch}` | Captured basic command; variants source-confirmed |
 | POST `unit-config` | `{building,manual:false}` resumes schedule | Source-confirmed |
-| GET `chart?unit=...` | `{msg:"chart",chart:{labels,datasets},...}` | Source-confirmed |
+| GET `chart?unit=...` | Website reads `chart.labels` / `chart.datasets`; client expects `msg:"chart"`, but exact live envelope is unconfirmed | Source query/parsing only; optional capability |
 | GET `chart?unit=...&from=...&to=...` | Local datetime `YYYY-MM-DD HH:mm:ss`, URL-encoded | Source-confirmed |
 
 Manual speed: 0=off, 1–7=levels, 8=boost. Mode is `manual` or `auto`; bypass is JSON boolean. `switch` is `never` or building-local `YYYY-MM-DD HH:mm`. The integration adds a bounded boost requirement (1–60 minutes).
@@ -66,3 +66,7 @@ HTTP 401/403 and JSON `err:"permissions"` allow one session renewal and one retr
 - [HACS publishing prerequisites](https://www.hacs.xyz/docs/publish/start/)
 - [HACS validation action](https://www.hacs.xyz/docs/publish/action/)
 - [Home Assistant local brand images](https://developers.home-assistant.io/docs/core/integration/brand_images/)
+
+## 1.0.0 history scope
+
+The owner does not see machine history exposed in their vendor UI. The existing chart query is retained for compatible installations, but is optional and not claimed as accepted on that account. Query failures have a dedicated unavailable state and never imply that a ventilation command failed. HA Recorder air-quality charts are independent.

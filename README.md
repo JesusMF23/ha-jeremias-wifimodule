@@ -4,7 +4,7 @@
 
 Community integration for heat-recovery ventilation controlled through **wifimodule.eu**. Includes native Home Assistant entities and a **Jeremias** sidebar panel for modes, profiles and weekly programming. No extra hardware is required. This integration depends on the WifiModule cloud and is not a local Modbus integration.
 
-**0.6.2 is an initial-development release (before 1.0.0).** The basic status and control endpoints have user-captured evidence. Programming endpoints are implemented from the website's public JavaScript and tested against simulated responses; complete authenticated hardware acceptance is still pending. This is not an official Jeremias product and is not yet listed in the HACS default catalogue.
+**1.0.0 is the first community release.** Native controls, sensor regulation and programming share the existing integration. Live acceptance on one installation is documented in [Validation](docs/VALIDATION.md); the owner has authorized release. Optional machine-cloud history is not confirmed for every account/equipment and reports unavailability separately from ventilation control. This is not an official Jeremias product. Inclusion in the HACS default catalogue requires a separate maintainer-reviewed submission.
 
 [Español](README.es.md) · [Protocol and coverage](docs/PROTOCOL.md) · [Validation](docs/VALIDATION.md) · [1.0.0 acceptance](docs/RELEASE_1_0_CHECKLIST.md)
 
@@ -22,7 +22,7 @@ This project was developed predominantly through **vibe coding**, using AI agent
 | Weekly programming | Load a profile; edit daily time/mode transitions; copy a day to another day; activate profiles; reject stale edits |
 | Profiles | Create, rename and delete inactive profiles |
 | Modes | Create/edit speed, automatic/manual operation, bypass, colour and name; delete unused modes |
-| History | Cloud chart and table, optional date range up to 366 days; actual retention depends on the cloud account |
+| History | HA Recorder air-quality graphs; optional manufacturer-cloud chart/table when provided by the equipment/account, with date ranges up to 366 days |
 | Other | English/Spanish UI; local JSON export of the loaded programming; redacted diagnostics |
 
 Controls act on **every unit in the selected building**, as the website API does. Sensor entities report each unit separately. The native unit automatic mode is separate from the new Home Assistant sensor regulation.
@@ -69,7 +69,7 @@ HACS custom repositories and inclusion in the default catalogue are different: d
 
 Copy the entire `custom_components/wifimodule` directory into `/config/custom_components/wifimodule`. Do not nest another `wifimodule` directory inside it. Restart Home Assistant. For a new installation, follow steps 5–6 above. When upgrading, back up the existing folder and preserve the integration entry and credentials. No YAML, copied browser cookie or API key is needed.
 
-The `jeremias-wifimodule-0.6.2-install.zip` distribution contains the `custom_components` directory and license. Extract it into the Home Assistant configuration directory, preserving that structure.
+The `jeremias-wifimodule-1.0.0-install.zip` distribution contains the `custom_components` directory and license. Extract it into the Home Assistant configuration directory, preserving that structure.
 
 ## Use
 

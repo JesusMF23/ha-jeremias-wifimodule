@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.0
+
+- First owner-approved community release with native control, sensor-driven regulation, persistent Manual/timed returns, independent bypass and weekly programming in the existing integration.
+- Keep cloud machine history optional, label its scope in English/Spanish and report unavailable queries in their own state without implying a failed equipment-control operation. Preserve HA Recorder air-quality graphs and all existing widget/backend operations.
+- Include bypass ownership/confirmation and Profiles rendering fixes, real HA restart/timer/programming evidence, normal-release packaging and HACS submission preparation. The vibe coding disclaimer remains in both READMEs.
+
 ## 0.6.2
 
 - Fix Profiles failing to open because the active-profile marker referenced an undefined variable. Add a regression exercising the actual panel method with active/inactive profiles and escaped names.

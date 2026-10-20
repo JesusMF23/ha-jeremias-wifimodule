@@ -1,5 +1,13 @@
 # Validation
 
+## 1.0.0 release authorization and optional history
+
+The owner reports the remaining checks are in order and explicitly authorizes publication of 1.0.0 and submission to the HACS default catalogue. They do not see a machine-history section in the vendor site. Individual physical measurements are not independently claimed by the automated agent.
+
+Machine-cloud history remains an optional, account/equipment-dependent capability; its raw live response/root cause has not been verified here. The UI now explains its scope and shows a query-specific unavailable state without reporting a failed ventilation command. A regression verifies failure and subsequent successful retry preserve sensor Automatic and its timer. Existing backend operations and HA Recorder air-quality charts remain intact. Local suite: 146 Python and 28 frontend tests. Release/deployment/submission results follow after execution.
+
+The earlier pre-1.0.0 notes below are historical evidence and limitations, not a claim that machine-cloud history has since been confirmed on the household account.
+
 ## Current result — 0.6.2 / 20 October 2026
 
 146 Python and 26 frontend tests pass locally and on minimum/latest HA CI. HACS and hassfest pass. Normal release 0.6.2 is installed in the existing HA instance, with configuration validation and three real restarts across 0.6.1/0.6.2. Schedule bypass presentation and Manual takeover are corrected. A four-minute Manual-off → Schedule trial survived the second restart and completed without another command. Real inactive-profile day editing/copy/readback was restored. HACS keeps the repository under Downloaded with no pending update; the panel reports installed 0.6.2 and final equipment ownership is Schedule, reported Off/bypass off.

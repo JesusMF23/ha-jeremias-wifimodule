@@ -13,7 +13,11 @@ export const locales = {
     schedule: "Weekly schedule",
     modes: "Modes",
     profiles: "Profiles",
-    history: "History",
+    history: "Cloud history",
+    cloudHistoryHelp:
+      "Optional history supplied by wifimodule.eu; availability depends on the equipment and account. Air-quality graphs in Controls use Home Assistant history.",
+    cloudHistoryUnavailable:
+      "Cloud history is unavailable for this query. The equipment or account may not provide it, or the cloud may not be responding. Home Assistant air-quality graphs remain in Controls.",
     loading: "Loading…",
     empty: "Add a WifiModule integration to begin.",
     error:
@@ -101,7 +105,11 @@ export const locales = {
     schedule: "Horario semanal",
     modes: "Modos",
     profiles: "Perfiles",
-    history: "Historial",
+    history: "Historial de la nube",
+    cloudHistoryHelp:
+      "Historial opcional de wifimodule.eu; su disponibilidad depende del equipo y la cuenta. Las gráficas de calidad del aire de Controles usan el historial de Home Assistant.",
+    cloudHistoryUnavailable:
+      "El historial de la nube no está disponible para esta consulta. El equipo o la cuenta pueden no ofrecerlo, o la nube puede no responder. Las gráficas de calidad del aire de Home Assistant siguen en Controles.",
     loading: "Cargando…",
     empty: "Añade una integración WifiModule para empezar.",
     error:
