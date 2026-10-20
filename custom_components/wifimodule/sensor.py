@@ -19,6 +19,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
             "speed_level",
             "error_code",
             "filter_hours",
+            "filter_days_remaining",
             "last_communication",
             "aqs1",
             "aqs2",
@@ -36,8 +37,11 @@ class Telemetry(UnitEntity, SensorEntity):
         self._initialize_kind(unit["values"].get(key + "t"))
         if key in ("error_code", "last_communication"):
             self._attr_entity_category = EntityCategory.DIAGNOSTIC
-        if key == "filter_hours":
-            self._attr_native_unit_of_measurement = UnitOfTime.HOURS
+        if key in ("filter_hours", "filter_days_remaining"):
+            self._attr_native_unit_of_measurement = (
+                UnitOfTime.DAYS if key == "filter_days_remaining" else UnitOfTime.HOURS
+            )
+            self._attr_device_class = SensorDeviceClass.DURATION
 
     def _initialize_kind(self, kind):
         # Once statistics have a unit, a later type change stays unknown until reload.
@@ -70,6 +74,9 @@ class Telemetry(UnitEntity, SensorEntity):
     def native_value(self):
         if self.key == "last_communication":
             return self.unit.get("last_comm")
+        if self.key == "filter_days_remaining":
+            hours = self.values.get("fil")
+            return hours // 24 if type(hours) is int and hours >= 0 else None
         if self.key.startswith("aqs"):
             value = self.values.get(self.key)
             if (

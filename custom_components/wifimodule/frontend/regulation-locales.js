@@ -86,6 +86,7 @@ export const regulationLocales = {
     maximum: "Maximum",
     last: "Last recorded",
     manualControl: "Manual control",
+    manualDetails: "Duration and control details",
     refreshFailed:
       "Live status could not be refreshed. Check the connection before relying on the last readings.",
 
@@ -241,6 +242,7 @@ export const regulationLocales = {
     maximum: "Máximo",
     last: "Último registrado",
     manualControl: "Control manual",
+    manualDetails: "Detalles de duración y control",
     refreshFailed:
       "No se pudo actualizar el estado. Comprueba la conexión antes de confiar en las últimas lecturas.",
 

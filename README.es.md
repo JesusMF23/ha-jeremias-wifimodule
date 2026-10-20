@@ -2,7 +2,11 @@
 
 Integración comunitaria con entidades nativas y un panel **Jeremias** para controlar el recuperador y editar la programación de wifimodule.eu. **No requiere hardware adicional, pero sí Internet y la nube del fabricante.**
 
-La versión **0.5.0b1 es una beta**: control y lectura básica tienen capturas reales; perfiles, modos y programación se han implementado a partir del código público de la web y probado con respuestas simuladas. Falta completar las pruebas autenticadas con equipos reales. No es una integración oficial ni está incluida en el catálogo predeterminado de HACS.
+La versión **0.6.0 sigue en desarrollo inicial, antes de la 1.0.0**: control y lectura básica tienen capturas reales; perfiles, modos y programación se han implementado a partir del código público de la web y probado con respuestas simuladas. Falta completar las pruebas autenticadas con equipos reales. No es una integración oficial ni está incluida en el catálogo predeterminado de HACS.
+
+## Aviso de vibe coding
+
+Este proyecto se ha desarrollado **mayoritariamente mediante vibe coding**, utilizando agentes de IA para generar y revisar gran parte de la implementación. Cuenta con dirección humana, pruebas automatizadas y las comprobaciones reales documentadas en [Validación](docs/VALIDATION.md), que no equivalen a una cobertura completa de equipos ni garantizan la ausencia de errores. Es un proyecto comunitario, no una integración oficial de Jeremias. Revisa los cambios y úsalo teniendo presente este enfoque de desarrollo.
 
 ## Qué incluye
 
@@ -93,3 +97,10 @@ Selecciona entidades de cualquier integración de HA en Sensores y umbrales: bú
 En Control manual, elige Sin límite o retorno a Automático/Horario Jeremias y una duración de 1–10080 minutos, también expresable en horas. Aplicar guarda la fecha de vencimiento; reiniciar no alarga el plazo. Para cancelar, selecciona Manual o aplica Sin límite. El retorno a Automático necesita HA funcionando y sensores utilizables; si HA estuvo apagado se procesa al arrancar. El retorno a Horario se envía también a la nube con el vencimiento original (precisión de minutos). Boost mantiene su límite de 60 minutos.
 
 El interruptor Bypass superior y la entidad nativa cambian el bypass sin desactivar Automático. Se conservan la selección y los temporizadores manuales vigentes. La interfaz distingue petición y estado reportado: el equipo puede limitar el bypass. Activarlo no comprueba que el aire exterior esté más fresco; no se añade un algoritmo de refrigeración por temperatura.
+
+
+## Controles, filtro y versiones (0.6.0)
+
+El panel superior integra modo, velocidad Manual, duración/destino de retorno y bypass independiente. Al seleccionar Manual aparecen sus controles antes de las tarjetas y gráficas. Equipo y mantenimiento queda después de las gráficas. El filtro muestra días restantes: registro del equipo dividido entre 24, redondeado hacia abajo, igual que en WifiModule. Se añade una entidad en días sin cambiar la entidad existente en horas ni su historial.
+
+Desde 0.6.0 se publican releases normales con etiquetas `X.Y.Z`, coincidentes con la versión del código. HACS ofrece estas releases y oculta la rama de desarrollo. Si instalaste una beta o seguías `main`, descarga la release normal actual desde HACS, reinicia HA y actualiza la información de HACS. Comprueba las versiones instalada y disponible en la entidad de actualización. El catálogo predeterminado de HACS se pospone hasta la 1.0.0.

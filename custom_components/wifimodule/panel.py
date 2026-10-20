@@ -27,6 +27,13 @@ OPERATIONS = [
 ]
 
 
+def unit_summaries(coordinator):
+    return [
+        {k: u.get(k) for k in ("id", "name", "last_comm", "fw", "values")}
+        for u in coordinator.data["units"]
+    ]
+
+
 async def dispatch(hass, message):
     entries = hass.data[DOMAIN]["entries"]
     operation = message["operation"]
@@ -52,6 +59,7 @@ async def dispatch(hass, message):
             await coordinator.automatic.configure(**data)
         return {
             **coordinator.automatic.snapshot,
+            "units": unit_summaries(coordinator),
             "candidates": sensor_catalogue(
                 hass, coordinator.automatic.settings.stale_seconds
             ),
@@ -80,11 +88,9 @@ async def dispatch(hass, message):
             "manual_override_until",
         )
         building = {k: coordinator.data.get(k) for k in building_keys}
-        units = [
-            {k: u.get(k) for k in ("id", "name", "last_comm", "fw", "values")}
-            for u in coordinator.data["units"]
-        ]
+        units = unit_summaries(coordinator)
         return {
+            "version": VERSION,
             "building": building,
             "units": units,
             "ready": control.ready,

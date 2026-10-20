@@ -4,9 +4,13 @@
 
 Community integration for heat-recovery ventilation controlled through **wifimodule.eu**. Includes native Home Assistant entities and a **Jeremias** sidebar panel for modes, profiles and weekly programming. No extra hardware is required. This integration depends on the WifiModule cloud and is not a local Modbus integration.
 
-**0.5.0b1 is a beta.** The basic status and control endpoints have user-captured evidence. Programming endpoints are implemented from the website's public JavaScript and tested against simulated responses; complete authenticated hardware acceptance is still pending. This is not an official Jeremias product and is not yet listed in the HACS default catalogue.
+**0.6.0 is an initial-development release (before 1.0.0).** The basic status and control endpoints have user-captured evidence. Programming endpoints are implemented from the website's public JavaScript and tested against simulated responses; complete authenticated hardware acceptance is still pending. This is not an official Jeremias product and is not yet listed in the HACS default catalogue.
 
 [Español](README.es.md) · [Protocol and coverage](docs/PROTOCOL.md) · [Validation](docs/VALIDATION.md)
+
+## Vibe coding disclaimer
+
+This project was developed predominantly through **vibe coding**, using AI agents to generate and iterate on much of the implementation. Human direction, automated tests and the live checks documented in [Validation](docs/VALIDATION.md) support development, but do not establish complete hardware coverage or guarantee correctness. It is a community project, not an official Jeremias integration. Review changes and use it with this development approach in mind.
 
 ## Features
 
@@ -54,7 +58,7 @@ Repository: `https://github.com/JesusMF23/ha-jeremias-wifimodule`.
 
 1. Open HACS → menu → **Custom repositories**.
 2. Enter that repository URL and select **Integration**.
-3. Download **Jeremias / WifiModule**, enabling beta releases when required.
+3. Download **Jeremias / WifiModule**, selecting the latest normal release. Beta releases are not required from 0.6.0 onward.
 4. Restart Home Assistant.
 5. Go to Settings → Devices & services → Add integration → **Jeremias / WifiModule**.
 6. Enter your WifiModule email/password in the Home Assistant form and select your building. Add the integration again for another building.
@@ -65,7 +69,7 @@ HACS custom repositories and inclusion in the default catalogue are different: d
 
 Copy the entire `custom_components/wifimodule` directory into `/config/custom_components/wifimodule`. Do not nest another `wifimodule` directory inside it. Restart Home Assistant. For a new installation, follow steps 5–6 above. When upgrading, back up the existing folder and preserve the integration entry and credentials. No YAML, copied browser cookie or API key is needed.
 
-The `jeremias-wifimodule-0.5.0b1-install.zip` distribution contains the `custom_components` directory and license. Extract it into the Home Assistant configuration directory, preserving that structure.
+The `jeremias-wifimodule-0.6.0-install.zip` distribution contains the `custom_components` directory and license. Extract it into the Home Assistant configuration directory, preserving that structure.
 
 ## Use
 
@@ -113,3 +117,12 @@ The sensor picker supports HA integrations independently of brand, search and ro
 Manual can remain indefinite or return to sensor Automatic/vendor Schedule after 1–10080 minutes, entered in minutes or hours. Absolute deadlines survive restart. Automatic return requires HA; vendor Schedule also receives the original cloud expiry (minute precision). Boost remains limited to 60 minutes. Select Manual or apply No time limit to cancel a return.
 
 The independent bypass toggle and native switch preserve Automatic and existing Manual timers. Saved request and reported state remain distinct. No outdoor-temperature cooling algorithm is introduced.
+
+
+## Controls, filter life and releases (0.6.0)
+
+The initial panel groups mode, Manual speed, duration/return and the independent bypass control. Manual controls appear immediately when Manual is selected, before sensor cards and charts. Equipment/maintenance follows the charts. Filter life uses the manufacturer’s remaining-hour register divided by 24 and rounded down, as its website does. A new days-remaining entity preserves the existing hours entity and history. This is a countdown from the equipment, not a prediction from operating hours.
+
+Releases now use plain `X.Y.Z` tags and normal GitHub releases; the manifest, frontend asset version and tag must match. HACS installs releases; the development branch is hidden from its download selector. If an installation used a beta or tracked `main`, download the current normal release through HACS, restart HA and refresh HACS information. Check the installed and available versions on the update entity; do not disable that entity to conceal a mismatch.
+
+See [release and maintenance instructions](docs/RELEASING.md). Submission to the default HACS catalogue is deferred until 1.0.0.

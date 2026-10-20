@@ -75,3 +75,11 @@ ManualControl isolates persistent manual intent from sensor demand. It sends a s
 ManualControl persists an absolute UTC deadline and explicit return destination. Schedule returns serialize the same deadline on cloud restore; Automatic returns keep the cloud manual hold until HA can resume demand control. Invalid/uncertain commands do not create replay intent. Bypass-only commands retain mode and manual deadline; Automatic bypass changes use guarded finite leases and subsequent speed commands carry the saved preference. Fresh report is distinct from requested bypass.
 
 Sensor catalogues use HA device classes/units rather than brands, include area names for selection and explain unsupported units. VOC ppm is normalized to ppb in both demand calculation and history display; no mass-to-molar inference is made. Browser control-options owns timer presentation/validation; backend validates requests independently.
+
+## Integrated controls and release maintenance (0.6.0)
+
+The initial regulation card owns the Manual editor (speed, native mode and timed return), plus one independent bypass control. The editor is visible in HA Manual before sensor cards/charts, including when another programming tab is selected. Drafts survive bypass requests; Apply sends the explicit draft through the existing backend and widget-compatible command path. `manual-controls.js` and `machine-status.js` keep presentation separate from panel lifecycle. Equipment/maintenance follows charts; its telemetry refreshes from the existing live status response, without extra cloud metadata reads.
+
+`filter_days_remaining` derives floor(fil / 24), confirmed in the vendor’s public index-Nhn3YcyL.js display. Negative/missing/noninteger counters stay unknown. The hours entity keeps its identity and raw reading; no assumed installation date or service interval is introduced.
+
+The normal-release channel uses canonical X.Y.Z tags matched to manifest/VERSION. A tag invokes the reusable validation workflow (minimum/latest HA, frontend, hassfest, HACS) before publishing an install ZIP/checksum as a normal GitHub release. Main is hidden from HACS downloads. No changes to HACS internals or its stored installation state are made. Weekly dependency PRs, pinned Actions and scheduled compatibility checks maintain the repo; the HACS default-catalogue request remains deferred until 1.0.0.

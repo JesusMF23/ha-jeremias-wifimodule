@@ -96,3 +96,29 @@ async def test_updating_panel_invalidates_nested_module_urls():
         static = hass.http.async_register_static_paths.call_args.args[0][0]
         assert locale.startswith(static.url_path + "/")
     assert versions[0].isdisjoint(versions[1])
+
+
+@pytest.mark.parametrize(
+    ("hours", "days"),
+    [
+        (3227, 134),
+        (24, 1),
+        (23, 0),
+        (0, 0),
+        (None, None),
+        (-1, None),
+        (True, None),
+        ("48", None),
+    ],
+)
+def test_filter_remaining_days_matches_vendor_rounding(hours, days):
+    """Remaining hours must not become elapsed time or guessed replacement dates."""
+    from homeassistant.const import UnitOfTime
+
+    unit = {"id": 2, "values": {"fil": hours}}
+    coordinator = Mock(data={"units": [unit]}, controller=Mock(building_id=1))
+    sensor = Telemetry(coordinator, unit, "filter_days_remaining")
+    assert sensor.native_value == days
+    assert sensor.native_unit_of_measurement == UnitOfTime.DAYS
+    assert sensor.unique_id == "1_2_filter_days_remaining"
+    assert Telemetry(coordinator, unit, "filter_hours").native_value == hours
