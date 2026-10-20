@@ -126,3 +126,5 @@ The initial panel groups mode, Manual speed, duration/return and the independent
 Releases now use plain `X.Y.Z` tags and normal GitHub releases; the manifest, frontend asset version and tag must match. HACS installs releases; the development branch is hidden from its download selector. If an installation used a beta or tracked `main`, download the current normal release through HACS, restart HA and refresh HACS information. Check the installed and available versions on the update entity; do not disable that entity to conceal a mismatch.
 
 See [release and maintenance instructions](docs/RELEASING.md). Submission to the default HACS catalogue is deferred until 1.0.0.
+
+[HACS default catalogue submission (pending review)](https://github.com/hacs/default/pull/12282).

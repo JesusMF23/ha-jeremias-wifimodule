@@ -6,6 +6,10 @@ The owner reports the remaining checks are in order and explicitly authorizes pu
 
 Machine-cloud history remains an optional, account/equipment-dependent capability; its raw live response/root cause has not been verified here. The UI now explains its scope and shows a query-specific unavailable state without reporting a failed ventilation command. A regression verifies failure and subsequent successful retry preserve sensor Automatic and its timer. Existing backend operations and HA Recorder air-quality charts remain intact. Local suite: 146 Python and 28 frontend tests. Release/deployment/submission results follow after execution.
 
+Release workflow 39385340352 passed minimum/latest HA, HACS and hassfest on immutable tag 1.0.0 / c28c6f9 before publishing. GitHub confirms draft=false/prerelease=false; the downloaded install ZIP matches its SHA256. Official HACS submission [#12282](https://github.com/hacs/default/pull/12282) adds one sorted integration entry from a personal fork, with maintainer edits enabled and the completed template linking successful validations. All 13 upstream checks pass. The PR remains open/unmerged for maintainer review; this is not a claim of catalogue inclusion.
+
+Installed exact 1.0.0 through the existing HACS repository, passed HA configuration validation and restarted after the prompt reported no running scripts/automations. The live footer reports 1.0.0. After fresh communication, ownership remains Schedule and equipment/bypass report Off. The optional cloud-history query now produces its own unavailable status, with no failed-control alert and no change to equipment ownership. Existing Recorder graphs and sensor configuration are preserved.
+
 The earlier pre-1.0.0 notes below are historical evidence and limitations, not a claim that machine-cloud history has since been confirmed on the household account.
 
 ## Current result — 0.6.2 / 20 October 2026

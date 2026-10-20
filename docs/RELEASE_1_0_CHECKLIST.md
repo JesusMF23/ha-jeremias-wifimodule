@@ -40,9 +40,9 @@ La autorización de publicación se ha recibido del propietario. Si aparece una 
 ## Publicación 1.0.0 y HACS (después de aceptación)
 
 - [x] Recibir la aceptación/autorización de publicación del propietario y documentar la limitación de historial opcional.
-- [ ] Ejecutar CI sobre el commit final; alinear manifest/VERSION/CHANGELOG con 1.0.0 y publicar el tag inmutable mediante Release.
-- [ ] Instalar 1.0.0 con HACS, validar/reiniciar HA y verificar versión instalada/ofrecida y conservación de ajustes.
-- [ ] Revalidar requisitos oficiales de HACS y abrir la solicitud de inclusión. Este trabajo no la envía.
+- [x] Ejecutar CI sobre el commit final; alinear manifest/VERSION/CHANGELOG con 1.0.0 y publicar el tag inmutable mediante Release.
+- [x] Instalar 1.0.0 con HACS, validar/reiniciar HA y verificar versión instalada/ofrecida y conservación de ajustes.
+- [x] Revalidar requisitos oficiales de HACS y abrir la [solicitud #12282](https://github.com/hacs/default/pull/12282). Todos sus 13 checks pasan; la inclusión sigue pendiente de revisión/fusión por HACS.
 
 La acción HACS de 0.6.1 pasa sus diez comprobaciones; avisa de que no se ha declarado la nueva clasificación `categories` del manifest. El campo sigue siendo [opcional](https://contributors.home-assistant.io/core/integrations/categories/). Se probó la nueva categoría, pero la imagen actual de hassfest la rechaza como campo no admitido; se conserva el manifest compatible y se revisará cuando los validadores soporten el mismo esquema. Las actualizaciones de herramientas/Actions de Dependabot permanecen en PR para revisión; no se fusionan automáticamente por pasar CI.
 
