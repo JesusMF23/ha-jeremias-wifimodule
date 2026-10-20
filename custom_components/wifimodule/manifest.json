@@ -4,7 +4,6 @@
   "after_dependencies": [
     "airzone_cloud"
   ],
-  "categories": ["climate.fans_ventilation"],
   "codeowners": [
     "@JesusMF23"
   ],
