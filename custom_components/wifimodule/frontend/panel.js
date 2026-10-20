@@ -176,6 +176,7 @@ class JeremiasPanel extends HTMLElement {
       profile === undefined ? {} : { profile_id: Number(profile) },
     );
     this.history = null;
+    this.historyUnavailable = false;
     this.manualDraft = null;
     this.loadQualityHistory();
     this.dirty = false;
@@ -524,14 +525,25 @@ class JeremiasPanel extends HTMLElement {
       const kind = this.page === "modes" ? "mode" : "profile";
       return `<section><header><h2>${t[this.page]}</h2>${this.button("new-" + kind, kind === "mode" ? t.newMode : t.newProfile, "primary")}</header>${v[this.page].map((item) => `<div class="list-row"><div>${kind === "mode" ? `<span class="swatch" style="background:${color(item.color)}"></span>` : ""}<strong>${esc(item.name)}</strong>${kind === "profile" && item.id === v.building.profile_id ? ` <small>${t.active}</small>` : ""}</div><div class="actions"><button data-kind="${kind}" data-edit="${item.id}">${t.edit}</button><button class="danger" data-kind="${kind}" data-delete="${item.id}">${t.delete}</button></div></div>`).join("")}</section>`;
     }
-    return `<section><div class="toolbar"><label>${t.unit}<select id="history-unit">${this.options(
+    return `<section><p class="muted">${esc(t.cloudHistoryHelp)}</p><div class="toolbar"><label>${t.unit}<select id="history-unit">${this.options(
       v.units.map((u) => [u.id, u.name]),
       null,
     )}</select></label><label>${t.from}<input id="history-from" type="datetime-local"></label><label>${t.to}<input id="history-to" type="datetime-local"></label>${this.button("history", t.refresh)}</div>${this.renderHistory()}</section>`;
   }
+  async loadMachineHistory(data) {
+    this.history = null;
+    this.historyUnavailable = false;
+    try {
+      this.history = await this.api("history", data);
+    } catch {
+      this.historyUnavailable = true;
+    }
+  }
   renderHistory() {
     const t = this.t,
       h = this.history;
+    if (this.historyUnavailable)
+      return `<p class="notice" role="status">${esc(t.cloudHistoryUnavailable)}</p>`;
     if (!h) return `<p class="muted">${t.chartEmpty}</p>`;
     const labels = h.labels || [],
       sets = h.datasets || [];
@@ -656,9 +668,7 @@ class JeremiasPanel extends HTMLElement {
         data.start = start.replace("T", " ") + ":00";
         data.end = end.replace("T", " ") + ":00";
       }
-      this.run(async () => {
-        this.history = await this.api("history", data);
-      });
+      this.run(() => this.loadMachineHistory(data));
     } else if (action === "export") {
       const blob = new Blob(
         [

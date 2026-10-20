@@ -258,3 +258,29 @@ test("Profiles opens with the active building profile and escaped names", () => 
   assert.match(html, /data-edit="11"/);
   assert.match(html, /data-delete="11"/);
 });
+
+test('unavailable optional cloud history leaves Automatic and its timer unchanged',async()=>{
+ const p=controlPanel('automatic');
+ p.entryId='demo';
+ p.automatic.manual_timer={return_to:'schedule',expires_at:'2026-10-20T12:00:00Z'};
+ const before=structuredClone(p.automatic),calls=[];
+ p.history={labels:['old'],datasets:[{data:[100]}]};
+ p._hass.callWS=async msg=>{calls.push(msg.operation);throw Error('Unavailable');};
+ await p.loadMachineHistory({unit_id:2});
+ assert.deepEqual(calls,['history']);
+ assert.deepEqual(p.automatic,before);
+ assert.equal(p.history,null);
+ assert.match(p.renderHistory(),/historial de la nube no está disponible/);
+ assert.match(p.renderHistory(),/Home Assistant/);
+ assert.doesNotMatch(p.renderHistory(),/No se ha confirmado la operación/);
+ p._hass.callWS=async()=>({labels:['now'],datasets:[{label:'CO2',data:[420]}]});
+ await p.loadMachineHistory({unit_id:2});
+ assert.match(p.renderHistory(),/420/);
+ assert.doesNotMatch(p.renderHistory(),/no está disponible/);
+});
+
+test('cloud History explains its optional scope separately from Recorder graphs',()=>{
+ const p=controlPanel();p.page='history';
+ assert.match(p.content(),/opcional/);
+ assert.match(p.content(),/Controles/);
+});

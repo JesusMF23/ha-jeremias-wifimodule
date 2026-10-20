@@ -1,6 +1,6 @@
 # Aceptación para 1.0.0
 
-20 de octubre de 2026. Versión de preparación: **0.6.2**. Esta lista distingue pruebas automatizadas, observaciones de nube y comprobaciones físicas. Pasar CI no certifica el movimiento del bypass ni el caudal. No se publica 1.0.0 ni se solicita el catálogo predeterminado de HACS hasta cerrar los puntos físicos y revisar los resultados.
+20 de octubre de 2026. Versión: **1.0.0**. Esta lista distingue pruebas automatizadas, observaciones de nube y comprobaciones físicas. Pasar CI no certifica el movimiento del bypass ni el caudal. El propietario ha confirmado que el resto está en orden y ha autorizado expresamente publicar 1.0.0 y solicitar HACS. Esta aceptación no convierte las observaciones de nube en mediciones físicas independientes.
 
 ## Comprobado por software
 
@@ -18,11 +18,13 @@ También se ha probado en la vivienda Manual apagado durante cuatro minutos → 
 
 Las evidencias de instalación, reinicios y telemetría de la vivienda se añaden a [VALIDATION.md](VALIDATION.md). El AirQ del salón no recibe datos porque el webserver Airzone perdió su conexión Wi-Fi, confirmado por el propietario. Esa incidencia externa debe resolverse para probar las dos zonas juntas; no se cambian sus entidades ni se inventan lecturas.
 
-## Incidencia de software pendiente antes de declarar 1.0.0
+## Historial de nube opcional
 
-- [ ] El Historial de la máquina (API de wifimodule.eu) devolvió error en la prueba real, tanto sin fechas como con intervalo explícito. Las gráficas AirQ de Recorder funcionan. Falta comparar con el historial de la web del fabricante en la misma cuenta para distinguir incompatibilidad del cliente, ausencia de soporte/datos o un fallo de la nube. No se afirma que el historial de máquina esté validado; este punto debe cerrarse o documentarse con un tratamiento correcto de la limitación antes de 1.0.0. No se dispone de una sesión de fabricante abierta en Brave para esa comparación.
+- [x] El propietario no encuentra historial de la máquina expuesto en la web del fabricante. No se presupone disponibilidad para su equipo/cuenta ni se atribuye el error a una causa no confirmada.
+- [x] La UI explica que este historial es opcional y muestra un estado de indisponibilidad propio; no anuncia una orden de ventilación fallida. Las gráficas AirQ de Recorder siguen funcionando.
+- [x] La prueba de fallo y posterior recuperación no modifica Automático ni sus temporizadores. El endpoint existente se conserva para instalaciones compatibles; su aceptación en esta cuenta no se afirma.
 
-## Lo que debe comprobar el propietario físicamente
+## Guía de comprobaciones físicas del propietario
 
 Anota hora, modo, velocidad solicitada/reportada y resultado. No provoques contaminantes ni tapes entradas de aire para crear demanda.
 
@@ -33,11 +35,11 @@ Anota hora, modo, velocidad solicitada/reportada y resultado. No provoques conta
 5. **Fallo de HA/nube:** estando presente y con una prueba corta de Automático, detén HA sin desconectar el equipo. Tras vencer la concesión de 15 minutos desde la última orden aceptada, verifica en el mando que vuelve el horario. Repite un corte breve de Internet si puedes aislar solo la conexión de prueba, y comprueba recuperación sin ráfagas de órdenes. No apagues la alimentación del recuperador para simular este fallo.
 6. **Uso continuado:** observa 48 horas con ambas zonas disponibles, incluido un periodo nocturno. Confirma ausencia de oscilaciones, cambios inesperados, errores de comunicación persistentes y avisos falsos de actualización. Revisa también el teléfono y el widget que usas a diario.
 
-Si un paso falla, conservar 0.6.x y corregir/repetirlo. No reiniciar el contador del filtro como prueba.
+La autorización de publicación se ha recibido del propietario. Si aparece una incidencia, registrarla y corregir/repetir la comprobación. No reiniciar el contador del filtro como prueba.
 
 ## Publicación 1.0.0 y HACS (después de aceptación)
 
-- [ ] Cerrar la incidencia de Historial y los resultados anteriores y cualquier diferencia entre mando y nube.
+- [x] Recibir la aceptación/autorización de publicación del propietario y documentar la limitación de historial opcional.
 - [ ] Ejecutar CI sobre el commit final; alinear manifest/VERSION/CHANGELOG con 1.0.0 y publicar el tag inmutable mediante Release.
 - [ ] Instalar 1.0.0 con HACS, validar/reiniciar HA y verificar versión instalada/ofrecida y conservación de ajustes.
 - [ ] Revalidar requisitos oficiales de HACS y abrir la solicitud de inclusión. Este trabajo no la envía.

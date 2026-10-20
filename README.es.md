@@ -2,7 +2,7 @@
 
 Integración comunitaria con entidades nativas y un panel **Jeremias** para controlar el recuperador y editar la programación de wifimodule.eu. **No requiere hardware adicional, pero sí Internet y la nube del fabricante.**
 
-La versión **0.6.2 sigue en desarrollo inicial, antes de la 1.0.0**: control y lectura básica tienen capturas reales; perfiles, modos y programación se han implementado a partir del código público de la web y probado con respuestas simuladas. Falta completar las pruebas autenticadas con equipos reales. No es una integración oficial ni está incluida en el catálogo predeterminado de HACS.
+La **1.0.0 es la primera versión comunitaria**. Incluye control nativo, regulación por sensores y programación dentro de la integración existente. Las pruebas reales de una instalación están documentadas en [Validación](docs/VALIDATION.md), y el propietario ha autorizado la publicación. El historial opcional de la nube no está confirmado para todos los equipos/cuentas: su falta de disponibilidad se muestra aparte del control de ventilación. No es una integración oficial de Jeremias. La inclusión en el catálogo predeterminado de HACS requiere una solicitud y revisión independientes.
 
 ## Aviso de vibe coding
 
@@ -17,7 +17,7 @@ Este proyecto se ha desarrollado **mayoritariamente mediante vibe coding**, util
 - Perfiles: crear, renombrar, activar y borrar perfiles inactivos.
 - Modos: nombre, color, velocidad, automático/manual y bypass; eliminación si no se usan en un horario.
 - Editor semanal, copia de días, detección de cambios realizados desde otro cliente y exportación JSON de la programación cargada.
-- Historial con gráfico, tabla y fechas opcionales, según los datos que conserve la nube.
+- Gráficas de calidad del aire de Home Assistant y un historial opcional de la nube, si el equipo/cuenta lo ofrece; su indisponibilidad no afecta al control.
 
 Las órdenes afectan a **todos los equipos de la instalación seleccionada**, igual que en la web. El modo «Automático (sondas del equipo)» corresponde al recuperador. La nueva «Regulación por sensores» es independiente y usa las entidades seleccionadas de Home Assistant.
 
