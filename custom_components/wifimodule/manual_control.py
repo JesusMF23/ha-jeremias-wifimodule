@@ -49,6 +49,7 @@ class ManualControl:
             if self.auto.coordinator.last_update_success and self.auto.control.ready
             else None
         )
+        self.auto.bypass_requested = self.auto.reported_bypass()
         self.auto.status = "manual_pending"
 
     def record(self, payload, now, *, return_to="none", expires_at=None):

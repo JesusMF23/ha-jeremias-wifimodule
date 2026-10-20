@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6.1
+
+- Show reported bypass in Schedule; do not present a saved sensor-Automatic preference as a pending command. Capture current bypass on Manual takeover.
+- Bound bypass confirmation to three minutes after a submitted command. Show unconfirmed requests separately and use the same presentation during initial rendering and live refresh.
+- Extend acceptance coverage with real HTTP programming round trips and real HA entity-registry migration, preserving existing widget entity IDs. Add an explicit 1.0.0 acceptance checklist.
+
 ## 0.6.0
 
 - Integrate Manual speed, timed return and independent bypass with the initial mode controls, before readings and graphs. Retain drafts during unrelated actions.

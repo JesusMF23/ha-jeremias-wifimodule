@@ -24,3 +24,20 @@ test('VOC history uses each recorded unit when converting ppm to ppb',()=>{
  const start=Date.parse('2026-10-07T12:00:00Z'),end=start+120000;
  assert.deepEqual(historySegments(rows,start,end,'tvoc','ppb'),[[[start,300],[start+60000,300],[start+60000,400],[end,400]]]);
 });
+
+import { bypassControl } from '../custom_components/wifimodule/frontend/control-options.js';
+test('schedule shows reported bypass even if an old preference remains',()=>{
+ const html=bypassControl({mode:'schedule',bypass_requested:true,bypass_reported:false,bypass_pending:true},regulationLocales.es,false);
+ assert.doesNotMatch(html,/checked/);
+ assert.doesNotMatch(html,/Pendiente de confirmación/);
+});
+test('only an active submitted bypass request is pending, then remains unconfirmed',()=>{
+ const a={mode:'automatic',bypass_requested:true,bypass_reported:false,bypass_pending:true};
+ assert.match(bypassControl(a,regulationLocales.es,false),/Pendiente de confirmación/);
+ a.bypass_pending=false;
+ const html=bypassControl(a,regulationLocales.es,false);
+ assert.doesNotMatch(html,/Pendiente de confirmación/);
+ assert.match(html,/Petición sin confirmar/);
+ a.bypass_reported=true;
+ assert.doesNotMatch(bypassControl(a,regulationLocales.es,false),/Petición sin confirmar/);
+});

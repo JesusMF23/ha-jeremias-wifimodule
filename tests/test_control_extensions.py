@@ -107,3 +107,58 @@ async def test_uncertain_bypass_after_settings_edit_stops_automatic_retries():
         await a.set_bypass(True)
     assert not a.enabled
     assert AutomaticControl(a.hass, c).status == "command_error"
+
+
+async def test_schedule_hides_saved_bypass_without_discarding_automatic_preference():
+    a, c, _ = make_auto(False)
+    c.controller.data["units"][0]["values"]["byp"] = 0
+    a.bypass_requested = True
+    assert a.mode == "schedule"
+    assert a.snapshot["bypass_requested"] is None
+    assert a.snapshot["bypass_pending"] is False
+    assert a.bypass_requested is True
+
+
+async def test_manual_selection_captures_actual_bypass_instead_of_old_preference():
+    a, c, _ = make_auto(False)
+    c.controller.data["units"][0]["values"]["byp"] = 0
+    a.bypass_requested = True
+    await a.configure(enabled=False)
+    await a.tick(10)
+    assert c.controller.control.call_args.kwargs["bypass"] is False
+    assert a.snapshot["bypass_requested"] is False
+
+
+async def test_bypass_confirmation_is_bounded_and_requires_a_submitted_command():
+    a, c, _ = make_auto()
+    c.controller.data["units"][0]["values"]["byp"] = 0
+    a.bypass_requested = True
+    assert a.snapshot["bypass_pending"] is False
+    with patch("custom_components.wifimodule.automatic.monotonic", return_value=100):
+        await a.set_bypass(True)
+        assert a.snapshot["bypass_pending"] is True
+    with patch("custom_components.wifimodule.automatic.monotonic", return_value=281):
+        assert a.snapshot["bypass_pending"] is False
+        assert a.snapshot["bypass_requested"] is True
+    c.controller.data["units"][0]["values"]["byp"] = 1
+    with patch("custom_components.wifimodule.automatic.monotonic", return_value=110):
+        assert a.snapshot["bypass_pending"] is False
+    assert a.enabled
+
+
+async def test_manual_bypass_pending_expires_without_changing_the_return_deadline():
+    a, c, _ = make_auto(False)
+    c.controller.data["units"][0]["values"]["byp"] = 0
+    a.bypass_requested = True
+    end = (datetime.now(UTC) + timedelta(minutes=10)).isoformat()
+    a.manual_control.record(
+        {"manual": True, "mode": "manual", "speed": 2, "switch": "never"},
+        100,
+        return_to="automatic",
+        expires_at=end,
+    )
+    with patch("custom_components.wifimodule.automatic.monotonic", return_value=110):
+        assert a.snapshot["bypass_pending"] is True
+    with patch("custom_components.wifimodule.automatic.monotonic", return_value=281):
+        assert a.snapshot["bypass_pending"] is False
+    assert a.manual_control.expires_at == end

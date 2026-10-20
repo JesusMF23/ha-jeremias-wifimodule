@@ -258,13 +258,24 @@ class AutomaticControl:
     @property
     def snapshot(self):
         d = self.decision
+        owned = self.enabled or self.manual_control.active
+        requested = self.bypass_requested if owned else None
+        reported = self.reported_bypass()
+        sent = self.last_sent if self.enabled else self.manual_control.sent_at
+        pending = (
+            requested is not None
+            and requested != reported
+            and sent is not None
+            and 0 <= monotonic() - sent < ACK_SECONDS
+        )
         return {
             "manual_timer": {
                 "return_to": self.manual_control.return_to,
                 "expires_at": self.manual_control.expires_at,
             },
-            "bypass_requested": self.bypass_requested,
-            "bypass_reported": self.reported_bypass(),
+            "bypass_requested": requested,
+            "bypass_reported": reported,
+            "bypass_pending": pending,
             "enabled": self.enabled,
             "mode": self.mode,
             "reported_mode": "schedule"

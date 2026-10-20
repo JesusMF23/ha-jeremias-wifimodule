@@ -2,7 +2,7 @@
 
 Integración comunitaria con entidades nativas y un panel **Jeremias** para controlar el recuperador y editar la programación de wifimodule.eu. **No requiere hardware adicional, pero sí Internet y la nube del fabricante.**
 
-La versión **0.6.0 sigue en desarrollo inicial, antes de la 1.0.0**: control y lectura básica tienen capturas reales; perfiles, modos y programación se han implementado a partir del código público de la web y probado con respuestas simuladas. Falta completar las pruebas autenticadas con equipos reales. No es una integración oficial ni está incluida en el catálogo predeterminado de HACS.
+La versión **0.6.1 sigue en desarrollo inicial, antes de la 1.0.0**: control y lectura básica tienen capturas reales; perfiles, modos y programación se han implementado a partir del código público de la web y probado con respuestas simuladas. Falta completar las pruebas autenticadas con equipos reales. No es una integración oficial ni está incluida en el catálogo predeterminado de HACS.
 
 ## Aviso de vibe coding
 
@@ -29,7 +29,7 @@ Se combinan todas las zonas por su mayor demanda normalizada: CO₂ en ppm, TVOC
 
 Incluye velocidades 0–7, límites mínimo/máximo, filtrado, histéresis, confirmación de subida y bajada, intervalo entre órdenes y diagnóstico de variable/zona. **Manual** toma la velocidad reportada y la mantiene sin caducidad, guardándola para restaurarla tras reiniciar. Los controles directos pausan la regulación antes de ejecutar su orden. **Horario Jeremias** devuelve explícitamente el control a la programación.
 
-[Funcionamiento, valores iniciales y fallos](docs/AUTOMATIC_CONTROL.md). La instalación mediante HACS, las lecturas AirQ y la persistencia tras un reinicio real están verificadas en una instalación. Sigue pendiente la prueba de cambios automáticos de velocidad y caducidad de órdenes.
+[Funcionamiento, valores iniciales y fallos](docs/AUTOMATIC_CONTROL.md). La instalación mediante HACS, las lecturas AirQ y la persistencia tras un reinicio real están verificadas en una instalación. La nube ha confirmado cambios de velocidad y retorno temporizado a Automático. Las comprobaciones físicas y de funcionamiento continuado están en la [lista de aceptación 1.0.0](docs/RELEASE_1_0_CHECKLIST.md).
 
 ## Instalación manual
 
@@ -40,13 +40,13 @@ Incluye velocidades 0–7, límites mínimo/máximo, filtrado, histéresis, conf
 5. Introduce las credenciales de wifimodule.eu en el formulario de HA y elige la instalación. No necesitas YAML ni copiar cookies.
 6. Abre **Jeremias** en la barra lateral con un usuario administrador. Los controles y sensores nativos también aparecen en Dispositivos y servicios.
 
-Para HACS: añade `https://github.com/JesusMF23/ha-jeremias-wifimodule` en **HACS → Repositorios personalizados**, categoría **Integración**, descarga la beta y reinicia. Ser instalable desde un repositorio personalizado no significa estar aprobado en el catálogo predeterminado de HACS.
+Para HACS: añade `https://github.com/JesusMF23/ha-jeremias-wifimodule` en **HACS → Repositorios personalizados**, categoría **Integración**, descarga la última versión normal y reinicia. Ser instalable desde un repositorio personalizado no significa estar aprobado en el catálogo predeterminado de HACS.
 
 ## Primer uso y programación
 
 Al arrancar se espera a que avance la última comunicación del equipo. Si la nube devuelve datos antiguos, los controles seguirán indisponibles. Diez minutos sin avance vuelven a bloquearlos.
 
-Las velocidades manuales **0–7 se mantienen sin caducidad** y se guardan para restaurarlas tras reiniciar, esperando comunicación reciente. **0 es apagado**. Al migrar un Manual antiguo sin velocidad guardada se usa 0. Los temporizadores quedan para Boost y el automático propio del equipo; su caducidad puede devolver el control al horario. Boost dura cinco minutos desde su botón y permite de uno a sesenta en el panel.
+Las velocidades manuales **0–7 se mantienen sin caducidad** y se guardan para restaurarlas tras reiniciar, esperando comunicación reciente. **0 es apagado**. Al migrar un Manual antiguo sin velocidad guardada se usa 0. Manual también permite volver tras X minutos u horas al Automático de HA o al Horario Jeremias. La fecha de retorno se conserva al reiniciar. Boost y el automático propio del equipo mantienen sus temporizadores. Boost dura cinco minutos desde su botón y permite de uno a sesenta en el panel.
 
 Para programar:
 
