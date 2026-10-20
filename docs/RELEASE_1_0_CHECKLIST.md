@@ -18,6 +18,10 @@ También se ha probado en la vivienda Manual apagado durante cuatro minutos → 
 
 Las evidencias de instalación, reinicios y telemetría de la vivienda se añaden a [VALIDATION.md](VALIDATION.md). El AirQ del salón no recibe datos porque el webserver Airzone perdió su conexión Wi-Fi, confirmado por el propietario. Esa incidencia externa debe resolverse para probar las dos zonas juntas; no se cambian sus entidades ni se inventan lecturas.
 
+## Incidencia de software pendiente antes de declarar 1.0.0
+
+- [ ] El Historial de la máquina (API de wifimodule.eu) devolvió error en la prueba real, tanto sin fechas como con intervalo explícito. Las gráficas AirQ de Recorder funcionan. Falta comparar con el historial de la web del fabricante en la misma cuenta para distinguir incompatibilidad del cliente, ausencia de soporte/datos o un fallo de la nube. No se afirma que el historial de máquina esté validado; este punto debe cerrarse o documentarse con un tratamiento correcto de la limitación antes de 1.0.0. No se dispone de una sesión de fabricante abierta en Brave para esa comparación.
+
 ## Lo que debe comprobar el propietario físicamente
 
 Anota hora, modo, velocidad solicitada/reportada y resultado. No provoques contaminantes ni tapes entradas de aire para crear demanda.
@@ -33,7 +37,7 @@ Si un paso falla, conservar 0.6.x y corregir/repetirlo. No reiniciar el contador
 
 ## Publicación 1.0.0 y HACS (después de aceptación)
 
-- [ ] Cerrar los resultados anteriores y cualquier diferencia entre mando y nube.
+- [ ] Cerrar la incidencia de Historial y los resultados anteriores y cualquier diferencia entre mando y nube.
 - [ ] Ejecutar CI sobre el commit final; alinear manifest/VERSION/CHANGELOG con 1.0.0 y publicar el tag inmutable mediante Release.
 - [ ] Instalar 1.0.0 con HACS, validar/reiniciar HA y verificar versión instalada/ofrecida y conservación de ajustes.
 - [ ] Revalidar requisitos oficiales de HACS y abrir la solicitud de inclusión. Este trabajo no la envía.

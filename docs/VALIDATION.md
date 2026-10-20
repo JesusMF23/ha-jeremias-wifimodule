@@ -1,10 +1,10 @@
 # Validation
 
-## Current result — 0.6.1 / 20 October 2026
+## Current result — 0.6.2 / 20 October 2026
 
-146 Python and 25 frontend tests pass locally and on minimum/latest HA CI. HACS and hassfest pass. Normal release 0.6.1 is installed in the existing HA instance, with configuration validation and two real restarts. Schedule bypass presentation and Manual takeover are corrected. A four-minute Manual-off → Schedule trial survived the second restart and completed without another command. Real inactive-profile day editing/copy/readback was restored. HACS shows downloaded 0.6.1 with no pending update; the final equipment ownership is Schedule, reported Off/bypass off.
+146 Python and 26 frontend tests pass locally and on minimum/latest HA CI. HACS and hassfest pass. Normal release 0.6.2 is installed in the existing HA instance, with configuration validation and three real restarts across 0.6.1/0.6.2. Schedule bypass presentation and Manual takeover are corrected. A four-minute Manual-off → Schedule trial survived the second restart and completed without another command. Real inactive-profile day editing/copy/readback was restored. HACS keeps the repository under Downloaded with no pending update; the panel reports installed 0.6.2 and final equipment ownership is Schedule, reported Off/bypass off.
 
-Independent physical bypass/airflow checks, two-zone recovery after the external Airzone Wi-Fi outage, failure recovery at the equipment and 48-hour observation remain on the [1.0.0 checklist](RELEASE_1_0_CHECKLIST.md). Full profile/mode CRUD is exercised over disposable localhost HTTP, not destructive writes on the household account. The sections below are historical evidence, followed by the detailed 0.6.1 results.
+Independent physical bypass/airflow checks, two-zone recovery after the external Airzone Wi-Fi outage, failure recovery at the equipment and 48-hour observation remain on the [1.0.0 checklist](RELEASE_1_0_CHECKLIST.md). Profiles now opens and its real editor/save path works; the machine-cloud History request still fails and is an explicit pre-1.0.0 issue. Full profile/mode CRUD is exercised over disposable localhost HTTP, not destructive writes on the household account. The sections below are historical evidence, followed by the detailed 0.6.1 results.
 
 ## Historical installation — 0.3.0b2
 
@@ -176,3 +176,13 @@ HACS after both restarts reports downloaded version **0.6.1** and groups the rep
 ## 0.6.2 follow-up found during final browser review
 
 The retained console exposed a real ReferenceError when opening Profiles in 0.6.0: the active-profile marker used an undefined `b` after the integrated-controls refactor. This also affected 0.6.1. A failing test reproduced the exact ReferenceError by calling the real panel `content()` method. The corrected expression uses the loaded building's profile ID and the test verifies active/inactive profiles and escaping. Local verification now totals 146 Python and 26 frontend tests. The new optional categories field was trialled but the current hassfest image rejects it as an unsupported manifest key; it was removed to keep compatibility. HACS's missing-category warning is nonblocking. Deployment/browser confirmation follows after release.
+
+### Additional live history observation
+
+The machine-cloud History tab opens, but requesting samples returned the generic operation error both without dates and for an explicit local-date interval. This does not affect the HA Recorder AirQ charts, which continue loading. The public vendor bundle constructs the same chart unit/from/to query, but the live response contract could not be inspected through the existing HA UI. Opening the vendor site leads to its login page; no account session is already open there. Asked the owner to compare their own vendor History. Root cause remains unconfirmed; no permissive response parsing or invented samples were introduced. This remains an explicit pre-1.0.0 acceptance issue.
+
+PR #14 and immutable tag 0.6.2 / 291ccf4 passed minimum/latest HA, HACS and hassfest before release workflow 39382378856 published the normal release. The downloaded release ZIP passes its published SHA256. Isolated browser exercised Profiles open/active marker/edit/save, Modes open/editor/cancel, Schedule open and History filters, with no JavaScript warnings/errors.
+
+### Live 0.6.2 installation and Profiles acceptance
+
+Downloaded exact 0.6.2 with HACS, passed HA configuration validation and restarted after the prompt reported no active scripts/automations. The real panel footer reports 0.6.2. Profiles opens, correctly marks the original summer profile active, and opens its editor. Saved the inactive winter profile with its unchanged original name; the vendor acknowledged the write and the reloaded list retained both names and original activation. Modes and its editor open; cancelled without writing. No new WifiModule JavaScript warnings/errors were observed during these interactions. After heartbeat warmup the equipment remained Schedule/Off with bypass off. No additional ventilation command was needed for this UI-only fix.

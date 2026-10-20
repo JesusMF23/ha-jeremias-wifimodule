@@ -8,4 +8,6 @@
 - [x] Exercise live timed Manual → Schedule across a restart without extending its deadline; restore original Schedule ownership.
 - [x] Record actual results and remaining physical acceptance in VALIDATION and the 1.0.0 checklist.
 
-- [ ] Correct the real-browser Profiles ReferenceError found during final console review; validate the new regression and deploy 0.6.2.
+- [x] Correct the real-browser Profiles ReferenceError found during final console review; validate the new regression and deploy 0.6.2.
+
+- [ ] Before 1.0.0, diagnose the real machine-cloud History error and complete the owner’s physical checklist. This turn does not claim those unresolved checks passed.
