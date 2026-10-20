@@ -9,15 +9,19 @@ export function timerSummary(a, t, now = Date.now()) {
   );
   return `${t.returnIn} ${minutes} ${t.minutes} → ${timer.return_to === "automatic" ? t.enable : t.schedule}`;
 }
-export function timerControls(a, t, duration = 30) {
-  const target = a?.manual_timer?.return_to || "none";
-  const remaining = a?.manual_timer?.expires_at
-    ? Math.max(
-        1,
-        Math.ceil((Date.parse(a.manual_timer.expires_at) - Date.now()) / 60000),
-      )
-    : Number(duration) || 30;
-  return `<label id="return-row">${e(t.afterManual)}<select id="return-to"><option value="none" ${target === "none" ? "selected" : ""}>${e(t.noLimit)}</option><option value="automatic" ${target === "automatic" ? "selected" : ""}>${e(t.enable)}</option><option value="schedule" ${target === "schedule" ? "selected" : ""}>${e(t.schedule)}</option></select></label><label id="duration-row" hidden>${e(t.durationLabel)}<input id="duration" type="number" min="1" max="10080" step="1" value="${remaining}"><select id="duration-unit" aria-label="${e(t.durationUnit)}"><option value="1">${e(t.minutes)}</option><option value="60">${e(t.hours)}</option></select></label>`;
+export function timerControls(a, t, duration = 30, draft = null) {
+  const target = draft?.return_to ?? a?.manual_timer?.return_to ?? "none";
+  const remaining =
+    draft?.duration ??
+    (a?.manual_timer?.expires_at
+      ? Math.max(
+          1,
+          Math.ceil(
+            (Date.parse(a.manual_timer.expires_at) - Date.now()) / 60000,
+          ),
+        )
+      : Number(duration) || 30);
+  return `<label id="return-row">${e(t.afterManual)}<select id="return-to"><option value="none" ${target === "none" ? "selected" : ""}>${e(t.noLimit)}</option><option value="automatic" ${target === "automatic" ? "selected" : ""}>${e(t.enable)}</option><option value="schedule" ${target === "schedule" ? "selected" : ""}>${e(t.schedule)}</option></select></label><label id="duration-row" hidden>${e(t.durationLabel)}<input id="duration" type="number" min="1" max="10080" step="1" value="${remaining}"><select id="duration-unit" aria-label="${e(t.durationUnit)}"><option value="1" ${draft?.unit !== "60" ? "selected" : ""}>${e(t.minutes)}</option><option value="60" ${draft?.unit === "60" ? "selected" : ""}>${e(t.hours)}</option></select></label>`;
 }
 export function timerInputs(root) {
   const q = (s) => root.querySelector(s).value;

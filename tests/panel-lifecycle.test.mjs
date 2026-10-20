@@ -44,7 +44,7 @@ test("manual label agrees with its slider when the cloud has no manual speed", (
     [8, "Boost", "8"],
   ]) {
     panel.view.building.manual_speed = speed;
-    const html = panel.content();
+    const html = panel.manualControls();
     const shown = html.match(
       /<output id="speed-value"[^>]*>([^<]*)<\/output>/,
     )?.[1];
@@ -133,11 +133,11 @@ test("an expired off override does not preload Off over a fresh running state", 
     ready: true,
     duration: 30,
   };
-  let html = panel.content();
+  let html = panel.manualControls();
   assert.equal(html.match(/<input id="speed"[^>]*value="([^"]*)"/)?.[1], "4");
   panel.automatic.actual_speed = 0;
   panel.view.units[0].values.pwr = 0;
-  html = panel.content();
+  html = panel.manualControls();
   assert.equal(
     html.match(/<output id="speed-value"[^>]*>([^<]*)<\/output>/)?.[1],
     "Apagado",
@@ -160,7 +160,7 @@ test("an active off command stays distinct from the device's reported running sp
     ready: true,
     duration: 30,
   };
-  const html = panel.content();
+  const html = panel.manualControls() + panel.content();
   assert.equal(html.match(/<input id="speed"[^>]*value="([^"]*)"/)?.[1], "0");
   assert.equal(html.match(/<dt>Velocidad<\/dt><dd>([^<]*)<\/dd>/)?.[1], "4");
 });
@@ -180,4 +180,66 @@ test("an off unit card does not display the retained running speed", () => {
     html.match(/<dt>Velocidad<\/dt><dd>([^<]*)<\/dd>/)?.[1],
     "Apagado",
   );
+});
+
+function controlPanel(mode = 'manual') {
+  const p = new Panel();
+  p.t = locales.es;
+  p._hass = {language:'es'};
+  p.view = {building:{manual_speed:4,manual_mode:'manual',manual_bypass:true}, units:[{id:2,name:'Demo',values:{fil:3227,pwr:1,spe:4}}], ready:true,duration:30};
+  const names=['min_speed','max_speed','co2_target','co2_full','tvoc_target','tvoc_full','humidity_target','humidity_full','aqi_target','aqi_full'];
+  p.automatic={mode,enabled:mode==='automatic',status:mode,actual_speed:4,manual_speed:4,parameters:Object.fromEntries(names.map(k=>[k,[1,0,5000,1]])),settings:{},sensors:{co2:[],tvoc:[],humidity:[],aqi:[]},candidates:{},connection:{available:true,device_ready:true}};
+  p.shadowRoot.querySelectorAll=()=>[];
+  return p;
+}
+
+test('Manual controls belong to the initial control panel before sensor charts',()=>{
+  const p=controlPanel();
+  p.render();
+  const html=p.shadowRoot.innerHTML;
+  const center=html.match(/<section class="regulation"[\s\S]*?<\/section>/)?.[0]||'';
+  assert.match(center,/id="speed"/);
+  assert.match(center,/id="return-to"/);
+  assert.match(center,/data-action="apply"/);
+  assert.ok(html.indexOf('id="speed"')<html.indexOf('id="zone-cards"'));
+  assert.equal((html.match(/id="regulation-bypass"/g)||[]).length,1);
+  assert.doesNotMatch(html,/id="bypass"/);
+});
+
+test('Manual editor is visible only in Manual, with no duplicated controls',()=>{
+  for(const mode of ['manual','automatic','schedule']){
+    const p=controlPanel(mode);p.render();
+    const tag=p.shadowRoot.innerHTML.match(/<div id="manual-controls"[^>]*>/)?.[0]||'';
+    assert.ok(tag);
+    assert.equal(/\bhidden\b/.test(tag),mode!=='manual');
+    assert.equal((p.shadowRoot.innerHTML.match(/id="speed"/g)||[]).length,1);
+  }
+});
+
+test('machine maintenance reports remaining days and keeps invalid counters unknown',()=>{
+  const p=controlPanel();
+  assert.match(p.content(),/134/);
+  assert.match(p.content(),/días restantes/);
+  p.view.units[0].values.fil=-1;
+  assert.doesNotMatch(p.content(),/-1|134/);
+  assert.match(p.content(),/Desconocido/);
+});
+
+test('changing independent bypass preserves an unapplied speed and timed return draft',async()=>{
+  const p=controlPanel();
+  p.entryId='demo';
+  p.manualDraft={speed:3,mode:'manual',return_to:'automatic',duration:'2',unit:'60'};
+  p._hass.callWS=async msg=>{
+    if(msg.operation==='bypass')return {};
+    if(msg.operation==='automatic')return p.automatic;
+    if(msg.operation==='view')return p.view;
+    throw Error('Unexpected operation');
+  };
+  p._hass.callApi=async()=>[];
+  await p.mutate('bypass',{enabled:true});
+  assert.deepEqual(p.manualDraft,{speed:3,mode:'manual',return_to:'automatic',duration:'2',unit:'60'});
+  const html=p.manualControls();
+  assert.match(html,/<input id="speed"[^>]*value="3"/);
+  assert.match(html,/<option value="automatic" selected/);
+  assert.match(html,/<option value="60" selected/);
 });

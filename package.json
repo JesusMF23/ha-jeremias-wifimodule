@@ -1,0 +1,13 @@
+{
+  "name": "ha-jeremias-wifimodule-development",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "check": "prettier --check 'custom_components/wifimodule/frontend/*.js'",
+    "format": "prettier --write 'custom_components/wifimodule/frontend/*.js'"
+  },
+  "devDependencies": {
+    "prettier": "3.6.2"
+  }
+}

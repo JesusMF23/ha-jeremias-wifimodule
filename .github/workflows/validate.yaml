@@ -1,37 +1,54 @@
 name: Validate
 on:
   push:
+    branches: ['**']
   pull_request:
   workflow_dispatch:
+  workflow_call:
+  schedule:
+    - cron: '23 6 * * 1'
 permissions:
   contents: read
 jobs:
   tests:
+    name: Tests (${{ matrix.core }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        core: [minimum, latest]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: '3.14'
+          cache: pip
       - run: pip install -r requirements-dev.txt
+      - name: Test minimum supported Home Assistant
+        if: matrix.core == 'minimum'
+        run: pip install 'homeassistant==2026.9.3'
+      - name: Test latest stable Home Assistant
+        if: matrix.core == 'latest'
+        run: pip install --upgrade homeassistant
       - run: pytest -q
       - run: ruff check .
       - run: ruff format --check .
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '22'
-      - run: node --test tests/*.test.mjs
-      - run: node --check custom_components/wifimodule/frontend/panel.js
-      - run: npx --yes prettier@3.6.2 --check 'custom_components/wifimodule/frontend/*.js'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm test
+      - run: npm run check
   hassfest:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: home-assistant/actions/hassfest@master
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: home-assistant/actions/hassfest@cd6f3635a740c84d8a14f6121a90068b8ece6bf6 # master
   hacs:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: hacs/action@main
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: hacs/action@1ebf01c408f29afcb6406bd431bc98fd8cbb15aa # main
         with:
           category: integration

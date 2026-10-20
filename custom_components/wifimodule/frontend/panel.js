@@ -1,4 +1,6 @@
-import { timerControls, timerInputs, bindTimer } from "./control-options.js";
+import { manualControls } from "./manual-controls.js";
+import { machineCards } from "./machine-status.js";
+import { timerInputs, bindTimer } from "./control-options.js";
 import {
   automaticCard,
   automaticStatus,
@@ -74,6 +76,16 @@ class JeremiasPanel extends HTMLElement {
           JSON.stringify(a.settings) !==
           JSON.stringify(this.automatic?.settings);
         this.automatic = a;
+        if (a.units && this.view) {
+          this.view.units = a.units;
+          this.view.ready = a.connection?.device_ready;
+          const cards = this.shadowRoot.querySelector("#machine-cards");
+          if (cards) cards.innerHTML = machineCards(a.units, this.t);
+        }
+        const editor = this.shadowRoot.querySelector("#manual-controls");
+        if (editor) editor.hidden = a.mode !== "manual";
+        const form = this.shadowRoot.querySelector(".manual-form");
+        if (form) form.disabled = !a.connection?.device_ready;
         if (selectionChanged) this.loadQualityHistory();
         else if (settingsChanged) this.paintQualityHistory();
         const box = this.shadowRoot.querySelector("#automatic-status");
@@ -144,6 +156,7 @@ class JeremiasPanel extends HTMLElement {
   }
   async run(task) {
     if (this.busy) return;
+    this.rememberManualDraft();
     this.autoRevision += 1;
     this.busy = true;
     this.notice = "";
@@ -170,6 +183,7 @@ class JeremiasPanel extends HTMLElement {
       profile === undefined ? {} : { profile_id: Number(profile) },
     );
     this.history = null;
+    this.manualDraft = null;
     this.loadQualityHistory();
     this.dirty = false;
     this.resetDraft();
@@ -236,6 +250,7 @@ class JeremiasPanel extends HTMLElement {
     }));
   }
   async mutate(operation, data) {
+    const manualDraft = operation === "bypass" ? this.manualDraft : null;
     await this.api(operation, data);
     await this.loadView(
       operation === "profile" &&
@@ -244,6 +259,7 @@ class JeremiasPanel extends HTMLElement {
         ? undefined
         : this.view.profile_id,
     );
+    if (manualDraft) this.manualDraft = manualDraft;
     this.notice = this.t.saved;
     this.failed = false;
   }
@@ -277,13 +293,13 @@ class JeremiasPanel extends HTMLElement {
           )}</select></label>`
         : `<p class="installation-name">${this.entries.length ? esc(this.entries[0].name) : this.busy ? t.loading : t.empty}</p>`
     }
-    ${automaticCard(this.automatic ? { ...this.automatic, ...this.automaticDraft } : null, t.regulation, this.busy)}
+    ${automaticCard(this.automatic ? { ...this.automatic, ...this.automaticDraft } : null, t.regulation, this.busy, this.manualControls())}
     ${this.notice ? `<div class="notice ${this.failed ? "error" : ""}" role="alert">${esc(this.notice)}</div>` : ""}
     ${
       v
         ? `<nav role="tablist">${["controls", "schedule", "modes", "profiles", "history"].map((p) => `<button role="tab" data-page="${p}" aria-selected="${this.page === p}" ${this.busy ? "disabled" : ""}>${t[p]}</button>`).join("")}</nav>
     ${this.busy ? `<p role="status">${t.loading}</p>` : ""}<div>${this.content()}</div>
-    <footer class="muted">${t.cloud} · ${esc(v.timezone)}<p>${t.advanced}</p>${this.button("export", t.export)}</footer>`
+    <footer class="muted">${t.cloud}${v.version ? " · " + esc(v.version) : ""} · ${esc(v.timezone)}<p>${t.advanced}</p>${this.button("export", t.export)}</footer>`
         : ""
     }</main>`;
     this.shadowRoot.querySelectorAll("[data-page]").forEach(
@@ -458,30 +474,35 @@ class JeremiasPanel extends HTMLElement {
       }[mode] ?? this.t.unknown
     );
   }
+  rememberManualDraft() {
+    const q = (s) => this.shadowRoot.querySelector(s);
+    if (!q("#speed")) return;
+    this.manualDraft = {
+      speed: Number(q("#speed").value),
+      mode: q("#control-mode").value,
+      return_to: q("#return-to").value,
+      duration: q("#duration").value,
+      unit: q("#duration-unit").value,
+    };
+  }
+  manualControls() {
+    if (!this.view) return "";
+    return (
+      manualControls(
+        this.automatic,
+        this.view,
+        this.t,
+        this.busy,
+        this.manualDraft,
+      ) +
+      `<p class="muted">${esc(this.t.regulation.equipmentControl)}: <span id="equipment-control-state">${esc(this.equipmentControlText())}</span></p>`
+    );
+  }
   content() {
     const t = this.t,
-      v = this.view,
-      b = v.building,
-      manualSpeed =
-        this.automatic?.mode === "manual"
-          ? (this.automatic.manual_speed ?? 0)
-          : b.manual_active === false && this.automatic?.actual_speed != null
-            ? this.automatic.actual_speed
-            : (b.manual_speed ?? 1);
+      v = this.view;
     if (this.page === "controls")
-      return `${dashboard(this.automatic, this.qualityHistory, this.historyHours, t.regulation, this._hass.language)}<section><div class="section-heading"><h2>${t.regulation.manualControl}</h2><span class="pill">${v.ready ? t.ready : t.waiting}</span></div><p class="muted">${t.scope} (${v.units.length})</p><p id="manual-command-help" class="muted">${t.regulation.manualCommandHelp}</p><div class="manual-speed"><label for="speed">${t.regulation.commandSpeed}</label><output id="speed-value" for="speed">${manualSpeed === 0 ? t.off : manualSpeed === 8 ? t.boost : esc(manualSpeed)}</output><input id="speed" aria-describedby="manual-command-help" type="range" min="0" max="8" step="1" value="${manualSpeed}" ${this.busy ? "disabled" : ""}><div class="range-labels"><span>0 · ${t.off}</span><span>1–7</span><span>8 · ${t.boost}</span></div></div><div class="grid spaced">
-      <label>${t.mode}<select id="control-mode">${this.options(
-        [
-          ["manual", t.manual],
-          ["auto", t.auto],
-        ],
-        b.manual_mode ?? "manual",
-      )}</select></label>
-      ${timerControls(this.automatic, t.regulation, v.duration)}
-      <label class="check"><input id="bypass" type="checkbox" ${b.manual_bypass ? "checked" : ""}>${t.bypass}</label></div>
-      <small>${t.regulation.manualHoldHelp}</small><p class="muted">${t.regulation.timerHelp}</p><div class="actions spaced">${this.button("apply", t.apply, "primary", !v.ready)}${this.button("resume", t.resume, "", !v.ready)}</div>
-      <p class="muted">${t.regulation.equipmentControl}: <span id="equipment-control-state">${esc(this.equipmentControlText())}</span></p></section>
-      <div class="units">${v.units.map((u) => `<div class="card"><h2>${esc(u.name)}</h2><dl><dt>${t.power}</dt><dd>${u.values?.pwr === 1 ? t.on : u.values?.pwr === 0 ? t.off : t.unknown}</dd><dt>${t.speed}</dt><dd>${u.values?.pwr === 0 ? t.off : esc(u.values?.spe ?? t.unknown)}</dd><dt>${t.filter}</dt><dd>${esc(u.values?.fil ?? t.unknown)}</dd><dt>${t.errors}</dt><dd>${esc(u.values?.err ?? t.unknown)}</dd></dl><small>${t.lastComm}: ${esc(u.last_comm)}</small></div>`).join("")}</div>`;
+      return `${dashboard(this.automatic, this.qualityHistory, this.historyHours, t.regulation, this._hass.language)}<section aria-label="${esc(t.maintenance)}"><h2>${esc(t.maintenance)}</h2><div id="machine-cards" class="units">${machineCards(v.units, t)}</div></section>`;
     if (this.page === "schedule")
       return `<section><div class="toolbar"><label>${t.profile}<select id="profile">${this.options(
         v.profiles.map((p) => [p.id, p.name]),
@@ -564,6 +585,7 @@ class JeremiasPanel extends HTMLElement {
             : automaticInputs(this.shadowRoot);
       this.run(async () => {
         this.automatic = await this.api("automatic", data);
+        if (action !== "automatic-save") this.manualDraft = null;
         if (action === "automatic-save") this.automaticDraft = null;
         this.loadQualityHistory();
         this.notice = this.t.regulation.saved;
@@ -593,7 +615,7 @@ class JeremiasPanel extends HTMLElement {
       const data = {
         speed: Number(q("#speed").value),
         mode: q("#control-mode").value,
-        bypass: q("#bypass").checked,
+        bypass: q("#regulation-bypass").checked,
         ...timer,
       };
       this.run(() => this.mutate("control", data));

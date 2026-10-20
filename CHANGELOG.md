@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.6.0
+
+- Integrate Manual speed, timed return and independent bypass with the initial mode controls, before readings and graphs. Retain drafts during unrelated actions.
+- Show filter days remaining using the manufacturer’s floor(hours / 24) calculation, add a native days entity and preserve the existing hours entity. Refresh maintenance telemetry with the live panel status.
+- Publish normal GitHub releases from canonical X.Y.Z tags after minimum/latest HA, frontend, hassfest and HACS validation. Reject version mismatches and prerelease tags; include a clean install ZIP and SHA256.
+- Hide main from HACS downloads to keep installations on versioned releases. This addresses the all-prereleases/commit fallback path; local HACS metadata still needs live verification after migration.
+- Add weekly Dependabot updates, pinned actions, scheduled minimum/latest HA tests and an English/Spanish vibe coding disclaimer. Default HACS listing remains deferred until 1.0.0.
+
 ## 0.5.0b1
 
 - Select compatible sensors from any HA integration with search, area filtering and unit explanations. Normalize VOC ppm to ppb in regulation and charts.

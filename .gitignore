@@ -6,3 +6,5 @@ __pycache__/
 .env
 *.zip
 .DS_Store
+node_modules/
+dist/

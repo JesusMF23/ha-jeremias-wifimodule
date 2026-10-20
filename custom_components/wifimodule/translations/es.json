@@ -209,6 +209,9 @@
       },
       "airq_humidity": {
         "name": "Humedad"
+      },
+      "filter_days_remaining": {
+        "name": "Días restantes del filtro"
       }
     },
     "binary_sensor": {
