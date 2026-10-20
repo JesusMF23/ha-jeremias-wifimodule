@@ -7,3 +7,5 @@
 - [x] Install through existing HACS, validate configuration and restart.
 - [x] Exercise live timed Manual → Schedule across a restart without extending its deadline; restore original Schedule ownership.
 - [x] Record actual results and remaining physical acceptance in VALIDATION and the 1.0.0 checklist.
+
+- [ ] Correct the real-browser Profiles ReferenceError found during final console review; validate the new regression and deploy 0.6.2.

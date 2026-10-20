@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.6.2
+
+- Fix Profiles failing to open because the active-profile marker referenced an undefined variable. Add a regression exercising the actual panel method with active/inactive profiles and escaped names.
+- Declare the ventilation integration category for HACS discovery, resolving its optional-metadata warning.
+
 ## 0.6.1
 
 - Show reported bypass in Schedule; do not present a saved sensor-Automatic preference as a pending command. Capture current bypass on Manual takeover.

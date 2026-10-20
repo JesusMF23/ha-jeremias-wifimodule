@@ -1,6 +1,6 @@
 # Aceptación para 1.0.0
 
-20 de octubre de 2026. Versión de preparación: **0.6.1**. Esta lista distingue pruebas automatizadas, observaciones de nube y comprobaciones físicas. Pasar CI no certifica el movimiento del bypass ni el caudal. No se publica 1.0.0 ni se solicita el catálogo predeterminado de HACS hasta cerrar los puntos físicos y revisar los resultados.
+20 de octubre de 2026. Versión de preparación: **0.6.2**. Esta lista distingue pruebas automatizadas, observaciones de nube y comprobaciones físicas. Pasar CI no certifica el movimiento del bypass ni el caudal. No se publica 1.0.0 ni se solicita el catálogo predeterminado de HACS hasta cerrar los puntos físicos y revisar los resultados.
 
 ## Comprobado por software
 
@@ -38,6 +38,6 @@ Si un paso falla, conservar 0.6.x y corregir/repetirlo. No reiniciar el contador
 - [ ] Instalar 1.0.0 con HACS, validar/reiniciar HA y verificar versión instalada/ofrecida y conservación de ajustes.
 - [ ] Revalidar requisitos oficiales de HACS y abrir la solicitud de inclusión. Este trabajo no la envía.
 
-La acción HACS de 0.6.1 pasa sus diez comprobaciones; avisa de que no se ha declarado la nueva clasificación `categories` del manifest. Ese campo es [opcional actualmente](https://contributors.home-assistant.io/core/integrations/categories/) y se revisará con los metadatos finales de 1.0.0. Las actualizaciones de herramientas/Actions de Dependabot permanecen en PR para revisión; no se fusionan automáticamente por pasar CI.
+La acción HACS de 0.6.1 pasa sus diez comprobaciones; avisa de que no se ha declarado la nueva clasificación `categories` del manifest. La 0.6.2 declara `climate.fans_ventilation` según las [categorías oficiales](https://contributors.home-assistant.io/core/integrations/categories/), resolviendo ese aviso. Las actualizaciones de herramientas/Actions de Dependabot permanecen en PR para revisión; no se fusionan automáticamente por pasar CI.
 
 Referencias oficiales revisadas el 20/10/2026: [requisitos generales](https://www.hacs.xyz/docs/publish/start/) y [requisitos de integración](https://www.hacs.xyz/docs/publish/integration/). Licencia, descripción/topics, README, manifest, hacs.json, marca y validadores ya están preparados; la aceptación del catálogo depende de sus mantenedores.

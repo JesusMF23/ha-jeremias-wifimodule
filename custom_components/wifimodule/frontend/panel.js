@@ -522,7 +522,7 @@ class JeremiasPanel extends HTMLElement {
       )}</select></label>${this.button("copy-day", t.copyButton, "", !this.draft.length)}</div></section>`;
     if (this.page === "modes" || this.page === "profiles") {
       const kind = this.page === "modes" ? "mode" : "profile";
-      return `<section><header><h2>${t[this.page]}</h2>${this.button("new-" + kind, kind === "mode" ? t.newMode : t.newProfile, "primary")}</header>${v[this.page].map((item) => `<div class="list-row"><div>${kind === "mode" ? `<span class="swatch" style="background:${color(item.color)}"></span>` : ""}<strong>${esc(item.name)}</strong>${kind === "profile" && item.id === b.profile_id ? ` <small>${t.active}</small>` : ""}</div><div class="actions"><button data-kind="${kind}" data-edit="${item.id}">${t.edit}</button><button class="danger" data-kind="${kind}" data-delete="${item.id}">${t.delete}</button></div></div>`).join("")}</section>`;
+      return `<section><header><h2>${t[this.page]}</h2>${this.button("new-" + kind, kind === "mode" ? t.newMode : t.newProfile, "primary")}</header>${v[this.page].map((item) => `<div class="list-row"><div>${kind === "mode" ? `<span class="swatch" style="background:${color(item.color)}"></span>` : ""}<strong>${esc(item.name)}</strong>${kind === "profile" && item.id === v.building.profile_id ? ` <small>${t.active}</small>` : ""}</div><div class="actions"><button data-kind="${kind}" data-edit="${item.id}">${t.edit}</button><button class="danger" data-kind="${kind}" data-delete="${item.id}">${t.delete}</button></div></div>`).join("")}</section>`;
     }
     return `<section><div class="toolbar"><label>${t.unit}<select id="history-unit">${this.options(
       v.units.map((u) => [u.id, u.name]),

@@ -243,3 +243,18 @@ test('changing independent bypass preserves an unapplied speed and timed return 
   assert.match(html,/<option value="automatic" selected/);
   assert.match(html,/<option value="60" selected/);
 });
+
+test("Profiles opens with the active building profile and escaped names", () => {
+  const panel = new Panel();
+  panel.t = locales.es;
+  panel.page = "profiles";
+  panel.view = {
+    building: { profile_id: 10 },
+    profiles: [{ id: 10, name: "Main" }, { id: 11, name: "Spare <room>" }],
+  };
+  const html = panel.content();
+  assert.match(html, /Main<\/strong> <small>Activo<\/small>/);
+  assert.match(html, /Spare &lt;room&gt;/);
+  assert.match(html, /data-edit="11"/);
+  assert.match(html, /data-delete="11"/);
+});
