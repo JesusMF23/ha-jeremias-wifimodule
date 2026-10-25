@@ -1,5 +1,6 @@
 """Exercise actual Home Assistant objects, entities and options forms."""
 
+from datetime import UTC
 from types import MappingProxyType
 from unittest.mock import Mock, patch
 
@@ -30,7 +31,7 @@ def setup(tmp_path):
         discovery_keys=MappingProxyType({}),
         subentries_data=[],
     )
-    controller = Controller(Mock(), 1, [2], "UTC")
+    controller = Controller(Mock(), 1, [2], UTC)
     controller.data = {
         "name": "Test",
         "units": [{"id": 2, "values": {"spe": 2, "pwr": 1, "err": 0, "bst": 0}}],

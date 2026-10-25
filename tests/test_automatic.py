@@ -1,6 +1,7 @@
 """Home Assistant automatic-control lifecycle and race regressions."""
 
 import asyncio
+from datetime import UTC
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, Mock
 
@@ -136,7 +137,7 @@ async def test_sensor_configuration_rejects_wrong_units_and_unknown_entities():
 
 async def test_controller_checks_guard_after_poll_before_write():
     api = Mock(write=AsyncMock())
-    c = Controller(api, 1, [2], "UTC")
+    c = Controller(api, 1, [2], UTC)
     c.data = {
         "manual_active": True,
         "manual_bypass": 0,

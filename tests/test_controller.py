@@ -2,6 +2,7 @@ from copy import deepcopy
 from unittest.mock import AsyncMock
 
 import pytest
+from homeassistant.util import dt as dt_util
 
 from custom_components.wifimodule.api import DeviceError
 from custom_components.wifimodule.controller import Controller
@@ -9,7 +10,7 @@ from custom_components.wifimodule.models import revision
 
 
 @pytest.fixture
-def controller():
+async def controller():
     api = AsyncMock()
     data = {
         "id": 1,
@@ -42,7 +43,7 @@ def controller():
         raise AssertionError(endpoint)
 
     api.read.side_effect = read
-    c = Controller(api, 1, [2], "Europe/Madrid")
+    c = Controller(api, 1, [2], await dt_util.async_get_time_zone("Europe/Madrid"))
     return c, api, data, week
 
 

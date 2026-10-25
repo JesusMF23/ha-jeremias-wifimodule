@@ -1,9 +1,8 @@
 """Validated building-wide operations. No arbitrary API passthrough."""
 
 import asyncio
-from datetime import datetime
+from datetime import datetime, tzinfo
 from urllib.parse import urlencode
-from zoneinfo import ZoneInfo
 
 from .api import ControlCancelled, DeviceError
 from .models import (
@@ -21,10 +20,10 @@ from .models import (
 
 
 class Controller:
-    def __init__(self, api, building_id, unit_ids, timezone):
+    def __init__(self, api, building_id, unit_ids, timezone: tzinfo):
         self.api, self.building_id = api, building_id
         self.unit_ids = frozenset(unit_ids)
-        self.timezone = ZoneInfo(timezone)
+        self.timezone = timezone
         self.lock = asyncio.Lock()
         self.heartbeats = {}
         self.data = None

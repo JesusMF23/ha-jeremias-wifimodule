@@ -69,7 +69,7 @@ HACS custom repositories and inclusion in the default catalogue are different: d
 
 Copy the entire `custom_components/wifimodule` directory into `/config/custom_components/wifimodule`. Do not nest another `wifimodule` directory inside it. Restart Home Assistant. For a new installation, follow steps 5–6 above. When upgrading, back up the existing folder and preserve the integration entry and credentials. No YAML, copied browser cookie or API key is needed.
 
-The `jeremias-wifimodule-1.0.0-install.zip` distribution contains the `custom_components` directory and license. Extract it into the Home Assistant configuration directory, preserving that structure.
+The `jeremias-wifimodule-1.0.1-install.zip` distribution contains the `custom_components` directory and license. Extract it into the Home Assistant configuration directory, preserving that structure.
 
 ## Use
 
@@ -125,6 +125,6 @@ The initial panel groups mode, Manual speed, duration/return and the independent
 
 Releases now use plain `X.Y.Z` tags and normal GitHub releases; the manifest, frontend asset version and tag must match. HACS installs releases; the development branch is hidden from its download selector. If an installation used a beta or tracked `main`, download the current normal release through HACS, restart HA and refresh HACS information. Check the installed and available versions on the update entity; do not disable that entity to conceal a mismatch.
 
-See [release and maintenance instructions](docs/RELEASING.md). Submission to the default HACS catalogue is deferred until 1.0.0.
+See [release and maintenance instructions](docs/RELEASING.md). The [default HACS catalogue submission](https://github.com/hacs/default/pull/12282) is awaiting maintainer review.
 
 [HACS default catalogue submission (pending review)](https://github.com/hacs/default/pull/12282).

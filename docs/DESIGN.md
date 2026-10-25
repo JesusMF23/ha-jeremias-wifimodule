@@ -5,6 +5,7 @@ Build a reusable community Home Assistant integration, distributable through a H
 ## Architecture and ownership
 
 - One config entry per building, discovered after sign-in; no embedded user IDs, house names, addresses or credentials.
+- Timezone names remain strings in config entries. Setup and configuration flows resolve them with `dt_util.async_get_time_zone`; the controller receives the resolved `tzinfo` and performs no timezone file lookup. Unknown names prevent setup/configuration rather than falling back to the host's timezone.
 - Group controls reflect the API's actual building-wide scope. Individual units have telemetry devices; adding/removing units requires reconfiguration before group writes resume.
 - Async HTTPS API client with isolated in-memory cookies, one authentication refresh after explicit rejection, bounded responses/timeouts and no automatic retries of ambiguous writes.
 - A polling coordinator supplies native fan, select, switch, number, button, sensor and binary_sensor entities. Physical telemetry and requested state remain distinct.

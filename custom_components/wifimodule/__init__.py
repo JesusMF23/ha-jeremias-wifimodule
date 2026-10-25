@@ -1,12 +1,11 @@
 """Jeremias / WifiModule integration lifecycle."""
 
-from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
-
 from aiohttp import CookieJar
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
+from homeassistant.util import dt as dt_util
 
 from .airzone_bridge import async_acquire_bridge, async_release_bridge
 from .api import ApiError, AuthError, WifiModuleApi
@@ -29,19 +28,26 @@ async def async_setup(hass, config):
 async def async_setup_entry(hass, entry):
     session = async_create_clientsession(hass, cookie_jar=CookieJar())
     api = WifiModuleApi(session, entry.data["username"], entry.data["password"])
-    timezone = entry.data.get("timezone")
-    if timezone is None:
-        try:
-            timezone = record(
+    timezone_name = entry.data.get("timezone")
+    try:
+        if timezone_name is None:
+            timezone_name = record(
                 await api.read("buildings", "buildings"), entry.data["building_id"]
             ).get("tz")
-            ZoneInfo(timezone)
-        except AuthError:
-            raise ConfigEntryAuthFailed("WifiModule authentication required") from None
-        except ApiError, TypeError, ValueError, ZoneInfoNotFoundError:
-            raise ConfigEntryNotReady("Building timezone unavailable") from None
+        timezone = (
+            await dt_util.async_get_time_zone(timezone_name)
+            if isinstance(timezone_name, str) and timezone_name
+            else None
+        )
+    except AuthError:
+        raise ConfigEntryAuthFailed("WifiModule authentication required") from None
+    except ApiError, TypeError, ValueError:
+        raise ConfigEntryNotReady("Building timezone unavailable") from None
+    if timezone is None:
+        raise ConfigEntryNotReady("Building timezone unavailable")
+    if entry.data.get("timezone") is None:
         hass.config_entries.async_update_entry(
-            entry, data={**entry.data, "timezone": timezone}
+            entry, data={**entry.data, "timezone": timezone_name}
         )
     controller = Controller(
         api, entry.data["building_id"], entry.data["unit_ids"], timezone
