@@ -1,5 +1,11 @@
 # Validation
 
+## 1.0.1 async timezone regression
+
+HACS review [#12282](https://github.com/hacs/default/pull/12282) identified blocking `ZoneInfo` construction during entry setup and controller initialization. Setup now awaits Home Assistant's timezone resolver for both saved and API-discovered names and passes the resolved object into the controller. The configuration, reauthentication and reconfiguration flows use the same async helper. Persisted data remains a timezone name; no entry migration is required.
+
+Seven new regression cases cover saved/discovered timezone resolution, invalid names failing setup before controller registration, no writes on failed setup, async discovery and a real controller command whose UTC expiry becomes 03:30 in Europe/Madrid across the spring DST jump. Before the fix, six cases failed and one passed; after the fix all seven pass. Full local validation: 153 Python tests, 28 frontend tests, Ruff lint/format and frontend formatting. These tests use a disposable HA instance and simulated vendor responses; no commands were sent to the household equipment for this patch.
+
 ## 1.0.0 release authorization and optional history
 
 The owner reports the remaining checks are in order and explicitly authorizes publication of 1.0.0 and submission to the HACS default catalogue. They do not see a machine-history section in the vendor site. Individual physical measurements are not independently claimed by the automated agent.

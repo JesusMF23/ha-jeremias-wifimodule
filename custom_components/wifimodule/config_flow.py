@@ -1,7 +1,5 @@
 """Discover buildings after sign-in; no installation-specific defaults."""
 
-from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
-
 import voluptuous as vol
 from aiohttp import CookieJar
 from homeassistant.config_entries import ConfigFlow
@@ -13,6 +11,7 @@ from homeassistant.helpers.selector import (
     TextSelectorConfig,
     TextSelectorType,
 )
+from homeassistant.util import dt as dt_util
 
 from .api import ApiError, AuthError, DeviceError, WifiModuleApi
 from .const import DOMAIN
@@ -62,14 +61,20 @@ class WifiModuleConfigFlow(ConfigFlow, domain=DOMAIN):
         finally:
             session.detach()
 
-    def _data(self, building_id):
+    async def _async_data(self, building_id):
         status = normalize_building(record(self._status, building_id))
         metadata = record(self._buildings, building_id)
         timezone = metadata.get("tz")
         try:
-            ZoneInfo(timezone)
-        except TypeError, ValueError, ZoneInfoNotFoundError:
+            resolved_timezone = (
+                await dt_util.async_get_time_zone(timezone)
+                if isinstance(timezone, str) and timezone
+                else None
+            )
+        except ValueError:
             raise DeviceError("Invalid building timezone") from None
+        if resolved_timezone is None:
+            raise DeviceError("Invalid building timezone")
         if not status["units"]:
             raise DeviceError("Building has no units")
         return {
@@ -99,7 +104,7 @@ class WifiModuleConfigFlow(ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             identity = user_input["building_id"]
             try:
-                data = self._data(identity)
+                data = await self._async_data(identity)
             except ApiError:
                 errors["base"] = "invalid_device"
             else:
@@ -124,7 +129,7 @@ class WifiModuleConfigFlow(ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             try:
                 await self._discover(user_input)
-                data = self._data(entry.data["building_id"])
+                data = await self._async_data(entry.data["building_id"])
                 # Credential renewal never silently accepts a changed group.
                 data["unit_ids"] = entry.data["unit_ids"]
             except AuthError:
@@ -142,7 +147,7 @@ class WifiModuleConfigFlow(ConfigFlow, domain=DOMAIN):
         errors = {}
         try:
             await self._discover(entry.data)
-            data = self._data(entry.data["building_id"])
+            data = await self._async_data(entry.data["building_id"])
         except ApiError:
             return self.async_abort(reason="cannot_connect")
         units = ", ".join(

@@ -27,16 +27,16 @@ def test_sensor_recovers_initial_missing_type_and_rejects_type_change():
     assert sensor.native_value is None
 
 
-def test_discovery_uses_cloud_timezone_and_building_membership():
+async def test_discovery_uses_cloud_timezone_and_building_membership():
     flow = WifiModuleConfigFlow()
     flow._credentials = {"username": "test@example.invalid", "password": "test-only"}
     flow._status = [{"id": 1, "name": "Demo", "units": [{"id": 2, "status": "spe:2"}]}]
     flow._buildings = [{"id": 1, "tz": "Europe/Madrid"}]
-    data = flow._data(1)
+    data = await flow._async_data(1)
     assert data["unit_ids"] == [2] and data["timezone"] == "Europe/Madrid"
     flow._buildings[0]["tz"] = "Invalid/Zone"
     with pytest.raises(DeviceError):
-        flow._data(1)
+        await flow._async_data(1)
 
 
 def test_real_websocket_wrapper_denies_non_admin_before_dispatch():

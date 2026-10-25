@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.1
+
+- Resolve building timezones with Home Assistant's async timezone helper during setup and configuration flows, keeping timezone file reads off the event loop. Pass the resolved `tzinfo` to the controller without a second lookup.
+- Preserve saved timezone names and handle unknown or malformed names as retryable setup failures or invalid configuration. Add setup/discovery regressions and a timed-return check across the spring daylight-saving transition.
+
 ## 1.0.0
 
 - First owner-approved community release with native control, sensor-driven regulation, persistent Manual/timed returns, independent bypass and weekly programming in the existing integration.

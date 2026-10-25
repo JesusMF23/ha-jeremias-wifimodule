@@ -6,6 +6,7 @@ or equipment certification.
 """
 
 from copy import deepcopy
+from datetime import UTC
 
 import pytest
 from aiohttp import ClientSession, CookieJar, web
@@ -97,7 +98,7 @@ async def cloud(monkeypatch):
     try:
         async with ClientSession(cookie_jar=CookieJar(unsafe=True)) as session:
             client = WifiModuleApi(session, "test@example.invalid", "test-only")
-            yield Controller(client, 1, [2], "UTC"), writes
+            yield Controller(client, 1, [2], UTC), writes
     finally:
         await runner.cleanup()
 
