@@ -1,4 +1,4 @@
-"""Timezone resolution stays async while persisted entries keep their names."""
+"""Setup keeps timezone I/O async, integrations isolated and sensor options intact."""
 
 from types import MappingProxyType
 from unittest.mock import AsyncMock, patch
@@ -54,7 +54,7 @@ async def setup_entry(tmp_path):
                     "units": [
                         {
                             "id": 2,
-                            "status": "pwr:0,spe:4,byp:0,moa:0",
+                            "status": "pwr:0,spe:4,byp:0,moa:0,bst:0,err:0",
                             "last_comm": f"2026-03-29 03:00:{status_reads:02d}",
                         }
                     ],
@@ -67,7 +67,6 @@ async def setup_entry(tmp_path):
     with (
         patch("custom_components.wifimodule.async_create_clientsession"),
         patch("custom_components.wifimodule.WifiModuleApi", return_value=api),
-        patch("custom_components.wifimodule.async_acquire_bridge", return_value=None),
         patch.object(hass.config_entries, "async_forward_entry_setups"),
     ):
         try:
@@ -133,3 +132,107 @@ async def test_discovery_resolves_timezone_asynchronously_and_keeps_name():
     resolve.assert_awaited_once_with("Europe/Madrid")
     assert data["timezone"] == "Europe/Madrid"
     assert data["unit_ids"] == [2]
+
+
+async def test_entry_and_sensor_setup_do_not_inspect_foreign_integrations(setup_entry):
+    from custom_components.wifimodule.sensor import (
+        RegulationStatus,
+        Telemetry,
+    )
+    from custom_components.wifimodule.sensor import (
+        async_setup_entry as setup_sensors,
+    )
+
+    hass, entry, _ = setup_entry
+    entities = []
+    with patch.object(
+        hass.config_entries, "async_entries", wraps=hass.config_entries.async_entries
+    ) as entries:
+        assert await async_setup_entry(hass, entry)
+        await setup_sensors(hass, entry, entities.extend)
+        await entry.runtime_data.automatic.tick(0)
+    entries.assert_not_called()
+    assert any(isinstance(entity, RegulationStatus) for entity in entities)
+    assert {entity.key for entity in entities if isinstance(entity, Telemetry)} == {
+        "speed_level",
+        "error_code",
+        "filter_hours",
+        "filter_days_remaining",
+        "last_communication",
+        "aqs1",
+        "aqs2",
+    }
+
+
+async def test_standard_sensor_states_drive_worst_zone_and_restore_saved_settings(
+    setup_entry,
+):
+    from custom_components.wifimodule.automatic import AutomaticControl
+
+    hass, entry, api = setup_entry
+    assert await async_setup_entry(hass, entry)
+    for entity_id, value, unit, device_class in (
+        ("sensor.provider_a_co2", "650", "ppm", "carbon_dioxide"),
+        ("sensor.provider_b_co2", "1100", "ppm", "carbon_dioxide"),
+        ("sensor.provider_c_voc", "1.5", "ppm", "volatile_organic_compounds_parts"),
+    ):
+        hass.states.async_set(
+            entity_id,
+            value,
+            {"unit_of_measurement": unit, "device_class": device_class},
+        )
+    coordinator = entry.runtime_data
+    auto = coordinator.automatic
+    await auto.configure(
+        enabled=True,
+        sensors={
+            "co2": ["sensor.provider_a_co2", "sensor.provider_b_co2"],
+            "tvoc": ["sensor.provider_c_voc"],
+        },
+        settings={"max_speed": 6, "co2_target": 850, "filter_rise_seconds": 0},
+    )
+    await coordinator.controller.poll()
+    await auto.tick(0)
+    await auto.tick(30)
+    assert auto.decision.source.entity_id == "sensor.provider_c_voc"
+    assert auto.decision.source.numeric(900) == 1500
+    assert coordinator.controller.last_control["speed"] == 6
+    api.write.assert_awaited_once()
+    restored = AutomaticControl(hass, coordinator)
+    assert restored.enabled
+    assert restored.sensors == auto.sensors
+    assert restored.settings.co2_target == 850
+    assert restored.settings.max_speed == 6
+
+
+@pytest.mark.parametrize("state", [None, "unavailable", "restored"])
+async def test_removed_bridge_readings_remain_selected_but_never_send_commands(
+    setup_entry, state
+):
+    hass, entry, api = setup_entry
+    options = {
+        "duration": 45,
+        "automatic": {
+            "enabled": True,
+            "sensors": {"co2": ["sensor.former_bridge_co2"]},
+            "settings": {"co2_target": 850, "min_speed": 0, "max_speed": 6},
+        },
+    }
+    hass.config_entries.async_update_entry(entry, options=options)
+    if state is not None:
+        hass.states.async_set(
+            "sensor.former_bridge_co2",
+            "1600" if state == "restored" else state,
+            {"unit_of_measurement": "ppm", "restored": state == "restored"},
+        )
+    assert await async_setup_entry(hass, entry)
+    coordinator = entry.runtime_data
+    await coordinator.controller.poll()
+    await coordinator.automatic.tick(0)
+    await coordinator.automatic.tick(1000)
+    assert coordinator.automatic.status == "no_data"
+    assert coordinator.automatic.snapshot["invalid_sensors"] == [
+        "sensor.former_bridge_co2"
+    ]
+    assert entry.options == options
+    api.write.assert_not_awaited()

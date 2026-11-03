@@ -7,7 +7,6 @@ from homeassistant.components.sensor import (
 )
 from homeassistant.const import PERCENTAGE, EntityCategory, UnitOfRatio, UnitOfTime
 
-from .airzone_sensor import async_setup_airq
 from .automatic_entity import AutomaticEntity
 from .entity import UnitEntity
 
@@ -26,7 +25,6 @@ async def async_setup_entry(hass, entry, async_add_entities):
         ):
             items.append(Telemetry(entry.runtime_data, unit, key))
     async_add_entities(items)
-    await async_setup_airq(entry, async_add_entities)
 
 
 class Telemetry(UnitEntity, SensorEntity):

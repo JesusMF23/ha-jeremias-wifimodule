@@ -5,6 +5,7 @@ Build a reusable community Home Assistant integration, distributable through a H
 ## Architecture and ownership
 
 - One config entry per building, discovered after sign-in; no embedded user IDs, house names, addresses or credentials.
+- Sensor regulation consumes HA states and public entity/device/area registries. Since 1.0.2 there is no AirQ bridge, dependency on Airzone Cloud, access to another integration's `runtime_data`, or Airzone client/session polling. Sensor ownership stays with its providing integration; saved selections are retained and missing readings follow the normal invalid-input rules. See [upgrade guidance](AIRQ_BRIDGE_REMOVAL.md).
 - Timezone names remain strings in config entries. Setup and configuration flows resolve them with `dt_util.async_get_time_zone`; the controller receives the resolved `tzinfo` and performs no timezone file lookup. Unknown names prevent setup/configuration rather than falling back to the host's timezone.
 - Group controls reflect the API's actual building-wide scope. Individual units have telemetry devices; adding/removing units requires reconfiguration before group writes resume.
 - Async HTTPS API client with isolated in-memory cookies, one authentication refresh after explicit rejection, bounded responses/timeouts and no automatic retries of ambiguous writes.

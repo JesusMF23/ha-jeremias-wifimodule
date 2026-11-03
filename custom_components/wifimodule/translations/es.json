@@ -201,15 +201,6 @@
           "return_waiting": "Retorno pendiente: revisa conexión y sensores"
         }
       },
-      "airq_co2": {
-        "name": "CO₂"
-      },
-      "airq_tvoc": {
-        "name": "TVOC"
-      },
-      "airq_humidity": {
-        "name": "Humedad"
-      },
       "filter_days_remaining": {
         "name": "Días restantes del filtro"
       }

@@ -7,7 +7,6 @@ from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
 from homeassistant.util import dt as dt_util
 
-from .airzone_bridge import async_acquire_bridge, async_release_bridge
 from .api import ApiError, AuthError, WifiModuleApi
 from .automatic import AutomaticControl
 from .const import DOMAIN, PLATFORMS
@@ -56,12 +55,6 @@ async def async_setup_entry(hass, entry):
     coordinator = Coordinator(hass, entry, controller)
     await coordinator.async_config_entry_first_refresh()
     coordinator.automatic = AutomaticControl(hass, coordinator)
-    coordinator.airq = await async_acquire_bridge(hass, entry)
-
-    async def release_airq():
-        await async_release_bridge(hass, entry)
-
-    entry.async_on_unload(release_airq)
     entry.runtime_data = coordinator
     hass.data[DOMAIN]["entries"][entry.entry_id] = coordinator
     try:
