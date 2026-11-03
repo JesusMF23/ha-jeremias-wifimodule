@@ -1,7 +1,5 @@
 # Automatic ventilation — implementation plan
 
-Historical plan. The AirQ adapter described below was removed in 1.0.2 after HACS review. Current regulation uses HA sensor entities only; see [upgrade guidance](AIRQ_BRIDGE_REMOVAL.md).
-
 Goal: extend the existing WifiModule integration with Home Assistant demand control, reusing its validated building controller and preserving every existing entity and panel operation.
 
 ## Design

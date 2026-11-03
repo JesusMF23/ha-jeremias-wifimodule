@@ -21,17 +21,15 @@ Este proyecto se ha desarrollado **mayoritariamente mediante vibe coding**, util
 
 Las órdenes afectan a **todos los equipos de la instalación seleccionada**, igual que en la web. El modo «Automático (sondas del equipo)» corresponde al recuperador. La nueva «Regulación por sensores» es independiente y usa las entidades seleccionadas de Home Assistant.
 
-## Regulación automática con sensores de Home Assistant
+## Regulación automática con Airzone
 
 Desde el panel **Jeremias → Regulación por sensores → Sensores y umbrales**, selecciona las entidades reales, guarda los ajustes y activa **Automático**. También puedes configurar los sensores desde las opciones de la integración y ajustar modo/umbrales mediante las nuevas entidades nativas. La primera instalación queda en **Manual**, sin sensores preseleccionados. No cambian los identificadores ni las llamadas del widget existente.
 
-Se combinan todas las zonas por su mayor demanda normalizada: CO₂ en ppm, TVOC en ppb o ppm, humedad opcional en % y CAI opcional. El CAI no sustituye mediciones CO₂/TVOC; úsalo únicamente si conoces la escala y un valor mayor significa peor calidad. Jeremias lee las entidades de sensores que publican Airzone Cloud u otras integraciones de Home Assistant. Cada integración gestiona sus propias consultas y autenticación; Jeremias no accede a su cliente ni a su sesión.
+Se combinan todas las zonas por su mayor demanda normalizada: CO₂ en ppm, TVOC en ppb, humedad opcional en % y CAI opcional. El CAI no sustituye mediciones CO₂/TVOC; úsalo únicamente si conoces la escala y un valor mayor significa peor calidad. La ampliación reutiliza la sesión existente de Airzone Cloud para consultar las lecturas AirQ y publicar CO₂, TVOC y humedad, aunque la integración oficial solo muestre parte de ellas. No solicita otra cuenta ni modifica Airzone.
 
 Incluye velocidades 0–7, límites mínimo/máximo, filtrado, histéresis, confirmación de subida y bajada, intervalo entre órdenes y diagnóstico de variable/zona. **Manual** toma la velocidad reportada y la mantiene sin caducidad, guardándola para restaurarla tras reiniciar. Los controles directos pausan la regulación antes de ejecutar su orden. **Horario Jeremias** devuelve explícitamente el control a la programación.
 
-[Funcionamiento, valores iniciales y fallos](docs/AUTOMATIC_CONTROL.md). La instalación mediante HACS y la persistencia tras un reinicio real están verificadas en una instalación. Las antiguas pruebas de lecturas del puente AirQ son históricas: ese puente se elimina en 1.0.2. La nube ha confirmado cambios de velocidad y retorno temporizado a Automático. Las comprobaciones físicas y de funcionamiento continuado están en la [lista de aceptación 1.0.0](docs/RELEASE_1_0_CHECKLIST.md).
-
-**Al actualizar a 1.0.2:** los sensores creados por el antiguo puente AirQ dejan de actualizarse. Se conservan sus selecciones y los umbrales. En **Sensores y umbrales**, desmarca las entidades indisponibles y elige mediciones reales publicadas por Airzone Cloud u otra integración antes de usar Automático. Si Airzone Cloud no expone el CO₂/TVOC necesario, esa ampliación debe hacerse en la integración de Home Assistant core. Si todas las lecturas seleccionadas son inválidas, no se envían órdenes; si solo falla una parte, se bloquean bajadas y renovaciones, pero las válidas pueden justificar una subida. Los datos no se deducen del CAI. Puedes seleccionar Manual u Horario Jeremias durante la reconfiguración. [Guía de actualización](docs/AIRQ_BRIDGE_REMOVAL.md).
+[Funcionamiento, valores iniciales y fallos](docs/AUTOMATIC_CONTROL.md). La instalación mediante HACS, las lecturas AirQ y la persistencia tras un reinicio real están verificadas en una instalación. La nube ha confirmado cambios de velocidad y retorno temporizado a Automático. Las comprobaciones físicas y de funcionamiento continuado están en la [lista de aceptación 1.0.0](docs/RELEASE_1_0_CHECKLIST.md).
 
 ## Instalación manual
 
