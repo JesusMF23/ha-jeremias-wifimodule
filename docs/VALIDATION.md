@@ -1,11 +1,5 @@
 # Validation
 
-## 1.0.2 integration isolation and bridge removal
-
-The second HACS review on [#12282](https://github.com/hacs/default/pull/12282) requires removal of the AirQ bridge that borrowed Airzone Cloud's runtime client/session. The two bridge modules, setup hooks, Airzone loading dependency and unused sensor translations are removed. Standard HA sensor selection, regulation, manual controls and saved settings remain in place. See [upgrade guidance](AIRQ_BRIDGE_REMOVAL.md): former bridge entities no longer update and must be replaced with entities actually exposed by their owning integration; the historical AirQ deployment notes below no longer describe current measurement support.
-
-A new regression failed before removal because sensor setup enumerated `airzone_cloud` entries; it passes after removal. Five new cases verify integration isolation, existing native telemetry registration, worst-zone regulation from standard HA states (including VOC ppm→ppb and speed limits), saved-settings reconstruction and no commands from missing/unavailable/restored former bridge inputs. Local validation passes 149 Python tests and 28 frontend tests, plus Ruff lint/format, frontend formatting and version-checked ZIP packaging. Nine obsolete bridge-specific tests were removed with their implementation. Vendor responses and HA states are simulated; this patch does not send commands to household equipment or claim that Airzone Cloud exposes all required gases.
-
 ## 1.0.1 async timezone regression
 
 HACS review [#12282](https://github.com/hacs/default/pull/12282) identified blocking `ZoneInfo` construction during entry setup and controller initialization. Setup now awaits Home Assistant's timezone resolver for both saved and API-discovered names and passes the resolved object into the controller. The configuration, reauthentication and reconfiguration flows use the same async helper. Persisted data remains a timezone name; no entry migration is required.

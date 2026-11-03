@@ -1,11 +1,5 @@
 # Changelog
 
-## 1.0.2
-
-- Remove the AirQ bridge, synthetic AirQ sensor entities, Airzone Cloud loading dependency and unused translations. Jeremias no longer accesses another integration's runtime client/session or issues Airzone status requests.
-- Keep sensor regulation using standard Home Assistant entities from any integration, with existing mode, thresholds and selected IDs preserved. Former bridge entities stop updating: replace unavailable selections with measurements actually exposed by their owning integration. Missing gases are never inferred from AQI. See [upgrade guidance](docs/AIRQ_BRIDGE_REMOVAL.md).
-- Add regression coverage for integration isolation, worst-zone control from ordinary sensor states, preserved configuration and no commands from missing/unavailable/restored former bridge readings.
-
 ## 1.0.1
 
 - Resolve building timezones with Home Assistant's async timezone helper during setup and configuration flows, keeping timezone file reads off the event loop. Pass the resolved `tzinfo` to the controller without a second lookup.

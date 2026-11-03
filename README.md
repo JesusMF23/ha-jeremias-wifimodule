@@ -29,11 +29,9 @@ Controls act on **every unit in the selected building**, as the website API does
 
 ## Sensor demand control
 
-The existing panel now includes independent Home Assistant Automatic/Manual regulation, real-entity selectors, configurable targets/limits/timing and visible worst-zone diagnostics. First use is Manual with no sensors selected. CO₂ must be ppm; TVOC may be ppb or ppm (normalized to ppb); humidity and higher-is-worse AQI are optional. Raw gases cannot be inferred from AQI. Existing entity IDs and widget operations remain unchanged; direct manual controls pause demand regulation before sending their command.
+The existing panel now includes independent Home Assistant Automatic/Manual regulation, real-entity selectors, configurable targets/limits/timing and visible worst-zone diagnostics. First use is Manual with no sensors selected. CO₂ must be ppm; TVOC must be ppb; humidity and higher-is-worse AQI are optional. Raw gases cannot be inferred from AQI. Existing entity IDs and widget operations remain unchanged; direct manual controls pause demand regulation before sending their command.
 
-Settings and mode persist across restarts. Automatic commands use renewable 15-minute overrides; loss of healthy data stops renewals. Ambiguous writes disable automatic control until explicit reactivation. See [detailed behavior](docs/AUTOMATIC_CONTROL.md). HACS installation, saved settings and a real HA restart have been verified on one installation. Cloud telemetry has confirmed Automatic speed changes and timed return to Automatic. Earlier AirQ bridge measurements in the validation notes are historical; that bridge is removed in 1.0.2. Independent physical actuation, failure recovery and sustained operation remain acceptance items. Update the existing custom repository through HACS; no second Jeremias integration is required.
-
-**Upgrading to 1.0.2:** the former AirQ bridge entities stop updating. Saved sensor IDs and thresholds are retained. In **Sensors and thresholds**, deselect unavailable bridge entities and choose real measurements exposed by Airzone Cloud or another installed integration before using Automatic. If a required CO₂/TVOC measurement is absent in Airzone Cloud, support belongs in that Home Assistant core integration; Jeremias cannot supply it by borrowing its client. See [upgrade guidance](docs/AIRQ_BRIDGE_REMOVAL.md).
+Settings and mode persist across restarts. Automatic commands use renewable 15-minute overrides; loss of healthy data stops renewals. Ambiguous writes disable automatic control until explicit reactivation. See [detailed behavior](docs/AUTOMATIC_CONTROL.md). HACS installation, changing AirQ gas readings, saved settings and a real HA restart have been verified on one installation. Cloud telemetry has confirmed Automatic speed changes and timed return to Automatic. Independent physical actuation, failure recovery and sustained operation remain acceptance items. Update the existing custom repository through HACS; no second integration is required.
 
 The dashboard shows selected sensors grouped by their registered devices, plus real
 Home Assistant history for 6 hours, 24 hours or 7 days. Sliders include exact numeric
@@ -71,7 +69,7 @@ HACS custom repositories and inclusion in the default catalogue are different: d
 
 Copy the entire `custom_components/wifimodule` directory into `/config/custom_components/wifimodule`. Do not nest another `wifimodule` directory inside it. Restart Home Assistant. For a new installation, follow steps 5–6 above. When upgrading, back up the existing folder and preserve the integration entry and credentials. No YAML, copied browser cookie or API key is needed.
 
-The `jeremias-wifimodule-1.0.2-install.zip` distribution contains the `custom_components` directory and license. Extract it into the Home Assistant configuration directory, preserving that structure.
+The `jeremias-wifimodule-1.0.1-install.zip` distribution contains the `custom_components` directory and license. Extract it into the Home Assistant configuration directory, preserving that structure.
 
 ## Use
 
@@ -108,7 +106,7 @@ Development: install `requirements-dev.txt` under Python 3.14, run `pytest -q`, 
 
 MIT licensed. Brand names identify compatible products; no affiliation or endorsement is claimed.
 
-Air-quality readings come from selected Home Assistant sensor entities. Their owning integrations handle authentication, polling and availability. Jeremias does not access Airzone Cloud's internal client/session or create AirQ measurement entities. Unavailable, restored, stale or incompatible readings are rejected by regulation.
+AirQ gas readings: when Airzone Cloud is configured, the same integration reuses its session for read-only device status polling every 60 seconds, exposing native CO₂ (ppm), TVOC (ppb), and humidity sensors. No additional credentials or integration are needed. Missing, disconnected, or failed readings become unavailable.
 
 Use **Edit name** on a sensor card to save its device name in Home Assistant. Cards, charts and diagnostics use the name while entity IDs and history remain unchanged. **Cancel** discards the edit.
 
