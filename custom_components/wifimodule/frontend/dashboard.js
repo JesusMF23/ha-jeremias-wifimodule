@@ -1,4 +1,5 @@
 import { escapeText as e } from "./automatic.js";
+import { historyInspector } from "./history-inspector.js";
 
 export function selectedReadings(a) {
   if (!a) return [];
@@ -35,6 +36,10 @@ export function zoneCards(a, t) {
 // Recorder is state history: step lines show each reported state until its next change.
 // Unknown/unavailable samples explicitly break the line; they never become zero.
 export function historySegments(samples, start, end, kind, sourceUnit) {
+  return historySeries(samples, start, end, kind, sourceUnit).segments;
+}
+
+function historySeries(samples, start, end, kind, sourceUnit) {
   const limits = {
     co2: [250, 100000],
     tvoc: [0, 1000000],
@@ -56,6 +61,8 @@ export function historySegments(samples, start, end, kind, sourceUnit) {
     .filter((p) => Number.isFinite(p.time) && p.time <= end)
     .sort((a, b) => a.time - b.time);
   const segments = [];
+  const recordedTimes = [];
+  let endValue = null;
   let current = [];
   for (let i = 0; i < points.length; i++) {
     const p = points[i],
@@ -65,32 +72,71 @@ export function historySegments(samples, start, end, kind, sourceUnit) {
       p.value < limits[0] ||
       p.value > limits[1]
     ) {
+      endValue = null;
       if (current.length) segments.push(current);
       current = [];
       continue;
     }
-    if (until < start) continue;
+    endValue = p.value;
+    if (until < start || (until === start && p.time < start)) continue;
+    if (p.time >= start) recordedTimes.push(p.time);
     current.push(
       [Math.max(start, p.time), p.value],
       [Math.max(start, until), p.value],
     );
   }
   if (current.length) segments.push(current);
-  return segments;
+  return { segments, recordedTimes, endValue };
 }
-function chart(series, kind, settings, start, end, t, language) {
-  const low = settings[kind + "_target"],
-    high = settings[kind + "_full"];
-  const values = series.flatMap((s) =>
-    s.segments.flatMap((g) => g.map((p) => p[1])),
-  );
-  if (!values.length)
+export function historyChartData(a, history) {
+  if (!a || !history?.series) return [];
+  const { start, end } = history;
+  const readings = selectedReadings(a);
+  return Object.keys(a.sensors)
+    .filter((kind) => a.sensors[kind].length)
+    .map((kind) => {
+      const series = readings
+        .filter((s) => s.kind === kind)
+        .map((s) => ({
+          ...s,
+          ...historySeries(
+            history.series[s.entity_id] || [],
+            start,
+            end,
+            kind,
+            s.source_unit,
+          ),
+        }));
+      if (!series.some((s) => s.segments.length)) return { kind };
+      const low = a.settings[kind + "_target"];
+      const high = a.settings[kind + "_full"];
+      let min = low;
+      let max = high;
+      for (const s of series)
+        for (const segment of s.segments)
+          for (const [, value] of segment) {
+            min = Math.min(min, value);
+            max = Math.max(max, value);
+          }
+      const pad = Math.max(1, (max - min) * 0.1);
+      return {
+        kind,
+        series,
+        start,
+        end,
+        low,
+        high,
+        x: (time) => 48 + ((time - start) / (end - start)) * 660,
+        y: (value) => 166 - ((value - min + pad) / (max - min + pad * 2)) * 144,
+        inspector: historyInspector(series, start, end),
+      };
+    });
+}
+
+function chart(model, t, language) {
+  const { kind, series, start, end, low, high, x, y, inspector } = model;
+  if (!inspector)
     return `<article class="chart-card"><h3>${e(t.kinds[kind])}</h3><p class="empty-state">${e(t.historyEmpty)}</p></article>`;
-  const min = values.reduce((a, b) => Math.min(a, b), low),
-    max = values.reduce((a, b) => Math.max(a, b), high),
-    pad = Math.max(1, (max - min) * 0.1);
-  const x = (time) => 48 + ((time - start) / (end - start)) * 660,
-    y = (val) => 166 - ((val - min + pad) / (max - min + pad * 2)) * 144;
   const path = (points) =>
     points
       .map(
@@ -110,48 +156,36 @@ function chart(series, kind, settings, start, end, t, language) {
     "var(--info-color,#4267c9)",
     "var(--error-color,#c64040)",
   ];
-  return `<article class="chart-card"><div class="section-heading"><h3>${e(t.kinds[kind])}</h3><span class="muted">${e(series[0].unit)}</span></div><svg class="quality-chart" viewBox="0 0 728 200" role="img" aria-label="${e(t.kinds[kind] + " · " + t.evolution)}"><title>${e(t.historyDescription)}</title>${[low, high].map((v) => `<line class="chart-guide" x1="48" x2="708" y1="${y(v)}" y2="${y(v)}"/><text class="chart-label" x="2" y="${y(v) + 4}">${e(v)}</text>`).join("")}${series.map((s, i) => s.segments.map((g) => `<path d="${path(g)}" fill="none" stroke="${colors[i % colors.length]}" stroke-width="2.5" ${i >= colors.length ? 'stroke-dasharray="6 3"' : ""}/>`).join("")).join("")}${[start, (start + end) / 2, end].map((time, i) => `<text class="chart-label" x="${x(time)}" y="193" text-anchor="${["start", "middle", "end"][i]}">${e(date(time))}</text>`).join("")}</svg><div class="chart-legend">${series.map((s, i) => `<span><i style="background:${colors[i % colors.length]}"></i>${e(s.zone || s.name)}</span>`).join("")}</div><details><summary>${e(t.historyValues)}</summary><div class="table-wrap"><table><thead><tr><th>${e(t.zones)}</th><th>${e(t.minimum)}</th><th>${e(t.maximum)}</th><th>${e(t.last)}</th></tr></thead><tbody>${series
-    .map((s) => {
-      const v = s.segments.flatMap((g) => g.map((p) => p[1]));
-      return `<tr><td>${e(s.name)}</td><td>${v.length ? e(v.reduce((a, b) => Math.min(a, b), Infinity)) : "—"}</td><td>${v.length ? e(v.reduce((a, b) => Math.max(a, b), -Infinity)) : "—"}</td><td>${v.length ? e(v.at(-1)) : "—"}</td></tr>`;
-    })
-    .join("")}</tbody></table></div></details></article>`;
+  return `<article class="chart-card" data-quality-chart="${kind}"><div class="section-heading"><h3>${e(t.kinds[kind])}</h3><span class="muted">${e(series[0].unit)}</span></div><svg class="quality-chart" viewBox="0 0 728 200" role="img" aria-label="${e(t.kinds[kind] + " · " + t.evolution)}"><title>${e(t.historyDescription)}</title>${[low, high].map((v) => `<line class="chart-guide" x1="48" x2="708" y1="${y(v)}" y2="${y(v)}"/><text class="chart-label" x="2" y="${y(v) + 4}">${e(v)}</text>`).join("")}${series.map((s, i) => s.segments.map((g) => `<path d="${path(g)}" fill="none" stroke="${colors[i % colors.length]}" stroke-width="2.5" ${i >= colors.length ? 'stroke-dasharray="6 3"' : ""}/>`).join("")).join("")}${[start, (start + end) / 2, end].map((time, i) => `<text class="chart-label" x="${x(time)}" y="193" text-anchor="${["start", "middle", "end"][i]}">${e(date(time))}</text>`).join("")}
+    <line data-chart-cursor hidden y1="16" y2="170" class="chart-cursor"/>
+    ${series.map((_, i) => `<circle data-chart-dot hidden r="5" class="chart-dot" fill="${colors[i % colors.length]}"/>`).join("")}
+    </svg><div class="chart-legend">${series.map((s, i) => `<span><i style="background:${colors[i % colors.length]}"></i>${e(s.zone || s.name)}</span>`).join("")}</div>
+    <label class="chart-explore"><span>${e(t.historyExplore)}</span><input type="range" data-chart-scrubber min="0" max="${Math.max(1, inspector.times.length - 1)}" value="${inspector.times.length - 1}" aria-label="${e(t.kinds[kind] + " · " + t.historyExplore)}"></label>
+    <div class="chart-selection" data-chart-details hidden><div class="section-heading"><time></time><button type="button" data-chart-close>${e(t.historyClose)}</button></div><dl>${series.map((s, i) => `<dt><i style="background:${colors[i % colors.length]}"></i>${e(s.zone || s.name)}</dt><dd></dd>`).join("")}</dl></div>
+    <details><summary>${e(t.historyValues)}</summary><div class="table-wrap"><table><thead><tr><th>${e(t.zones)}</th><th>${e(t.minimum)}</th><th>${e(t.maximum)}</th><th>${e(t.last)}</th></tr></thead><tbody>${series
+      .map((s) => {
+        const v = s.segments.flatMap((g) => g.map((p) => p[1]));
+        return `<tr><td>${e(s.name)}</td><td>${v.length ? e(v.reduce((a, b) => Math.min(a, b), Infinity)) : "—"}</td><td>${v.length ? e(v.reduce((a, b) => Math.max(a, b), -Infinity)) : "—"}</td><td>${v.length ? e(v.at(-1)) : "—"}</td></tr>`;
+      })
+      .join("")}</tbody></table></div></details></article>`;
 }
-export function historyCharts(a, history, t, language) {
+export function historyCharts(
+  a,
+  history,
+  t,
+  language,
+  charts = historyChartData(a, history),
+) {
   if (!history || history.loading)
     return `<p class="empty-state" role="status">${e(t.historyLoading)}</p>`;
   if (history.error)
     return `<p class="notice error" role="status">${e(t.historyError)}</p>`;
-  const readings = selectedReadings(a);
-  if (!readings.length)
-    return `<p class="empty-state">${e(t.chooseSensors)}</p>`;
-  return `<div class="charts">${Object.keys(a.sensors)
-    .filter((k) => a.sensors[k].length)
-    .map((kind) =>
-      chart(
-        readings
-          .filter((s) => s.kind === kind)
-          .map((s) => ({
-            ...s,
-            segments: historySegments(
-              history.series[s.entity_id] || [],
-              history.start,
-              history.end,
-              kind,
-              s.source_unit,
-            ),
-          })),
-        kind,
-        a.settings,
-        history.start,
-        history.end,
-        t,
-        language,
-      ),
-    )
+  if (!charts.length) return `<p class="empty-state">${e(t.chooseSensors)}</p>`;
+  return `<div class="charts">${charts
+    .map((model) => chart(model, t, language))
     .join("")}</div><p class="muted chart-note">${e(t.historyDescription)}</p>`;
 }
-export function dashboard(a, history, hours, t, language) {
+export function dashboard(a, history, hours, t, language, charts) {
   return `<section class="air-quality"><div class="section-heading"><h2>${e(t.airQuality)}</h2><span class="muted">${e(t.selectedZones)}</span></div><div id="zone-cards">${zoneCards(a, t)}</div><div class="section-heading spaced"><h3>${e(t.evolution)}</h3><div class="actions"><div class="segmented" role="group" aria-label="${e(t.period)}">${[
     [6, "6 h"],
     [24, "24 h"],
@@ -163,5 +197,5 @@ export function dashboard(a, history, hours, t, language) {
     )
     .join(
       "",
-    )}</div><button data-history-refresh aria-label="${e(t.historyRefresh)}">↻</button></div></div><div id="quality-history">${historyCharts(a, history, t, language)}</div></section>`;
+    )}</div><button data-history-refresh aria-label="${e(t.historyRefresh)}">↻</button></div></div><div id="quality-history">${historyCharts(a, history, t, language, charts)}</div></section>`;
 }

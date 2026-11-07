@@ -95,12 +95,25 @@ def schedule_rows(rows, mode_ids):
         if not isinstance(item, dict):
             raise DeviceError("Invalid schedule row")
         minute = integer(item.get("time"), 0, 1439)
-        mode = integer(item.get("mode", item.get("mode_id")))
-        if minute <= previous or mode not in mode_ids:
+        if minute <= previous:
             raise DeviceError(
                 "Times must increase and modes must belong to this building"
             )
-        result.append({"time": minute, "mode": mode})
+        if "speed" in item or "bypass" in item:
+            if (
+                set(item) != {"time", "speed", "bypass"}
+                or type(item["bypass"]) is not bool
+            ):
+                raise DeviceError("Invalid fixed speed or bypass")
+            row = {"speed": integer(item["speed"], 0, 7), "bypass": item["bypass"]}
+        else:
+            mode = integer(item.get("mode", item.get("mode_id")))
+            if mode not in mode_ids:
+                raise DeviceError(
+                    "Times must increase and modes must belong to this building"
+                )
+            row = {"mode": mode}
+        result.append({"time": minute, **row})
         previous = minute
     if result[0]["time"] != 0:
         raise DeviceError("The first change must start at 00:00")
@@ -141,6 +154,30 @@ def mode_payload(data, identity=None, building=None):
         {"id": identity} if identity is not None else {"building_id": building}
     )
     return result
+
+
+def schedule_mode_name(speed, bypass):
+    return f"HA Schedule {speed}-{int(bypass)}"
+
+
+def managed_schedule_mode(mode):
+    """Recognize fixed speeds by both the reserved name and actual settings."""
+    match = re.fullmatch(
+        r"HA Schedule ([0-7])-([01])(?: \([0-9]+\))?",
+        str(mode.get("name", "")),
+    )
+    if match is None:
+        return None
+    speed, bypass = int(match[1]), match[2] == "1"
+    if (
+        mode.get("mode") != "manual"
+        or mode.get("off") != (speed == 0)
+        or mode.get("boost") != 0
+        or mode.get("speed") != max(1, speed)
+        or mode.get("bypass") != int(bypass)
+    ):
+        return None
+    return {"speed": speed, "bypass": bypass}
 
 
 def override_until(minutes, timezone, now=None):

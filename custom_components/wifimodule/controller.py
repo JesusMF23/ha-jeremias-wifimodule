@@ -8,6 +8,7 @@ from .api import ControlCancelled, DeviceError
 from .models import (
     Heartbeat,
     integer,
+    managed_schedule_mode,
     mode_payload,
     name,
     normalize_building,
@@ -15,6 +16,7 @@ from .models import (
     override_until,
     record,
     revision,
+    schedule_mode_name,
     schedule_rows,
 )
 
@@ -183,17 +185,34 @@ class Controller:
             week = await self.week(profile_id)
             if revision(week) != expected_revision:
                 raise DeviceError("Schedule changed. Reload before saving")
-            rows = schedule_rows(rows, {m["id"] for m in await self.modes()})
-            if (
-                len(rows)
-                + sum(
-                    len(v)
-                    for k, v in week.items()
-                    if k != f"d{day}" and k in {f"d{d}" for d in range(7)}
-                )
-                > 150
-            ):
+            modes = await self.modes()
+            rows = schedule_rows(rows, {m["id"] for m in modes})
+            if len(rows) + sum(len(week[f"d{d}"]) for d in range(7) if d != day) > 150:
                 raise DeviceError("Maximum 150 weekly changes")
+            direct = {(r["speed"], r["bypass"]) for r in rows if "speed" in r}
+            if direct:
+                managed = self._schedule_mode_ids(modes)
+                missing = direct - managed.keys()
+                if missing:
+                    await self._add_schedule_modes(missing, modes)
+                    modes = await self.modes()
+                    managed = self._schedule_mode_ids(modes)
+                    if direct - managed.keys():
+                        raise DeviceError("Schedule modes could not be confirmed")
+                    if revision(await self.week(profile_id)) != expected_revision:
+                        raise DeviceError("Schedule changed. Reload before saving")
+                rows = schedule_rows(
+                    [
+                        {
+                            "time": row["time"],
+                            "mode": managed[row["speed"], row["bypass"]],
+                        }
+                        if "speed" in row
+                        else row
+                        for row in rows
+                    ],
+                    {mode["id"] for mode in modes},
+                )
             return await self.api.write(
                 "edit-schedule",
                 {
@@ -203,6 +222,31 @@ class Controller:
                     "schedule": rows,
                 },
             )
+
+    async def _add_schedule_modes(self, missing, modes):
+        names = {mode["name"] for mode in modes}
+        for speed, bypass in sorted(missing):
+            base = title = schedule_mode_name(speed, bypass)
+            suffix = 2
+            while title in names:
+                title = f"{base} ({suffix})"
+                suffix += 1
+            payload = mode_payload(
+                {"name": title, "speed": speed, "bypass": bypass, "mode": "manual"},
+                building=self.building_id,
+            )
+            await self.api.write("modes", {"op": "add", "data": payload})
+            names.add(title)
+
+    @staticmethod
+    def _schedule_mode_ids(modes):
+        result = {}
+        for mode in modes:
+            if (fixed := managed_schedule_mode(mode)) is not None:
+                key = fixed["speed"], fixed["bypass"]
+                identity = integer(mode["id"])
+                result[key] = min(result.get(key, identity), identity)
+        return result
 
     async def mutate_profile(self, operation, data):
         if operation not in ("add", "edit", "delete"):

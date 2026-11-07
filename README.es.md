@@ -50,11 +50,13 @@ Las velocidades manuales **0–7 se mantienen sin caducidad** y se guardan para 
 
 Para programar:
 
-1. Crea los **Modos** que utilizarás. Cambiar un modo afecta a todos los horarios que lo usan.
-2. Crea o selecciona un **Perfil**.
-3. En **Horario semanal**, selecciona cada día, ajusta las horas y los modos y pulsa **Guardar día**. La primera fila empieza a las 00:00, las horas no pueden repetirse y se admiten hasta 150 cambios por semana.
-4. **Copiar y guardar** reemplaza el día de destino completo con las filas que tienes en pantalla, incluso si aún no las guardaste en el día original.
+1. Crea o selecciona un **Perfil**. En **Horario semanal**, consulta los siete días y selecciona uno para añadir tramos.
+2. Elige la hora de inicio, la velocidad fija (apagado o 1–7) y el bypass de cada tramo. También puedes elegir un modo guardado, por ejemplo para usar el automático del equipo. Cambiar un modo guardado afecta a todos los horarios que lo usan.
+3. Revisa la línea temporal y pulsa **Guardar día**. El primer tramo empieza a las 00:00, las horas no pueden repetirse y cada perfil admite hasta 150 tramos por semana.
+4. **Copiar y guardar** reemplaza el día de destino completo con los tramos que tienes en pantalla, incluso si aún no los guardaste en el día original.
 5. Activa el perfil. Si hay una orden manual vigente, pulsa **Volver al horario** para que deje de tener prioridad.
+
+En **Controles**, toca un punto de la gráfica de calidad del aire o usa **Explorar lecturas** para ver su fecha, hora y valores por zona. Los huecos indican que no hay lecturas disponibles.
 
 La exportación contiene la semana del perfil cargado y las listas de modos/perfiles. No incluye todas las semanas ni permite restaurarlas automáticamente. Guarda una copia antes de reorganizar la programación.
 

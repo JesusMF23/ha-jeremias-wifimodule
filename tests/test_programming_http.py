@@ -12,7 +12,7 @@ import pytest
 from aiohttp import ClientSession, CookieJar, web
 
 from custom_components.wifimodule import api as api_module
-from custom_components.wifimodule.api import DeviceError, WifiModuleApi
+from custom_components.wifimodule.api import ApiError, DeviceError, WifiModuleApi
 from custom_components.wifimodule.controller import Controller
 from custom_components.wifimodule.models import revision
 
@@ -144,3 +144,81 @@ async def test_profile_mode_and_weekly_schedule_round_trip(cloud):
     await c.mutate_mode("delete", {"id": identity})
     assert [item["id"] for item in await c.profiles()] == [10]
     assert [item["id"] for item in await c.modes()] == [20]
+
+
+async def test_direct_speeds_round_trip_and_reuse_modes_on_copy(cloud):
+    c, writes = cloud
+    rows = [
+        {"time": 0, "mode": 20},
+        {"time": 420, "speed": 3, "bypass": True},
+        {"time": 720, "speed": 3, "bypass": False},
+        {"time": 1080, "speed": 3, "bypass": True},
+        {"time": 1320, "speed": 0, "bypass": False},
+    ]
+    original = await c.week(10)
+    await c.edit_day(10, 1, rows, revision(original))
+    changed = await c.week(10)
+    saved = changed["d1"]
+    assert saved[0] == original["d1"][0]
+    assert saved[1]["mode_id"] == saved[3]["mode_id"]
+    modes = {m["id"]: m for m in await c.modes()}
+    for index, speed, bypass, off in [
+        (1, 3, 1, False),
+        (2, 3, 0, False),
+        (4, 1, 0, True),
+    ]:
+        mode = modes[saved[index]["mode_id"]]
+        assert (mode["speed"], mode["bypass"], mode["off"], mode["mode"]) == (
+            speed,
+            bypass,
+            off,
+            "manual",
+        )
+    await c.edit_day(10, 2, rows, revision(changed))
+    assert (await c.week(10))["d2"] == saved
+    assert [endpoint for endpoint, _ in writes] == [
+        "modes",
+        "modes",
+        "modes",
+        "edit-schedule",
+        "edit-schedule",
+    ]
+
+
+async def test_invalid_direct_schedule_writes_nothing(cloud):
+    c, writes = cloud
+    original = await c.week(10)
+    rows = [{"time": 0, "speed": 3, "bypass": True}]
+    with pytest.raises(DeviceError, match="Schedule changed"):
+        await c.edit_day(10, 1, rows, "stale")
+    with pytest.raises(DeviceError):
+        await c.edit_day(10, 1, [*rows, {"time": 420, "mode": 999}], revision(original))
+    with pytest.raises(DeviceError):
+        await c.edit_day(
+            10, 1, [{"time": 0, "speed": 3, "bypass": 1}], revision(original)
+        )
+    assert writes == []
+
+
+async def test_retry_after_partial_schedule_save_reuses_created_modes(
+    cloud, monkeypatch
+):
+    c, writes = cloud
+    original = await c.week(10)
+    rows = [{"time": 0, "speed": 2, "bypass": True}]
+    write = c.api.write
+    failed = False
+
+    async def fail_once(endpoint, payload):
+        nonlocal failed
+        if endpoint == "edit-schedule" and not failed:
+            failed = True
+            raise ApiError("Simulated failure after mode creation")
+        return await write(endpoint, payload)
+
+    monkeypatch.setattr(c.api, "write", fail_once)
+    with pytest.raises(ApiError, match="Simulated failure"):
+        await c.edit_day(10, 1, rows, revision(original))
+    assert await c.week(10) == original
+    await c.edit_day(10, 1, rows, revision(original))
+    assert [endpoint for endpoint, _ in writes] == ["modes", "edit-schedule"]

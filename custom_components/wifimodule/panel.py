@@ -10,7 +10,7 @@ from homeassistant.exceptions import HomeAssistantError
 from .api import ApiError
 from .const import DOMAIN, VERSION
 from .demand import PARAMETERS
-from .models import integer, revision
+from .models import integer, managed_schedule_mode, revision
 from .panel_sensors import sensor_catalogue
 
 OPERATIONS = [
@@ -97,17 +97,20 @@ async def dispatch(hass, message):
             "profiles": [{k: p.get(k) for k in ("id", "name")} for p in profiles],
             "modes": [
                 {
-                    k: m.get(k)
-                    for k in (
-                        "id",
-                        "name",
-                        "color",
-                        "speed",
-                        "mode",
-                        "bypass",
-                        "off",
-                        "boost",
-                    )
+                    **{
+                        k: m.get(k)
+                        for k in (
+                            "id",
+                            "name",
+                            "color",
+                            "speed",
+                            "mode",
+                            "bypass",
+                            "off",
+                            "boost",
+                        )
+                    },
+                    "schedule_speed": managed_schedule_mode(m),
                 }
                 for m in modes
             ],

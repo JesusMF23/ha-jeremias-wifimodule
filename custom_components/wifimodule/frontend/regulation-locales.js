@@ -1,5 +1,7 @@
 export const regulationLocales = {
   en: {
+    historyExplore: "Explore readings",
+    historyClose: "Close reading",
     afterManual: "After Manual",
     noLimit: "No time limit",
     durationLabel: "Duration",
@@ -158,6 +160,8 @@ export const regulationLocales = {
     },
   },
   es: {
+    historyExplore: "Explorar lecturas",
+    historyClose: "Cerrar lectura",
     afterManual: "Después del Manual",
     noLimit: "Sin límite de tiempo",
     durationLabel: "Duración",

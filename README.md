@@ -78,10 +78,12 @@ Native entities appear under the integration's building and unit devices. Open *
 1. Wait for the unit's `last_comm` to advance after loading/restarting the integration. Until then physical controls are unavailable; this prevents treating a cached cloud response as current. A lack of progress for ten minutes blocks controls again.
 2. **Manual** captures the current reported speed and holds it without expiry. Applying speed 0–7 saves that speed and restores it after restart, once fresh communication is available. Speed 0 means off. Legacy paused Manual with no saved speed migrates to 0. **Jeremias schedule** explicitly releases the hold. Timers remain available for boost and the device’s own automatic mode; their expiry can return control to the schedule.
 3. Boost's button uses five minutes. Panel boost requires 1–60 minutes. Choose **Return to schedule** to cancel an override.
-4. In **Modes**, create reusable operating modes. Editing a mode affects every schedule that references it.
-5. In **Profiles**, create a profile. In **Weekly schedule**, select that profile and each day, edit transitions and **Save day**. The first transition must be 00:00; times must be distinct. The total week is limited to 150 transitions.
+4. In **Profiles**, create or select a profile. Open **Weekly schedule** to see all seven days, then select a day and add blocks with a fixed speed (off or 1–7) and a bypass setting. You can also choose a saved mode, for example to use the device's automatic mode. Editing a saved mode affects each schedule that uses it.
+5. Review the timeline and select **Save day**. The first block starts at 00:00, times must be distinct, and each profile allows up to 150 blocks per week.
 6. **Copy & save** immediately replaces the target day's entire schedule with the currently edited rows. Export first if you want a local record. Export covers the loaded profile's week and the profile/mode lists, not every profile's week; there is no import/restore feature yet.
 7. Activate the desired profile. A manual override may still take priority: use **Return to schedule** to hand control back to programming.
+
+In **Controls**, select a point on an air quality chart or use **Explore readings** to see its date, time and values by zone. Gaps indicate unavailable readings.
 
 History date fields and overrides use the building's timezone from WifiModule. Because the API accepts timestamps without offsets, a timed command whose expiry falls in a repeated daylight-saving hour is rejected. The server accepts only minute precision, so a timer can be shorter by up to 59 seconds.
 
