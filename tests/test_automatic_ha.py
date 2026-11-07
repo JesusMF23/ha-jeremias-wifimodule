@@ -139,6 +139,7 @@ async def test_legacy_migration_preserves_existing_fan_entity_and_settings(tmp_p
 
     hass, entry, c = setup(tmp_path)
     try:
+        await hass.config_entries.async_initialize()
         with patch.object(hass.config_entries, "async_setup", return_value=True):
             await hass.config_entries.async_add(entry)
         hass.config_entries.async_update_entry(
