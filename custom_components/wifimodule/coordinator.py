@@ -7,7 +7,7 @@ from time import monotonic
 from homeassistant.exceptions import ConfigEntryAuthFailed, HomeAssistantError
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .api import ApiError, AuthError, ControlCancelled
+from .api import ApiError, AuthError, ControlCancelled, ScheduleError
 from .const import DOMAIN, POLL_SECONDS
 from .models import integer, override_expiry
 
@@ -105,6 +105,10 @@ class Coordinator(DataUpdateCoordinator):
             raise HomeAssistantError(
                 translation_domain=DOMAIN, translation_key="control_superseded"
             ) from None
+        except ScheduleError as err:
+            if isinstance(err.__cause__, AuthError):
+                self.config_entry.async_start_reauth(self.hass)
+            raise
         except ApiError:
             if generation is not None and generation == self.automatic.generation:
                 await self.automatic.manual("command_error")

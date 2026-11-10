@@ -53,7 +53,7 @@ Para programar:
 1. Crea o selecciona un **Perfil**. En **Horario semanal**, consulta los siete días y selecciona uno para añadir tramos.
 2. Elige la hora de inicio, la velocidad fija (apagado o 1–7) y el bypass de cada tramo. También puedes elegir un modo guardado, por ejemplo para usar el automático del equipo. Cambiar un modo guardado afecta a todos los horarios que lo usan.
 3. Revisa la línea temporal y pulsa **Guardar día**. El primer tramo empieza a las 00:00, las horas no pueden repetirse y cada perfil admite hasta 150 tramos por semana.
-4. **Copiar y guardar** reemplaza el día de destino completo con los tramos que tienes en pantalla, incluso si aún no los guardaste en el día original.
+4. Marca uno o varios días de destino y pulsa **Copiar y guardar** para reemplazar su programación con los tramos que tienes en pantalla. Si la copia se interrumpe, el panel indica qué días se confirmaron.
 5. Activa el perfil. Si hay una orden manual vigente, pulsa **Volver al horario** para que deje de tener prioridad.
 
 En **Controles**, toca un punto de la gráfica de calidad del aire o usa **Explorar lecturas** para ver su fecha, hora y valores por zona. Los huecos indican que no hay lecturas disponibles.

@@ -160,6 +160,14 @@ def schedule_mode_name(speed, bypass):
     return f"HA Schedule {speed}-{int(bypass)}"
 
 
+def _mode_flag(value):
+    if value in (None, False, "0"):
+        return False
+    if value in (True, "1"):
+        return True
+    return None
+
+
 def managed_schedule_mode(mode):
     """Recognize fixed speeds by both the reserved name and actual settings."""
     match = re.fullmatch(
@@ -169,12 +177,16 @@ def managed_schedule_mode(mode):
     if match is None:
         return None
     speed, bypass = int(match[1]), match[2] == "1"
+    wire_speed = mode.get("speed")
+    if isinstance(wire_speed, str) and wire_speed in "1234567" and len(wire_speed) == 1:
+        wire_speed = int(wire_speed)
     if (
         mode.get("mode") != "manual"
-        or mode.get("off") != (speed == 0)
-        or mode.get("boost") != 0
-        or mode.get("speed") != max(1, speed)
-        or mode.get("bypass") != int(bypass)
+        or _mode_flag(mode.get("off")) is not (speed == 0)
+        or _mode_flag(mode.get("boost")) is not False
+        or type(wire_speed) is not int
+        or wire_speed != max(1, speed)
+        or _mode_flag(mode.get("bypass")) is not bypass
     ):
         return None
     return {"speed": speed, "bypass": bypass}

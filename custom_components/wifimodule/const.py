@@ -2,7 +2,7 @@
 
 DOMAIN = "wifimodule"
 NAME = "Jeremias / WifiModule"
-VERSION = "1.0.3b1"
+VERSION = "1.0.3b2"
 BASE_URL = "https://wifimodule.eu/api/"
 PLATFORMS = ["fan", "select", "switch", "number", "button", "sensor", "binary_sensor"]
 POLL_SECONDS = 60

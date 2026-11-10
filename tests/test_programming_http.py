@@ -12,13 +12,19 @@ import pytest
 from aiohttp import ClientSession, CookieJar, web
 
 from custom_components.wifimodule import api as api_module
-from custom_components.wifimodule.api import ApiError, DeviceError, WifiModuleApi
+from custom_components.wifimodule.api import (
+    ApiError,
+    DeviceError,
+    ScheduleError,
+    WifiModuleApi,
+)
 from custom_components.wifimodule.controller import Controller
 from custom_components.wifimodule.models import revision
 
 
 @pytest.fixture
-async def cloud(monkeypatch):
+async def cloud(monkeypatch, request):
+    readback = getattr(request, "param", None)
     modes = [{"id": 20, "name": "Low"}]
     profiles = [{"id": 10, "name": "Main"}]
     base = {f"d{i}": [{"time": 0, "mode_id": 20}] for i in range(7)}
@@ -68,6 +74,8 @@ async def cloud(monkeypatch):
                 {"time": row["time"], "mode_id": row["mode"]}
                 for row in body["schedule"]
             ]
+            if readback == "legacy_mode":
+                return web.json_response({"msg": "schedule"})
         else:
             operation, data = body["op"], body["data"]
             collection = profiles if endpoint == "profiles" else modes
@@ -76,6 +84,13 @@ async def cloud(monkeypatch):
                 collection.append({**data, "id": identity})
                 if endpoint == "profiles":
                     weeks[identity] = deepcopy(base)
+                elif readback == "legacy_mode":
+                    collection[-1].update(
+                        speed=str(data["speed"]),
+                        bypass=str(data["bypass"]),
+                        boost=None,
+                    )
+                    return web.json_response({"msg": "modes", "modes": collection})
             elif operation == "edit":
                 item = next(item for item in collection if item["id"] == data["id"])
                 item.update(data)
@@ -217,8 +232,72 @@ async def test_retry_after_partial_schedule_save_reuses_created_modes(
         return await write(endpoint, payload)
 
     monkeypatch.setattr(c.api, "write", fail_once)
-    with pytest.raises(ApiError, match="Simulated failure"):
+    with pytest.raises(ApiError, match="Schedule write was not confirmed"):
         await c.edit_day(10, 1, rows, revision(original))
     assert await c.week(10) == original
     await c.edit_day(10, 1, rows, revision(original))
     assert [endpoint for endpoint, _ in writes] == ["modes", "edit-schedule"]
+
+
+@pytest.mark.parametrize("cloud", ["legacy_mode"], indirect=True)
+async def test_mode_creation_is_confirmed_from_readback_and_reused(cloud):
+    c, writes = cloud
+    rows = [{"time": 0, "speed": 1, "bypass": False}]
+    await c.edit_day(10, 1, rows, revision(await c.week(10)))
+    week = await c.week(10)
+    await c.edit_day(10, 2, rows, revision(week))
+    assert (await c.week(10))["d2"] == week["d1"]
+    assert [endpoint for endpoint, _ in writes] == [
+        "modes",
+        "edit-schedule",
+        "edit-schedule",
+    ]
+
+
+async def test_batch_copy_validates_all_destinations_and_creates_modes_once(cloud):
+    c, writes = cloud
+    rows = [{"time": 0, "speed": 2, "bypass": True}]
+    before = await c.week(10)
+    with pytest.raises(DeviceError):
+        await c.edit_days(10, [1, 7], rows, revision(before))
+    assert writes == []
+    result = await c.edit_days(10, [1, 3, 5], rows, revision(before))
+    after = await c.week(10)
+    assert result["saved_days"] == [1, 3, 5]
+    assert after["d1"] == after["d3"] == after["d5"]
+    assert all(after[f"d{i}"] == before[f"d{i}"] for i in (0, 2, 4, 6))
+    assert [endpoint for endpoint, _ in writes] == [
+        "modes",
+        "edit-schedule",
+        "edit-schedule",
+        "edit-schedule",
+    ]
+
+
+async def test_batch_copy_stops_and_reports_days_already_saved(cloud, monkeypatch):
+    c, writes = cloud
+    before = await c.week(10)
+    write = c.api.write
+
+    async def fail_second(endpoint, payload):
+        if endpoint == "edit-schedule" and payload["wday"] == 3:
+            raise ApiError("Simulated unconfirmed write")
+        return await write(endpoint, payload)
+
+    monkeypatch.setattr(c.api, "write", fail_second)
+    rows = [{"time": 0, "speed": 1, "bypass": False}]
+    with pytest.raises(ScheduleError) as result:
+        await c.edit_days(10, [1, 3, 5], rows, revision(before))
+    assert result.value.code == "scheduleWriteUnconfirmed"
+    assert result.value.saved_days == [1]
+    assert [payload["wday"] for path, payload in writes if path == "edit-schedule"] == [
+        1
+    ]
+
+
+async def test_batch_limit_is_checked_before_creating_any_mode(cloud):
+    c, writes = cloud
+    rows = [{"time": time, "speed": 2, "bypass": False} for time in range(50)]
+    with pytest.raises(DeviceError, match="Maximum 150"):
+        await c.edit_days(10, [1, 3, 5], rows, revision(await c.week(10)))
+    assert not writes

@@ -4,7 +4,7 @@ import asyncio
 from datetime import datetime, tzinfo
 from urllib.parse import urlencode
 
-from .api import ControlCancelled, DeviceError
+from .api import ApiError, AuthError, ControlCancelled, DeviceError, ScheduleError
 from .models import (
     Heartbeat,
     integer,
@@ -179,28 +179,37 @@ class Controller:
             )
 
     async def edit_day(self, profile_id, day, rows, expected_revision):
+        await self.edit_days(profile_id, [day], rows, expected_revision)
+        return {"msg": "success"}
+
+    async def edit_days(self, profile_id, days, rows, expected_revision):
+        if not isinstance(days, list) or not 1 <= len(days) <= 7:
+            raise DeviceError("Select one or more days")
+        days = [integer(day, 0, 6) for day in days]
+        if len(set(days)) != len(days):
+            raise DeviceError("Duplicate destination day")
+
         async with self.lock:
             await self.ensure_membership()
-            integer(day, 0, 6)
             week = await self.week(profile_id)
-            if revision(week) != expected_revision:
-                raise DeviceError("Schedule changed. Reload before saving")
+            self._check_schedule_revision(week, expected_revision)
             modes = await self.modes()
-            rows = schedule_rows(rows, {m["id"] for m in modes})
-            if len(rows) + sum(len(week[f"d{d}"]) for d in range(7) if d != day) > 150:
-                raise DeviceError("Maximum 150 weekly changes")
-            direct = {(r["speed"], r["bypass"]) for r in rows if "speed" in r}
+            rows = schedule_rows(rows, {mode["id"] for mode in modes})
+            total = len(rows) * len(days) + sum(
+                len(week[f"d{day}"]) for day in range(7) if day not in days
+            )
+            if total > 150:
+                raise ScheduleError("scheduleLimit", "Maximum 150 weekly changes")
+
+            direct = {(row["speed"], row["bypass"]) for row in rows if "speed" in row}
             if direct:
                 managed = self._schedule_mode_ids(modes)
-                missing = direct - managed.keys()
-                if missing:
-                    await self._add_schedule_modes(missing, modes)
-                    modes = await self.modes()
+                if missing := direct - managed.keys():
+                    modes = await self._add_schedule_modes(missing, modes)
                     managed = self._schedule_mode_ids(modes)
-                    if direct - managed.keys():
-                        raise DeviceError("Schedule modes could not be confirmed")
-                    if revision(await self.week(profile_id)) != expected_revision:
-                        raise DeviceError("Schedule changed. Reload before saving")
+                    self._check_schedule_revision(
+                        await self.week(profile_id), expected_revision
+                    )
                 rows = schedule_rows(
                     [
                         {
@@ -213,7 +222,31 @@ class Controller:
                     ],
                     {mode["id"] for mode in modes},
                 )
-            return await self.api.write(
+
+            saved_days = []
+            # Make room first when one destination grows and another shrinks.
+            for day in sorted(days, key=lambda day: -len(week[f"d{day}"])):
+                try:
+                    if saved_days:
+                        self._check_schedule_revision(
+                            await self.week(profile_id), revision(week), saved_days
+                        )
+                    await self._write_schedule_day(profile_id, day, rows)
+                except ScheduleError:
+                    raise
+                except ApiError as err:
+                    raise ScheduleError(
+                        "scheduleWriteUnconfirmed",
+                        "Schedule write was not confirmed",
+                        saved_days,
+                    ) from err
+                saved_days.append(day)
+                week = {**week, f"d{day}": rows}
+            return {"saved_days": saved_days}
+
+    async def _write_schedule_day(self, profile_id, day, rows):
+        try:
+            await self.api.write(
                 "edit-schedule",
                 {
                     "building": self.building_id,
@@ -222,10 +255,25 @@ class Controller:
                     "schedule": rows,
                 },
             )
+        except AuthError:
+            raise
+        except ApiError:
+            # Confirm the intended state without repeating an ambiguous write.
+            observed = await self.week(profile_id)
+            key = f"d{day}"
+            if revision({key: observed[key]}) != revision({key: rows}):
+                raise
+
+    @staticmethod
+    def _check_schedule_revision(week, expected_revision, saved_days=()):
+        if revision(week) != expected_revision:
+            raise ScheduleError(
+                "scheduleConflict", "Schedule changed. Reload before saving", saved_days
+            )
 
     async def _add_schedule_modes(self, missing, modes):
-        names = {mode["name"] for mode in modes}
         for speed, bypass in sorted(missing):
+            names = {mode["name"] for mode in modes}
             base = title = schedule_mode_name(speed, bypass)
             suffix = 2
             while title in names:
@@ -235,8 +283,26 @@ class Controller:
                 {"name": title, "speed": speed, "bypass": bypass, "mode": "manual"},
                 building=self.building_id,
             )
-            await self.api.write("modes", {"op": "add", "data": payload})
-            names.add(title)
+            try:
+                await self.api.write("modes", {"op": "add", "data": payload})
+            except AuthError:
+                raise
+            except ApiError:
+                # The write may have reached the cloud. Read before doing anything else.
+                pass
+            try:
+                modes = await self.modes()
+            except AuthError:
+                raise
+            except ApiError as err:
+                raise ScheduleError(
+                    "scheduleModeUnconfirmed", "Schedule mode could not be confirmed"
+                ) from err
+            if (speed, bypass) not in self._schedule_mode_ids(modes):
+                raise ScheduleError(
+                    "scheduleModeUnconfirmed", "Schedule mode could not be confirmed"
+                )
+        return modes
 
     @staticmethod
     def _schedule_mode_ids(modes):

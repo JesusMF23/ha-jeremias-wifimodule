@@ -7,7 +7,7 @@ from homeassistant.components import panel_custom, websocket_api
 from homeassistant.components.http import StaticPathConfig
 from homeassistant.exceptions import HomeAssistantError
 
-from .api import ApiError
+from .api import ApiError, ScheduleError
 from .const import DOMAIN, VERSION
 from .demand import PARAMETERS
 from .models import integer, managed_schedule_mode, revision
@@ -21,6 +21,7 @@ OPERATIONS = [
     "control",
     "activate",
     "edit_day",
+    "edit_days",
     "profile",
     "mode",
     "history",
@@ -141,6 +142,17 @@ async def dispatch(hass, message):
             data["rows"],
             data["revision"],
         )
+    if operation == "edit_days":
+        try:
+            return await coordinator.command(
+                control.edit_days,
+                data["profile_id"],
+                data["days"],
+                data["rows"],
+                data["revision"],
+            )
+        except ScheduleError as err:
+            return {"error": err.code, "saved_days": err.saved_days}
     if operation in ("profile", "mode"):
         method = (
             control.mutate_profile if operation == "profile" else control.mutate_mode

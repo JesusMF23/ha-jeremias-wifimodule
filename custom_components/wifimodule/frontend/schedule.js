@@ -22,7 +22,7 @@ export function sortedSchedule(rows) {
   return [...rows].sort((a, b) => a.time - b.time);
 }
 
-export function scheduleIssue(view, day, rows) {
+export function scheduleIssue(view, destinations, rows) {
   const sorted = sortedSchedule(rows);
   if (!rows.length) return "scheduleEmpty";
   if (
@@ -44,9 +44,11 @@ export function scheduleIssue(view, day, rows) {
   )
     return "scheduleMissingMode";
   const otherDays = days
-    .filter((d) => d !== day)
+    .filter((d) => !destinations.includes(d))
     .reduce((sum, d) => sum + (view.week?.[`d${d}`]?.length || 0), 0);
-  return otherDays + rows.length > 150 ? "scheduleLimit" : "";
+  return otherDays + rows.length * destinations.length > 150
+    ? "scheduleLimit"
+    : "";
 }
 
 export function addScheduleRow(rows) {
@@ -142,15 +144,23 @@ function rangeLabel(row, end) {
     : "—";
 }
 
-export function scheduleEditor(view, day, draft, busy, dirty, t, copyDay) {
+export function scheduleEditor(
+  view,
+  day,
+  draft,
+  busy,
+  dirty,
+  t,
+  copyDays = [],
+) {
   const current = view.profile_id;
   const active = current != null && current === view.building.profile_id;
   const ends = scheduleEnds(draft);
   const action = (name, text, disabled = false, cls = "") =>
     `<button type="button" class="${cls}" data-action="${name}" ${busy || disabled ? "disabled" : ""}>${e(text)}</button>`;
   const copyTargets = days.filter((d) => d !== day);
-  const copyTarget = copyTargets.includes(copyDay) ? copyDay : copyTargets[0];
-  const issue = scheduleIssue(view, day, draft);
+  const issue = scheduleIssue(view, [day], draft);
+  const copyIssue = copyDays.length ? scheduleIssue(view, copyDays, draft) : "";
   return `<section class="schedule-editor"><div class="section-heading"><h2>${e(t.schedule)}</h2>${active ? `<span class="pill active">${e(t.active)}</span>` : ""}</div>
     <div class="toolbar schedule-profile"><label>${e(t.profile)}<select id="profile" ${busy || !view.profiles.length ? "disabled" : ""}>${view.profiles.map((p) => option(p.id, p.name, current)).join("")}</select></label>${action("activate", t.activate, active || current == null)}</div>
     <div id="schedule-preview">${schedulePreview(view, day, draft, busy || current == null, dirty, t)}</div>
@@ -158,7 +168,12 @@ export function scheduleEditor(view, day, draft, busy, dirty, t, copyDay) {
     <fieldset class="schedule-rows" aria-label="${e(t.scheduleBlocks)}" ${busy ? "disabled" : ""}>${draft.map((row, i) => scheduleRow(row, i, ends.get(row.time), view, t)).join("")}</fieldset>
     <p id="schedule-issue" class="muted" role="status" ${issue ? "" : "hidden"}>${e(t[issue])}</p>
     <div class="actions">${action("add-row", t.scheduleAdd, current == null || draft.length >= 150)}${action("save-day", t.saveDay, current == null || !!issue, "primary")}</div>
-    <div class="toolbar spaced"><label>${e(t.copy)}<select id="copy-day" ${busy || current == null ? "disabled" : ""}>${copyTargets.map((d) => option(d, t.days[d], copyTarget)).join("")}</select></label>${action("copy-day", t.copyButton, current == null || !!scheduleIssue(view, copyTarget, draft))}</div>
+    <fieldset class="schedule-copy spaced" ${busy || current == null ? "disabled" : ""}>
+      <legend>${e(t.copy)}</legend><p class="muted">${e(t.scheduleCopyHelp)}</p>
+      <div class="schedule-copy-days">${copyTargets.map((d) => `<label class="check"><input type="checkbox" data-schedule-copy-day="${d}"${copyDays.includes(d) ? " checked" : ""}>${e(t.days[d])}</label>`).join("")}</div>
+      <p id="schedule-copy-issue" class="muted" role="status" ${copyIssue ? "" : "hidden"}>${e(t[copyIssue])}</p>
+      <div class="actions"><button type="button" data-schedule-copy-all>${e(copyDays.length === copyTargets.length ? t.scheduleCopyClear : t.scheduleCopyAll)}</button>${action("copy-day", t.copyButton, current == null || !copyDays.length || !!copyIssue)}</div>
+    </fieldset>
     <details class="schedule-help"><summary>${e(t.scheduleHelp)}</summary><p class="muted">${e(t.revision)}</p></details>
     </section>`;
 }
@@ -172,7 +187,16 @@ function scheduleEnds(rows) {
   );
 }
 
-export function updateScheduleEditor(root, view, day, draft, busy, dirty, t) {
+export function updateScheduleEditor(
+  root,
+  view,
+  day,
+  draft,
+  busy,
+  dirty,
+  t,
+  copyDays,
+) {
   root.querySelector("#schedule-preview").innerHTML = schedulePreview(
     view,
     day,
@@ -182,15 +206,22 @@ export function updateScheduleEditor(root, view, day, draft, busy, dirty, t) {
     t,
   );
   root.querySelector("#schedule-draft").hidden = !dirty;
-  const issue = scheduleIssue(view, day, draft);
+  const issue = scheduleIssue(view, [day], draft);
   const status = root.querySelector("#schedule-issue");
   status.hidden = !issue;
   status.textContent = t[issue] || "";
   root.querySelector('[data-action="save-day"]').disabled =
     busy || view.profile_id == null || !!issue;
-  const copyTarget = Number(root.querySelector("#copy-day").value);
+  const copyIssue = copyDays.length ? scheduleIssue(view, copyDays, draft) : "";
+  const copyStatus = root.querySelector("#schedule-copy-issue");
+  copyStatus.hidden = !copyIssue;
+  copyStatus.textContent = t[copyIssue] || "";
   root.querySelector('[data-action="copy-day"]').disabled =
-    busy || view.profile_id == null || !!scheduleIssue(view, copyTarget, draft);
+    busy || view.profile_id == null || !copyDays.length || !!copyIssue;
+  root.querySelector("[data-schedule-copy-all]").textContent =
+    copyDays.length === days.length - 1
+      ? t.scheduleCopyClear
+      : t.scheduleCopyAll;
   const ends = scheduleEnds(draft);
   root.querySelectorAll("[data-schedule-range]").forEach((element, i) => {
     element.textContent = rangeLabel(draft[i], ends.get(draft[i].time));

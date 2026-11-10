@@ -50,6 +50,7 @@ class JeremiasPanel extends HTMLElement {
     this.attachShadow({ mode: "open" });
     this.page = "controls";
     this.day = 1;
+    this.copyDays = [];
     this.entries = [];
     this.busy = false;
     this.dirty = false;
@@ -178,11 +179,13 @@ class JeremiasPanel extends HTMLElement {
     if (this.entryId) await this.loadView();
   }
   async loadView(profile) {
+    const previousProfile = this.view?.profile_id;
     this.automatic = await this.api("automatic");
     this.view = await this.api(
       "view",
       profile === undefined ? {} : { profile_id: Number(profile) },
     );
+    if (this.view.profile_id !== previousProfile) this.copyDays = [];
     this.history = null;
     this.historyUnavailable = false;
     this.manualDraft = null;
@@ -266,9 +269,6 @@ class JeremiasPanel extends HTMLElement {
   }
   async mutate(operation, data) {
     const manualDraft = operation === "bypass" ? this.manualDraft : null;
-    const scheduleCopy =
-      operation === "edit_day" && data.day !== this.day && this.dirty;
-    const draft = this.draft;
     await this.api(operation, data);
     await this.loadView(
       operation === "profile" &&
@@ -278,17 +278,46 @@ class JeremiasPanel extends HTMLElement {
         : this.view.profile_id,
     );
     if (manualDraft) this.manualDraft = manualDraft;
-    if (scheduleCopy) {
-      this.draft = draft;
-      this.dirty = true;
-    }
-    this.notice =
-      operation === "edit_day"
-        ? data.day === this.day
-          ? this.t.scheduleSaved
-          : this.t.scheduleCopied
-        : this.t.saved;
+    this.notice = this.t.saved;
     this.failed = false;
+  }
+  async saveSchedule(days, rows, copy) {
+    const draft = this.draft;
+    const dirty = this.dirty;
+    const profile = this.view.profile_id;
+    const result = await this.api("edit_days", {
+      profile_id: profile,
+      days,
+      rows,
+      revision: this.view.revision,
+    });
+    const saved = result.saved_days;
+    const savedNames = new Intl.ListFormat(this._hass.language).format(
+      saved.map((day) => this.t.days[day]),
+    );
+    const confirmed = `${this.t.scheduleConfirmed} ${savedNames}.`;
+    let issue = result.error ? this.t[result.error] || this.t.error : "";
+    if (saved.length) {
+      if (copy)
+        this.copyDays = this.copyDays.filter((day) => !saved.includes(day));
+      try {
+        await this.loadView(profile);
+      } catch {
+        issue = issue
+          ? `${issue} ${this.t.scheduleReloadFailed}`
+          : this.t.scheduleReloadFailed;
+      }
+      if (copy || issue) {
+        this.draft = draft;
+        this.dirty = dirty;
+      }
+    }
+    this.failed = !!issue;
+    this.notice = issue
+      ? [saved.length ? confirmed : "", issue].filter(Boolean).join(" ")
+      : copy
+        ? confirmed
+        : this.t.scheduleSaved;
   }
   confirmDiscard() {
     if (!this.dirty && !this.automaticDraft) return true;
@@ -482,6 +511,7 @@ class JeremiasPanel extends HTMLElement {
         this.busy,
         this.dirty,
         this.t,
+        this.copyDays,
       );
     const changeDraft = () => {
       this.dirty = true;
@@ -493,15 +523,24 @@ class JeremiasPanel extends HTMLElement {
       const day = Number(button.dataset.scheduleDay);
       if (day === this.day || !this.confirmDiscard()) return;
       this.day = day;
+      this.copyDays = [];
       this.dirty = false;
       this.resetDraft();
       this.render();
       root.querySelector(`[data-schedule-day="${day}"]`)?.focus();
     };
-    const copy = root.querySelector("#copy-day");
-    copy.onchange = () => {
-      this.copyDay = Number(copy.value);
+    const destinations = [...root.querySelectorAll("[data-schedule-copy-day]")];
+    const updateDestinations = () => {
+      this.copyDays = destinations
+        .filter((input) => input.checked)
+        .map((input) => Number(input.dataset.scheduleCopyDay));
       update();
+    };
+    for (const input of destinations) input.onchange = updateDestinations;
+    root.querySelector("[data-schedule-copy-all]").onclick = () => {
+      const selectAll = !destinations.every((input) => input.checked);
+      for (const input of destinations) input.checked = selectAll;
+      updateDestinations();
     };
     root.querySelectorAll("[data-schedule-time]").forEach((input, i) => {
       input.oninput = () => {
@@ -580,7 +619,7 @@ class JeremiasPanel extends HTMLElement {
         this.busy,
         this.dirty,
         t,
-        this.copyDay,
+        this.copyDays,
       );
     if (this.page === "modes" || this.page === "profiles") {
       const kind = this.page === "modes" ? "mode" : "profile";
@@ -708,18 +747,11 @@ class JeremiasPanel extends HTMLElement {
         `[data-schedule-choice="${Math.min(index, this.draft.length - 1)}"]`,
       )?.focus();
     } else if (action === "save-day" || action === "copy-day") {
-      const target =
-        action === "copy-day" ? Number(q("#copy-day").value) : this.day;
-      if (scheduleIssue(this.view, target, this.draft)) return;
+      const copy = action === "copy-day";
+      const days = copy ? [...this.copyDays] : [this.day];
+      if (!days.length || scheduleIssue(this.view, days, this.draft)) return;
       const rows = sortedSchedule(this.draft);
-      this.run(() =>
-        this.mutate("edit_day", {
-          profile_id: this.view.profile_id,
-          day: target,
-          rows,
-          revision: this.view.revision,
-        }),
-      );
+      this.run(() => this.saveSchedule(days, rows, copy));
     } else if (action === "new-mode" || action === "new-profile")
       this.editor(action.slice(4));
     else if (action === "history") {

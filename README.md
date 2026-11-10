@@ -80,7 +80,7 @@ Native entities appear under the integration's building and unit devices. Open *
 3. Boost's button uses five minutes. Panel boost requires 1–60 minutes. Choose **Return to schedule** to cancel an override.
 4. In **Profiles**, create or select a profile. Open **Weekly schedule** to see all seven days, then select a day and add blocks with a fixed speed (off or 1–7) and a bypass setting. You can also choose a saved mode, for example to use the device's automatic mode. Editing a saved mode affects each schedule that uses it.
 5. Review the timeline and select **Save day**. The first block starts at 00:00, times must be distinct, and each profile allows up to 150 blocks per week.
-6. **Copy & save** immediately replaces the target day's entire schedule with the currently edited rows. Export first if you want a local record. Export covers the loaded profile's week and the profile/mode lists, not every profile's week; there is no import/restore feature yet.
+6. Select one or more destination days, then use **Copy & save** to replace their schedules with the rows currently in the editor. If a copy stops partway through, the panel lists the confirmed days. Export covers the loaded profile's week and the profile/mode lists, not every profile's week; there is no import/restore feature yet.
 7. Activate the desired profile. A manual override may still take priority: use **Return to schedule** to hand control back to programming.
 
 In **Controls**, select a point on an air quality chart or use **Explore readings** to see its date, time and values by zone. Gaps indicate unavailable readings.

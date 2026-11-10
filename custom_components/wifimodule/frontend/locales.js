@@ -48,7 +48,18 @@ export const locales = {
     scheduleHelp: "About saving",
     scheduleBypassOn: "On",
     scheduleSaved: "Schedule saved.",
-    scheduleCopied: "Day copied.",
+    scheduleConfirmed: "Schedule saved for",
+    scheduleCopyHelp: "Select the days whose schedule you want to replace.",
+    scheduleCopyAll: "Select all",
+    scheduleCopyClear: "Clear selection",
+    scheduleConflict:
+      "The schedule changed in the cloud. Reload it before trying again.",
+    scheduleModeUnconfirmed:
+      "The cloud did not confirm the speed and bypass for a time block. No days were written.",
+    scheduleWriteUnconfirmed:
+      "A day could not be confirmed. Check the schedule before trying again.",
+    scheduleReloadFailed:
+      "The latest schedule could not be loaded. Refresh to see the confirmed changes.",
     scheduleEmpty: "Add a time block to start this day at 00:00.",
     scheduleInvalidTimes:
       "Set a different start time for each block. The first block starts at 00:00.",
@@ -154,7 +165,18 @@ export const locales = {
     scheduleHelp: "Acerca del guardado",
     scheduleBypassOn: "Encendido",
     scheduleSaved: "Horario guardado.",
-    scheduleCopied: "Día copiado.",
+    scheduleConfirmed: "Horario guardado para",
+    scheduleCopyHelp: "Marca los días cuya programación quieres reemplazar.",
+    scheduleCopyAll: "Seleccionar todos",
+    scheduleCopyClear: "Quitar selección",
+    scheduleConflict:
+      "El horario cambió en la nube. Recárgalo antes de volver a guardar.",
+    scheduleModeUnconfirmed:
+      "La nube no confirmó la velocidad y el bypass de un tramo. No se guardó ningún día.",
+    scheduleWriteUnconfirmed:
+      "No se pudo confirmar un día. Comprueba el horario antes de volver a intentarlo.",
+    scheduleReloadFailed:
+      "No se pudo volver a cargar el horario. Actualiza para ver los cambios confirmados.",
     scheduleEmpty: "Añade un tramo para empezar el día a las 00:00.",
     scheduleInvalidTimes:
       "Elige una hora distinta para cada tramo. El primero empieza a las 00:00.",

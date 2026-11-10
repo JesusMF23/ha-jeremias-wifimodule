@@ -20,6 +20,15 @@ class DeviceError(ApiError):
     """Selected device is missing or unsafe to control."""
 
 
+class ScheduleError(DeviceError):
+    """A programming failure with a safe UI code and confirmed destinations."""
+
+    def __init__(self, code, message, saved_days=()):
+        super().__init__(message)
+        self.code = code
+        self.saved_days = list(saved_days)
+
+
 class ControlCancelled(DeviceError):
     """A stale automatic command was cancelled before transmission."""
 
