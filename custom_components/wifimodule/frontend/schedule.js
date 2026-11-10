@@ -175,11 +175,17 @@ export function scheduleEditor(
     <p id="schedule-issue" class="muted" role="status" ${issue ? "" : "hidden"}>${e(t[issue])}</p>
     <div class="actions">${action("add-row", t.scheduleAdd, current == null || draft.length >= 150)}${action("save-day", t.saveDay, current == null || !!issue, "primary")}</div>
     <fieldset class="schedule-copy spaced" ${busy || current == null ? "disabled" : ""}>
-      <legend>${e(t.copy)}</legend><p class="muted">${e(t.scheduleCopyHelp)}</p>
-      <div class="schedule-copy-days">${copyTargets.map((d) => `<button type="button" class="schedule-copy-day" data-schedule-copy-day="${d}" aria-pressed="${copyDays.includes(d)}"><span aria-hidden="true" class="schedule-copy-check">✓</span>${e(t.days[d])}</button>`).join("")}</div>
-      <p id="schedule-copy-count" class="muted" role="status">${e(copySelectionLabel(copyDays.length, t))}</p>
+      <legend>${e(t.copy)}</legend>
+      <details class="schedule-copy-picker" data-disclosure="schedule-copy">
+        <summary><span>${e(t.scheduleCopyChoose)}</span><span id="schedule-copy-count" class="muted" role="status">${e(copySelectionLabel(copyDays.length, t))}</span><span class="schedule-copy-chevron" aria-hidden="true"></span></summary>
+        <div class="schedule-copy-options">
+          <p class="muted">${e(t.scheduleCopyHelp)}</p>
+          <div class="schedule-copy-days">${copyTargets.map((d) => `<label class="schedule-copy-day"><input type="checkbox" data-schedule-copy-day="${d}"${copyDays.includes(d) ? " checked" : ""}><span>${e(t.days[d])}</span></label>`).join("")}</div>
+          <button type="button" data-schedule-copy-all>${e(copyDays.length === copyTargets.length ? t.scheduleCopyClear : t.scheduleCopyAll)}</button>
+        </div>
+      </details>
       <p id="schedule-copy-issue" class="muted" role="status" ${copyIssue ? "" : "hidden"}>${e(t[copyIssue])}</p>
-      <div class="actions"><button type="button" data-schedule-copy-all>${e(copyDays.length === copyTargets.length ? t.scheduleCopyClear : t.scheduleCopyAll)}</button>${action("copy-day", t.copyButton, current == null || !copyDays.length || !!copyIssue)}</div>
+      <div class="actions">${action("copy-day", t.copyButton, current == null || !copyDays.length || !!copyIssue)}</div>
     </fieldset>
     <details class="schedule-help"><summary>${e(t.scheduleHelp)}</summary><p class="muted">${e(t.revision)}</p></details>
     </section>`;
@@ -225,11 +231,8 @@ export function updateScheduleEditor(
   copyStatus.textContent = t[copyIssue] || "";
   root.querySelector('[data-action="copy-day"]').disabled =
     busy || view.profile_id == null || !copyDays.length || !!copyIssue;
-  for (const button of root.querySelectorAll("[data-schedule-copy-day]"))
-    button.setAttribute(
-      "aria-pressed",
-      String(copyDays.includes(Number(button.dataset.scheduleCopyDay))),
-    );
+  for (const input of root.querySelectorAll("[data-schedule-copy-day]"))
+    input.checked = copyDays.includes(Number(input.dataset.scheduleCopyDay));
   const count = root.querySelector("#schedule-copy-count");
   const description = copySelectionLabel(copyDays.length, t);
   if (count.textContent !== description) count.textContent = description;

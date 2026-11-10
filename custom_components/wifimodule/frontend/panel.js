@@ -185,7 +185,10 @@ class JeremiasPanel extends HTMLElement {
       "view",
       profile === undefined ? {} : { profile_id: Number(profile) },
     );
-    if (this.view.profile_id !== previousProfile) this.copyDays = [];
+    if (this.view.profile_id !== previousProfile) {
+      this.copyDays = [];
+      this.openDisclosures.delete("schedule-copy");
+    }
     this.history = null;
     this.historyUnavailable = false;
     this.manualDraft = null;
@@ -312,6 +315,7 @@ class JeremiasPanel extends HTMLElement {
         this.dirty = dirty;
       }
     }
+    if (copy && !issue) this.openDisclosures.delete("schedule-copy");
     this.failed = !!issue;
     this.notice = issue
       ? [saved.length ? confirmed : "", issue].filter(Boolean).join(" ")
@@ -406,10 +410,11 @@ class JeremiasPanel extends HTMLElement {
     });
     this.shadowRoot.querySelectorAll("[data-disclosure]").forEach((el) => {
       el.open = this.openDisclosures.has(el.dataset.disclosure);
-      el.ontoggle = () =>
-        el.open
-          ? this.openDisclosures.add(el.dataset.disclosure)
-          : this.openDisclosures.delete(el.dataset.disclosure);
+      el.ontoggle = () => {
+        if (!el.isConnected) return;
+        if (el.open) this.openDisclosures.add(el.dataset.disclosure);
+        else this.openDisclosures.delete(el.dataset.disclosure);
+      };
     });
     this.shadowRoot.querySelectorAll("[data-history-hours]").forEach(
       (el) =>
@@ -524,18 +529,25 @@ class JeremiasPanel extends HTMLElement {
       if (day === this.day || !this.confirmDiscard()) return;
       this.day = day;
       this.copyDays = [];
+      this.openDisclosures.delete("schedule-copy");
       this.dirty = false;
       this.resetDraft();
       this.render();
       root.querySelector(`[data-schedule-day="${day}"]`)?.focus();
     };
+    const picker = root.querySelector('[data-disclosure="schedule-copy"]');
+    picker.onkeydown = (event) => {
+      if (event.key !== "Escape" || !picker.open) return;
+      event.stopPropagation();
+      picker.open = false;
+      picker.querySelector("summary").focus();
+    };
     const destinations = [...root.querySelectorAll("[data-schedule-copy-day]")];
-    for (const button of destinations) {
-      button.onclick = () => {
-        const day = Number(button.dataset.scheduleCopyDay);
-        this.copyDays = this.copyDays.includes(day)
-          ? this.copyDays.filter((selected) => selected !== day)
-          : [...this.copyDays, day];
+    for (const input of destinations) {
+      input.onchange = () => {
+        this.copyDays = destinations
+          .filter((day) => day.checked)
+          .map((day) => Number(day.dataset.scheduleCopyDay));
         update();
       };
     }
@@ -543,9 +555,7 @@ class JeremiasPanel extends HTMLElement {
       this.copyDays =
         this.copyDays.length === destinations.length
           ? []
-          : destinations.map((button) =>
-              Number(button.dataset.scheduleCopyDay),
-            );
+          : destinations.map((input) => Number(input.dataset.scheduleCopyDay));
       update();
     };
     root.querySelectorAll("[data-schedule-time]").forEach((input, i) => {
