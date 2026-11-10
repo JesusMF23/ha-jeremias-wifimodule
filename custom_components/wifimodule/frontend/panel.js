@@ -530,17 +530,23 @@ class JeremiasPanel extends HTMLElement {
       root.querySelector(`[data-schedule-day="${day}"]`)?.focus();
     };
     const destinations = [...root.querySelectorAll("[data-schedule-copy-day]")];
-    const updateDestinations = () => {
-      this.copyDays = destinations
-        .filter((input) => input.checked)
-        .map((input) => Number(input.dataset.scheduleCopyDay));
-      update();
-    };
-    for (const input of destinations) input.onchange = updateDestinations;
+    for (const button of destinations) {
+      button.onclick = () => {
+        const day = Number(button.dataset.scheduleCopyDay);
+        this.copyDays = this.copyDays.includes(day)
+          ? this.copyDays.filter((selected) => selected !== day)
+          : [...this.copyDays, day];
+        update();
+      };
+    }
     root.querySelector("[data-schedule-copy-all]").onclick = () => {
-      const selectAll = !destinations.every((input) => input.checked);
-      for (const input of destinations) input.checked = selectAll;
-      updateDestinations();
+      this.copyDays =
+        this.copyDays.length === destinations.length
+          ? []
+          : destinations.map((button) =>
+              Number(button.dataset.scheduleCopyDay),
+            );
+      update();
     };
     root.querySelectorAll("[data-schedule-time]").forEach((input, i) => {
       input.oninput = () => {

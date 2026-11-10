@@ -144,6 +144,12 @@ function rangeLabel(row, end) {
     : "—";
 }
 
+function copySelectionLabel(count, t) {
+  if (count === 0) return t.scheduleCopyNone;
+  if (count === 1) return t.scheduleCopyOne;
+  return t.scheduleCopyCount.replace("{count}", count);
+}
+
 export function scheduleEditor(
   view,
   day,
@@ -170,7 +176,8 @@ export function scheduleEditor(
     <div class="actions">${action("add-row", t.scheduleAdd, current == null || draft.length >= 150)}${action("save-day", t.saveDay, current == null || !!issue, "primary")}</div>
     <fieldset class="schedule-copy spaced" ${busy || current == null ? "disabled" : ""}>
       <legend>${e(t.copy)}</legend><p class="muted">${e(t.scheduleCopyHelp)}</p>
-      <div class="schedule-copy-days">${copyTargets.map((d) => `<label class="check"><input type="checkbox" data-schedule-copy-day="${d}"${copyDays.includes(d) ? " checked" : ""}>${e(t.days[d])}</label>`).join("")}</div>
+      <div class="schedule-copy-days">${copyTargets.map((d) => `<button type="button" class="schedule-copy-day" data-schedule-copy-day="${d}" aria-pressed="${copyDays.includes(d)}"><span aria-hidden="true" class="schedule-copy-check">✓</span>${e(t.days[d])}</button>`).join("")}</div>
+      <p id="schedule-copy-count" class="muted" role="status">${e(copySelectionLabel(copyDays.length, t))}</p>
       <p id="schedule-copy-issue" class="muted" role="status" ${copyIssue ? "" : "hidden"}>${e(t[copyIssue])}</p>
       <div class="actions"><button type="button" data-schedule-copy-all>${e(copyDays.length === copyTargets.length ? t.scheduleCopyClear : t.scheduleCopyAll)}</button>${action("copy-day", t.copyButton, current == null || !copyDays.length || !!copyIssue)}</div>
     </fieldset>
@@ -218,6 +225,14 @@ export function updateScheduleEditor(
   copyStatus.textContent = t[copyIssue] || "";
   root.querySelector('[data-action="copy-day"]').disabled =
     busy || view.profile_id == null || !copyDays.length || !!copyIssue;
+  for (const button of root.querySelectorAll("[data-schedule-copy-day]"))
+    button.setAttribute(
+      "aria-pressed",
+      String(copyDays.includes(Number(button.dataset.scheduleCopyDay))),
+    );
+  const count = root.querySelector("#schedule-copy-count");
+  const description = copySelectionLabel(copyDays.length, t);
+  if (count.textContent !== description) count.textContent = description;
   root.querySelector("[data-schedule-copy-all]").textContent =
     copyDays.length === days.length - 1
       ? t.scheduleCopyClear

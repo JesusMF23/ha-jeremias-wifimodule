@@ -58,8 +58,18 @@ async def dispatch(hass, message):
             raise ValueError("Unknown automatic setting")
         if data:
             await coordinator.automatic.configure(**data)
+        active_profile_id = coordinator.data.get("profile_id")
         return {
             **coordinator.automatic.snapshot,
+            "active_profile_name": next(
+                (
+                    profile.get("name")
+                    for profile in coordinator.profiles
+                    if active_profile_id is not None
+                    and profile.get("id") == active_profile_id
+                ),
+                None,
+            ),
             "units": unit_summaries(coordinator),
             "candidates": sensor_catalogue(
                 hass, coordinator.automatic.settings.stale_seconds

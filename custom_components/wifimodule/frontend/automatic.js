@@ -13,8 +13,17 @@ export const speedLabel = (v, t) => (v === 0 ? t.off : (v ?? "—"));
 
 export function automaticStatus(a, t) {
   const s = a.enabled ? a.source : null;
+  const scheduled = a.mode === "schedule";
+  const source = scheduled
+    ? a.active_profile_name || t.unavailable
+    : s?.name ||
+      (a.enabled
+        ? t.noSource
+        : a.mode === "manual"
+          ? timerSummary(a, t) || t.manualHold
+          : t.paused);
   return `<div class="status-top"><span class="pill ${a.enabled ? "active" : ""}">${e(a.status === "manual" && a.manual_timer?.expires_at ? t.manualTimed : t.states[a.status] || a.status)}</span><span class="muted">${e(t.cloud)} · ${e(a.connection?.available ? (a.connection.device_ready ? t.connected : t.deviceWaiting) : t.disconnected)}</span></div>
-    <div class="regulation-metrics"><div><span class="eyebrow">${e(t.actual)}</span><strong class="speed-number">${e(speedLabel(a.actual_speed, t))}</strong></div><div><span class="eyebrow">${e(t.target)}</span><strong class="speed-number">${e(speedLabel(a.enabled ? a.target_speed : a.mode === "manual" ? a.manual_speed : null, t))}</strong></div><div class="demand"><span class="eyebrow">${e(t.source)}</span><strong>${s ? e(s.name) : e(a.enabled ? t.noSource : a.mode === "manual" ? timerSummary(a, t) || t.manualHold : a.mode === "schedule" ? t.scheduleHelp : t.paused)}</strong>${s ? `<small>${e(t.kinds[s.kind])} · ${e(s.value)} ${e(s.unit)} · ${e(a.demand_percent)}%</small>` : ""}${a.enabled && a.wait_seconds ? `<small>${e(t.wait)}: ${e(a.wait_seconds)} s</small>` : ""}</div></div>
+    <div class="regulation-metrics"><div><span class="eyebrow">${e(t.actual)}</span><strong class="speed-number">${e(speedLabel(a.actual_speed, t))}</strong></div><div><span class="eyebrow">${e(t.target)}</span><strong class="speed-number">${e(speedLabel(a.enabled ? a.target_speed : a.mode === "manual" ? a.manual_speed : null, t))}</strong></div><div class="demand"><span class="eyebrow">${e(scheduled ? t.activeProfile : t.source)}</span><strong>${e(source)}</strong>${scheduled ? `<small>${e(t.scheduleHelp)}</small>` : ""}${s ? `<small>${e(t.kinds[s.kind])} · ${e(s.value)} ${e(s.unit)} · ${e(a.demand_percent)}%</small>` : ""}${a.enabled && a.wait_seconds ? `<small>${e(t.wait)}: ${e(a.wait_seconds)} s</small>` : ""}</div></div>
     ${a.enabled && a.invalid_sensors?.length ? `<p class="notice error">${e(t.invalid)}: ${a.invalid_sensors.map(e).join(", ")}</p>` : ""}`;
 }
 

@@ -62,3 +62,9 @@ test('manual target and schedule selection are distinct from sensor pause',()=>{
  assert.match(html,/data-action="automatic-schedule" aria-pressed="true"/);
  assert.match(html,/Horario Jeremias/);
 });
+
+test("schedule status shows the active profile and escapes its name", () => {
+  const scheduled = {...a, mode:"schedule", status:"schedule", active_profile_name:"Autumn <2026>"};
+  assert.match(automaticStatus(scheduled, locales.es), /Perfil activo<\/span><strong>Autumn &lt;2026&gt;/);
+  assert.doesNotMatch(automaticStatus({...scheduled, mode:"manual"}, locales.es), /Autumn/);
+});

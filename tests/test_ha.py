@@ -10,7 +10,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from custom_components.wifimodule.api import DeviceError
 from custom_components.wifimodule.config_flow import WifiModuleConfigFlow
-from custom_components.wifimodule.panel import websocket_manage
+from custom_components.wifimodule.panel import dispatch, websocket_manage
 from custom_components.wifimodule.sensor import Telemetry
 
 
@@ -53,6 +53,26 @@ def test_real_websocket_wrapper_denies_non_admin_before_dispatch():
         with pytest.raises(Unauthorized):
             websocket_manage(Mock(), connection, message)
     dispatch.assert_not_awaited()
+
+
+async def test_regulation_status_tracks_reported_active_profile():
+    coordinator = SimpleNamespace(
+        automatic=SimpleNamespace(
+            snapshot={"mode": "schedule"}, settings=SimpleNamespace(stale_seconds=300)
+        ),
+        controller=SimpleNamespace(ready=True),
+        data={"units": [], "profile_id": 2},
+        profiles=[{"id": 1, "name": "Summer"}, {"id": 2, "name": "Autumn"}],
+        last_update_success=True,
+    )
+    hass = Mock(data={"wifimodule": {"entries": {"demo": coordinator}}})
+    message = {"operation": "automatic", "entry_id": "demo"}
+    with patch("custom_components.wifimodule.panel.sensor_catalogue", return_value={}):
+        assert (await dispatch(hass, message))["active_profile_name"] == "Autumn"
+        coordinator.data["profile_id"] = 1
+        assert (await dispatch(hass, message))["active_profile_name"] == "Summer"
+        coordinator.data["profile_id"] = None
+        assert (await dispatch(hass, message))["active_profile_name"] is None
 
 
 async def test_unload_only_removes_entry_after_platform_success():

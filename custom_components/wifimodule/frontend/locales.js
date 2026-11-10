@@ -49,7 +49,10 @@ export const locales = {
     scheduleBypassOn: "On",
     scheduleSaved: "Schedule saved.",
     scheduleConfirmed: "Schedule saved for",
-    scheduleCopyHelp: "Select the days whose schedule you want to replace.",
+    scheduleCopyHelp: "Select each day whose schedule you want to replace.",
+    scheduleCopyNone: "No days selected",
+    scheduleCopyOne: "1 day selected",
+    scheduleCopyCount: "{count} days selected",
     scheduleCopyAll: "Select all",
     scheduleCopyClear: "Clear selection",
     scheduleConflict:
@@ -70,7 +73,7 @@ export const locales = {
     add: "Add",
     remove: "Remove",
     saveDay: "Save day",
-    copy: "Copy this day to",
+    copy: "Copy to other days",
     copyButton: "Copy & save",
     revision:
       "If the website changed this week since loading, saving is blocked. Reload to try again.",
@@ -166,7 +169,10 @@ export const locales = {
     scheduleBypassOn: "Encendido",
     scheduleSaved: "Horario guardado.",
     scheduleConfirmed: "Horario guardado para",
-    scheduleCopyHelp: "Marca los días cuya programación quieres reemplazar.",
+    scheduleCopyHelp: "Pulsa los días cuya programación quieres reemplazar.",
+    scheduleCopyNone: "Ningún día seleccionado",
+    scheduleCopyOne: "1 día seleccionado",
+    scheduleCopyCount: "{count} días seleccionados",
     scheduleCopyAll: "Seleccionar todos",
     scheduleCopyClear: "Quitar selección",
     scheduleConflict:
@@ -188,7 +194,7 @@ export const locales = {
     add: "Añadir",
     remove: "Quitar",
     saveDay: "Guardar día",
-    copy: "Copiar este día a",
+    copy: "Copiar a otros días",
     copyButton: "Copiar y guardar",
     revision:
       "Si el horario cambió en la web desde que lo cargaste, se bloquea el guardado. Recarga antes de intentarlo otra vez.",

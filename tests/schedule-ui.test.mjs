@@ -46,8 +46,15 @@ test("copy shows independent day selections and applies the limit to the full ba
   };
   const html = scheduleEditor(view, 1, rows, false, true, locales.es, [2, 4]);
   assert.doesNotMatch(html, /data-schedule-copy-day="1"/);
-  assert.match(html, /data-schedule-copy-day="2" checked/);
-  assert.match(html, /data-schedule-copy-day="4" checked/);
+  assert.match(
+    html,
+    /<button[^>]+data-schedule-copy-day="2" aria-pressed="true"/,
+  );
+  assert.match(
+    html,
+    /<button[^>]+data-schedule-copy-day="4" aria-pressed="true"/,
+  );
+  assert.match(html, /2 días seleccionados/);
   assert.equal(scheduleIssue(view, [2, 4], rows), "");
   assert.equal(scheduleIssue(view, [2, 4, 5], rows), "scheduleLimit");
 });
