@@ -91,6 +91,10 @@ async def cloud(monkeypatch, request):
                         boost=None,
                     )
                     return web.json_response({"msg": "modes", "modes": collection})
+                elif data["off"] and readback in ("zero_off_speed", "null_off_speed"):
+                    collection[-1]["speed"] = (
+                        0 if readback == "zero_off_speed" else None
+                    )
             elif operation == "edit":
                 item = next(item for item in collection if item["id"] == data["id"])
                 item.update(data)
@@ -249,6 +253,36 @@ async def test_mode_creation_is_confirmed_from_readback_and_reused(cloud):
     assert (await c.week(10))["d2"] == week["d1"]
     assert [endpoint for endpoint, _ in writes] == [
         "modes",
+        "edit-schedule",
+        "edit-schedule",
+    ]
+
+
+@pytest.mark.parametrize("cloud", ["zero_off_speed", "null_off_speed"], indirect=True)
+async def test_save_and_copy_off_schedule_when_cloud_normalizes_speed(cloud):
+    c, writes = cloud
+    rows = [{"time": 0, "mode": 20}, {"time": 1320, "speed": 0, "bypass": False}]
+    await c.edit_day(10, 1, rows, revision(await c.week(10)))
+
+    week = await c.week(10)
+    result = await c.edit_days(10, [3, 5], rows, revision(week))
+
+    assert result["saved_days"] == [3, 5]
+    mode = next(mode for mode in await c.modes() if mode["name"] == "HA Schedule 0-0")
+    assert mode["off"] is True
+    after = await c.week(10)
+    assert (
+        after["d1"]
+        == after["d3"]
+        == after["d5"]
+        == [
+            {"time": 0, "mode_id": 20},
+            {"time": 1320, "mode_id": mode["id"]},
+        ]
+    )
+    assert [endpoint for endpoint, _ in writes] == [
+        "modes",
+        "edit-schedule",
         "edit-schedule",
         "edit-schedule",
     ]

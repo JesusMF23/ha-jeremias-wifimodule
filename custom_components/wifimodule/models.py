@@ -184,10 +184,11 @@ def managed_schedule_mode(mode):
         mode.get("mode") != "manual"
         or _mode_flag(mode.get("off")) is not (speed == 0)
         or _mode_flag(mode.get("boost")) is not False
-        or type(wire_speed) is not int
-        or wire_speed != max(1, speed)
         or _mode_flag(mode.get("bypass")) is not bypass
     ):
+        return None
+    # The off flag controls shutdown; the stored fan level is unused.
+    if speed and (type(wire_speed) is not int or wire_speed != speed):
         return None
     return {"speed": speed, "bypass": bypass}
 
