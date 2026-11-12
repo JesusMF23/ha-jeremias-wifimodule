@@ -46,7 +46,7 @@ AQS sensor metadata initializes at the first valid type. If the physical sensor 
 
 These programming requests are **source-confirmed, not yet authenticated acceptance-tested**.
 
-Mode data: `name`, six-digit hex `color`, `speed` clamped 1–7, `off` and `boost` booleans, `bypass` numeric 0/1, and `mode` manual/auto. Add includes `building_id`; edit includes `id`; delete only `id`. The panel uses conceptual speeds 0 and 8, converted to the website's `off`/`boost` flags by the backend.
+Mode writes use `name`, six-digit hex `color`, `speed` clamped 1–7, `off` and `boost` booleans, `bypass` numeric 0/1, and `mode` manual/auto. Add includes `building_id`; edit includes `id`; delete only `id`. The panel uses conceptual speeds 0 and 8, converted to the website's `off`/`boost` flags by the backend. An authenticated panel export confirmed that saved Off modes can read back as `speed: 0` without a populated `off` flag.
 
 Days: 0 Sunday, 1 Monday … 6 Saturday. `time` is minutes from midnight. Read rows use `mode_id`; write rows use `mode`. Each write replaces a full day. The first row must start at zero; times strictly increase; mode IDs must belong to the building. The integration rejects more than 150 changes in a week.
 

@@ -178,11 +178,22 @@ def managed_schedule_mode(mode):
         return None
     speed, bypass = int(match[1]), match[2] == "1"
     wire_speed = mode.get("speed")
-    if isinstance(wire_speed, str) and wire_speed in "1234567" and len(wire_speed) == 1:
+    if (
+        isinstance(wire_speed, str)
+        and len(wire_speed) == 1
+        and wire_speed in "01234567"
+    ):
         wire_speed = int(wire_speed)
+    # WifiModule can read back a saved Off mode as speed 0 without the write flag.
+    wire_off = mode.get("off")
+    off = (
+        type(wire_speed) is int and wire_speed == 0
+        if wire_off is None
+        else _mode_flag(wire_off)
+    )
     if (
         mode.get("mode") != "manual"
-        or _mode_flag(mode.get("off")) is not (speed == 0)
+        or off is not (speed == 0)
         or _mode_flag(mode.get("boost")) is not False
         or _mode_flag(mode.get("bypass")) is not bypass
     ):

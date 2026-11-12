@@ -28,6 +28,28 @@ async def cloud(monkeypatch, request):
     modes = [{"id": 20, "name": "Low"}]
     profiles = [{"id": 10, "name": "Main"}]
     base = {f"d{i}": [{"time": 0, "mode_id": 20}] for i in range(7)}
+    if readback == "saved_off_mode":
+        modes.extend(
+            {
+                "id": identity,
+                "name": f"HA Schedule {speed}-0{suffix}",
+                "speed": speed,
+                "bypass": 0,
+                "boost": 0,
+                "mode": "manual",
+            }
+            for identity, speed, suffix in [
+                (21, 2, ""),
+                (22, 3, ""),
+                (23, 0, ""),
+                (24, 0, " (2)"),
+            ]
+        )
+        base["d1"] = [
+            {"time": 0, "mode_id": 22},
+            {"time": 480, "mode_id": 21},
+            {"time": 1260, "mode_id": 22},
+        ]
     weeks = {10: deepcopy(base)}
     building = {
         "id": 1,
@@ -95,6 +117,9 @@ async def cloud(monkeypatch, request):
                     collection[-1]["speed"] = (
                         0 if readback == "zero_off_speed" else None
                     )
+                elif data["off"] and readback in ("off_flag_omitted", "saved_off_mode"):
+                    collection[-1]["speed"] = 0
+                    collection[-1].pop("off")
             elif operation == "edit":
                 item = next(item for item in collection if item["id"] == data["id"])
                 item.update(data)
@@ -258,7 +283,9 @@ async def test_mode_creation_is_confirmed_from_readback_and_reused(cloud):
     ]
 
 
-@pytest.mark.parametrize("cloud", ["zero_off_speed", "null_off_speed"], indirect=True)
+@pytest.mark.parametrize(
+    "cloud", ["zero_off_speed", "null_off_speed", "off_flag_omitted"], indirect=True
+)
 async def test_save_and_copy_off_schedule_when_cloud_normalizes_speed(cloud):
     c, writes = cloud
     rows = [{"time": 0, "mode": 20}, {"time": 1320, "speed": 0, "bypass": False}]
@@ -269,7 +296,6 @@ async def test_save_and_copy_off_schedule_when_cloud_normalizes_speed(cloud):
 
     assert result["saved_days"] == [3, 5]
     mode = next(mode for mode in await c.modes() if mode["name"] == "HA Schedule 0-0")
-    assert mode["off"] is True
     after = await c.week(10)
     assert (
         after["d1"]
@@ -286,6 +312,32 @@ async def test_save_and_copy_off_schedule_when_cloud_normalizes_speed(cloud):
         "edit-schedule",
         "edit-schedule",
     ]
+
+
+@pytest.mark.parametrize("cloud", ["saved_off_mode"], indirect=True)
+async def test_edit_existing_monday_with_off_mode_that_has_no_off_flag(cloud):
+    c, writes = cloud
+    before = await c.week(10)
+    rows = [
+        {"time": 0, "speed": 3, "bypass": False},
+        {"time": 480, "speed": 2, "bypass": False},
+        {"time": 720, "speed": 0, "bypass": False},
+        {"time": 960, "speed": 2, "bypass": False},
+        {"time": 1260, "speed": 3, "bypass": False},
+    ]
+    assert await c.edit_days(10, [1], rows, revision(before)) == {"saved_days": [1]}
+
+    assert await c.week(10) == {
+        **before,
+        "d1": [
+            {"time": 0, "mode_id": 22},
+            {"time": 480, "mode_id": 21},
+            {"time": 720, "mode_id": 23},
+            {"time": 960, "mode_id": 21},
+            {"time": 1260, "mode_id": 22},
+        ],
+    }
+    assert [endpoint for endpoint, _ in writes] == ["edit-schedule"]
 
 
 async def test_batch_copy_validates_all_destinations_and_creates_modes_once(cloud):
